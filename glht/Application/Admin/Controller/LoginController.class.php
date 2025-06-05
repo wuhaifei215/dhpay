@@ -171,14 +171,14 @@ class LoginController extends Controller
     {
         $csrf_token = I('get.csrf_token', '');
         if (!$csrf_token || !session('admin_csrf_token')) {
-            exit('error');
+            exit('error1');
         }
         if (session('admin_csrf_token') != $csrf_token) {
-            exit('error');
+            exit('error2');
         }
         $admin_csrf_token_times = session('admin_csrf_token_times');
         if (is_null($admin_csrf_token_times) || $admin_csrf_token_times > 20) {//token最大使用次数20
-            exit('error');
+            exit('error3');
         }
         session('admin_csrf_token_times', $admin_csrf_token_times + 1);
         $config = array(

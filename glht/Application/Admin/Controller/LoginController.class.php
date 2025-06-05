@@ -170,6 +170,7 @@ class LoginController extends Controller
     public function verifycode()
     {
         $csrf_token = I('get.csrf_token', '');
+        var_dump($csrf_token);
         if (!$csrf_token || !session('admin_csrf_token')) {
             exit('error1');
         }

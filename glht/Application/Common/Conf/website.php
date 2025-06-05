@@ -2,7 +2,7 @@
 	return array(
 		'WEB_TITLE' => 'DH国际支付',
 		'DOMAIN' => 'hx.dhpay.vip',
-		'MODULE_ALLOW_LIST'   => array('Home','User','sysadmin','Install', 'Weixin','Pay','Cashier','Agent','Payment','Cli'),
+		'MODULE_ALLOW_LIST'   => array('Home','User','hxadmin','Install', 'Weixin','Pay','Cashier','Agent','Payment','Cli'),
 		'URL_MODULE_MAP'  => array('hxadmin'=>'admin', 'agent'=>'user', 'user'=>'user'),
 		'LOGINNAME' => 'user',
 		'HOUTAINAME' => 'sysadmin',

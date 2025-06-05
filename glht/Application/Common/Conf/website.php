@@ -1,13 +1,13 @@
 <?php 
 	return array(
-		'WEB_TITLE' => 'YUN国际支付',
-		'DOMAIN' => 'yunadmin.yunpay.me',
+		'WEB_TITLE' => 'DH国际支付',
+		'DOMAIN' => 'hx.dhpay.vip',
 		'MODULE_ALLOW_LIST'   => array('Home','User','sysadmin','Install', 'Weixin','Pay','Cashier','Agent','Payment','Cli'),
 		'URL_MODULE_MAP'  => array('sysadmin'=>'admin', 'agent'=>'user', 'user'=>'user'),
 		'LOGINNAME' => 'user',
 		'HOUTAINAME' => 'sysadmin',
-		'API_DOMAIN' => 'api.yunpay.me',
-        'NOTIFY_DOMAIN' => 'napi.yunpay.me',
-        'LOG_API_URL' => 'https://log.yunpay.me',
+		'API_DOMAIN' => 'api.dhpay.vip',
+        'NOTIFY_DOMAIN' => 'napi.dhpay.vip',
+        'LOG_API_URL' => 'http://log.dhpay.vip',
     );
 ?>

@@ -9,7 +9,7 @@ $codecode = substr(md5($codecode1), -6);
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0" name="viewport">
-    <title>动态码</title>
+    <title>动态码</title>z
 </head>
 <body style="background-color:#f9f9f9">
 <form action="" method="post" autocomplete="off">

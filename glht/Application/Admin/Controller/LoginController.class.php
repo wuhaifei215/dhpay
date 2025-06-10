@@ -173,6 +173,7 @@ class LoginController extends Controller
         error_reporting(E_ALL);
 
         $csrf_token = I('get.csrf_token', '');
+        var_dump(session('admin_csrf_token'));
         if (!$csrf_token || !session('admin_csrf_token')) {
             exit('error1');
         }

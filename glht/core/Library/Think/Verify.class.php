@@ -174,6 +174,7 @@ class Verify {
         $secode     =   array();
         $secode['verify_code'] = $code; // 把校验码保存到session
         $secode['verify_time'] = NOW_TIME;  // 验证码创建时间
+        var_dump($secode);die;
         session($key.$id, $secode);
                         
         header('Cache-Control: private, max-age=0, no-store, no-cache, must-revalidate');

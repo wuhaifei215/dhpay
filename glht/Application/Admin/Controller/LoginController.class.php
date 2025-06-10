@@ -42,7 +42,7 @@ class LoginController extends Controller
                 $this->ajaxReturn(['errorno' => 1, 'msg' => '账号和密码不能为空！', 'url' => '']);
             }
             //验证码校验
-            date_default_timezone_set('America/Sao_Paulo');
+//            date_default_timezone_set('America/Sao_Paulo');
             if (!$verify->check($verification)) {
                 $this->ajaxReturn(['errorno' => 1, 'msg' => '验证码输入错误！', 'url' => '']);
             }
@@ -170,7 +170,6 @@ class LoginController extends Controller
     public function verifycode()
     {
         $csrf_token = I('get.csrf_token', '');
-        var_dump(session('admin_csrf_token'));die;
         if (!$csrf_token || !session('admin_csrf_token')) {
             exit('error1');
         }
@@ -189,7 +188,6 @@ class LoginController extends Controller
             'useZh' => false, // 使用中文验证码
             'useCurve' => false, // 是否画混淆曲线
         );
-        var_dump(ob_get_clean());die;
         ob_clean();
         $verify = new Verify($config);
         $verify->entry();

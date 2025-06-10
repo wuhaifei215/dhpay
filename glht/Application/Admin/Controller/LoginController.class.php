@@ -23,8 +23,8 @@ class LoginController extends Controller
     public function index()
     {
         $csrf_token = gen_token();
-        var_dump($csrf_token);die;
         session('admin_csrf_token', $csrf_token);//验证码token
+        var_dump(session('admin_csrf_token'));die;
         session('admin_csrf_token_times', 0);//token使用次数
         $this->assign('csrf_token', $csrf_token);
         $this->display();

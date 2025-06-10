@@ -21,7 +21,7 @@ class LoginController extends Controller
 
     //登录页
     public function index()
-    { 
+    {
         $csrf_token = gen_token();
         session('admin_csrf_token', $csrf_token);//验证码token
         session('admin_csrf_token_times', 0);//token使用次数
@@ -188,7 +188,7 @@ class LoginController extends Controller
             'useZh' => false, // 使用中文验证码
             'useCurve' => false, // 是否画混淆曲线
         );
-//        ob_clean();
+        ob_clean();
         $verify = new Verify($config);
         $verify->entry();
     }

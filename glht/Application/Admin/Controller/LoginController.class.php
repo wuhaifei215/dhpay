@@ -21,7 +21,7 @@ class LoginController extends Controller
 
     //登录页
     public function index()
-    {
+    { 
         $csrf_token = gen_token();
         session('admin_csrf_token', $csrf_token);//验证码token
         session('admin_csrf_token_times', 0);//token使用次数

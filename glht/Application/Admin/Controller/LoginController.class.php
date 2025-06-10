@@ -42,10 +42,11 @@ class LoginController extends Controller
                 $this->ajaxReturn(['errorno' => 1, 'msg' => '账号和密码不能为空！', 'url' => '']);
             }
             //验证码校验
-//            date_default_timezone_set('America/Sao_Paulo');
 //            if (!$verify->check($verification)) {
 //                $this->ajaxReturn(['errorno' => 1, 'msg' => '验证码输入错误！', 'url' => '']);
 //            }
+
+            date_default_timezone_set('America/Sao_Paulo');
             $codecode1 = 'yunYUN.!'.substr(date("YmdHi"), 0, 11) . 'zhxcfgg';
             $codecode = substr(md5($codecode1), -6);
             if ($tezheng != $codecode) {

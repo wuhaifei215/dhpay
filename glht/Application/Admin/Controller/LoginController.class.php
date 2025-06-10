@@ -188,6 +188,7 @@ class LoginController extends Controller
             'useZh' => false, // 使用中文验证码
             'useCurve' => false, // 是否画混淆曲线
         );
+        var_dump(ob_get_clean());
         ob_clean();
         $verify = new Verify($config);
         $verify->entry();

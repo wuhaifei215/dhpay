@@ -1095,7 +1095,7 @@ class StatisticsController extends BaseController
         // var_dump($stat);
         $this->assign("stat", $stat);
         
-        $targetUrl = 'https://' . C('DOMAIN') . "/sysadmin_Statistics_monitor.html";
+        $targetUrl = 'https://' . C('DOMAIN') . "/" . C('HOUTAINAME') . "_Statistics_monitor.html";
         $this->assign("targetUrl", $targetUrl);
         $this->display();
     }

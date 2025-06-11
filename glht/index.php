@@ -1,7 +1,6 @@
 <?php
 // 获取服务器的IP地址
-$serverIP = v['SERVER_ADDR'];
-
+$serverIP = $_SERVER['SERVER_ADDR'];
 echo $serverIP;
 die;
 // 检测PHP环境

@@ -2,9 +2,12 @@
 /api/Data/
 /api/Runtime/
 /api/Uploads/
+/api/Application/Common/Conf/db.php
 /glht/Data/
 /glht/Runtime/
 /glht/Uploads/
+/glht/Application/Common/Conf/db.php
 /user/Data/
 /user/Runtime/
 /user/Uploads/
+/user/Application/Common/Conf/db.php

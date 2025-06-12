@@ -1,5 +1,5 @@
 <?php
-namespace Admin\Controller;
+namespace Adminpak\Controller;
 use Org\Net\UserLogService;
 
 class AdminController extends BaseController

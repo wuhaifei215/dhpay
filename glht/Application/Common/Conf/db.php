@@ -20,7 +20,9 @@ return array(
     'REDIS_PWD'   => 'Yun!x@y#z99pay',       //密码
     'REDIS_SELECT' => '0',
 
-    'SESSION_TYPE' => 'Redis',
+    'SESSION_TYPE' => 'Db',
+    'SESSION_TABLE' => '',
+    'DB_PREFIX' => 'think_',
 
 );
 

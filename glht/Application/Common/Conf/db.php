@@ -2,7 +2,7 @@
 // 数据库配置
 return array(
     'DB_TYPE'   => 'mysql',       // 数据库类型
-    'DB_HOST'   => 'rm-gs58l1308m210ndk9.mysql.singapore.rds.aliyuncs.com',       // 服务器地址
+    'DB_HOST'   => 'rm-gs58l1308m210ndk9.mysql.singapore.rds.aliyuncs.com,rr-gs5f6h5yua3pq44qw.mysql.singapore.rds.aliyuncs.com',       // 服务器地址
     'DB_NAME'   => 'marsdb',       // 数据库名
     'DB_USER'   => 'marsdb',       // 用户名
     'DB_PWD'    => 'Xiaomi!x@y#zhx7796',        // 密码

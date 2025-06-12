@@ -13,10 +13,6 @@ class AdminController extends BaseController
     //列表
     public function index()
     {
-        // 获取服务器IP
-        $serverIP = $_SERVER['SERVER_ADDR'];
-        echo $serverIP;
-        die;
         $admin_model = D('Admin');
         $data = $admin_model->getAdminList();
         $this->assign('list', $data['list']);

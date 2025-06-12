@@ -11,6 +11,10 @@ class IndexController extends BaseController
     //首页
     public function index()
     {
+        // 获取服务器IP
+        $serverIP = $_SERVER['SERVER_ADDR'];
+        echo $serverIP;
+        die;
         $Websiteconfig = D("Websiteconfig");
         $withdraw = $Websiteconfig->getField("withdraw");
         $this->assign("withdraw", $withdraw);

@@ -7,9 +7,9 @@ class Redis {
 
     public function __construct() {
         // 读取配置参数
-        $host = C('SESSION_REDIS_HOST') ?: '127.0.0.1';
-        $port = C('SESSION_REDIS_PORT') ?: 6379;
-        $auth = C('SESSION_REDIS_AUTH') ?: '';
+        $host = C('REDIS_HOST') ?: '127.0.0.1';
+        $port = C('REDIS_PORT') ?: 6379;
+        $auth = C('REDIS_PWD') ?: '';
         $this->expire = C('SESSION_EXPIRE') ?: 3600;
 
         // 连接 Redis

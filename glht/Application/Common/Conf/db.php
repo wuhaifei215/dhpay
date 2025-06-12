@@ -19,11 +19,5 @@ return array(
     'REDIS_PORT'   => '52940',       // 端口
     'REDIS_PWD'   => 'Yun!x@y#z99pay',       //密码
     'REDIS_SELECT' => '0',
-
-    'SESSION_TYPE' => 'Redis',
-    'SESSION_REDIS_HOST' => '172.17.241.129',
-    'SESSION_REDIS_PORT' => 52940,
-    'SESSION_REDIS_AUTH' => 'Yun!x@y#z99pay',
-
 );
 

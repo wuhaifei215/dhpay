@@ -6,7 +6,6 @@
  */
 function is_login(){
     $user = session('admin_auth');
-    var_dump($user);die;
     if (empty($user)) {
         return 0;
     } else {

@@ -1,9 +1,8 @@
 <?php
 namespace Think\Session\Driver;
 
-use Think\Session;
 
-class Redis extends Session {
+class Redis {
     protected $lifeTime     = 3600; // Session有效期
     protected $sessionName = '';
     protected $handle      = null;

@@ -107,7 +107,7 @@ class LoginController extends Controller
 
                 //登录后重置session_id
                 session_regenerate_id(true);
-                session('admin_auth', $admin_indo);
+                session('admin_auth', json_encode($admin_indo));
                 //session auth
                 ksort($admin_indo); //排序
                 $code = http_build_query($admin_indo); //url编码并生成query字符串

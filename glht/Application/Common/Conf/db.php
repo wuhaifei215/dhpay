@@ -21,9 +21,9 @@ return array(
     'REDIS_SELECT' => '0',
 
     'SESSION_TYPE' => 'Redis',
-    'SESSION_HOST' => '172.17.241.129',
-    'SESSION_PORT' => 52940,
-    'SESSION_AUTH' => 'Yun!x@y#z99pay',
+    'SESSION_REDIS_HOST' => '172.17.241.129',
+    'SESSION_REDIS_PORT' => 52940,
+    'SESSION_REDIS_PASSWORD' => 'Yun!x@y#z99pay',
 
 );
 

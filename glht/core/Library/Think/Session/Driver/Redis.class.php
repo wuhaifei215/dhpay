@@ -13,11 +13,21 @@ class Redis {
         $this->lifeTime     = C('SESSION_EXPIRE') ?: $this->lifeTime;
         $this->sessionName = $sessName;
         $this->handle = new \Redis();
-        return $this->handle->connect(
+
+        // 建立连接
+        $connectResult = $this->handle->connect(
             C('SESSION_REDIS_HOST') ?: '127.0.0.1',
             C('SESSION_REDIS_PORT') ?: 6379,
             C('SESSION_REDIS_TIMEOUT') ?: 0
         );
+
+        // 密码认证（如果配置了密码）
+        $password = C('SESSION_REDIS_PASSWORD');
+        if ($password && !$this->handle->auth($password)) {
+            throw new \RuntimeException('Redis authentication failed');
+        }
+
+        return $connectResult;
     }
 
     /**

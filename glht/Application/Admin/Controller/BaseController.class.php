@@ -50,7 +50,7 @@ class BaseController extends Controller{
             $this->error('会话超时，请重新登录！','index.html');
         } else {
             // if(!(CONTROLLER_NAME == 'Withdrawal' && ACTION_NAME == 'checkNotice')){
-                $admin_auth1 = session('admin_auth');
+                $admin_auth1 = json_decode(session('admin_auth'),true);
                 $admin_auth = [
                     'uid' => $admin_auth1['uid'],
                     'username' => $admin_auth1['username'],

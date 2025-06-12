@@ -21,8 +21,5 @@ return array(
     'REDIS_SELECT' => '0',
 
     'SESSION_TYPE' => 'Mysqli',
-    'SESSION_TABLE' => '',
-    'DB_PREFIX' => 'think_',
-
 );
 

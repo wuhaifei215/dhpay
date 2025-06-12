@@ -5,7 +5,7 @@
  * Date: 2017-08-01
  * Time: 9:54
  */
-namespace Admin\Controller;
+namespace Adminpak\Controller;
 
 class ProductController extends AdminController
 {

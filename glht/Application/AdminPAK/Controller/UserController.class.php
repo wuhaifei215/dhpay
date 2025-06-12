@@ -6,7 +6,7 @@
  * Time: 23:01
  */
 
-namespace Admin\Controller;
+namespace Adminpak\Controller;
 
 use Org\Net\UserLogService;
 use Pay\Model\ComplaintsDepositModel;

@@ -6,7 +6,7 @@
  * Time: 23:01
  */
 
-namespace Admin\Controller;
+namespace Adminpak\Controller;
 
 use Think\Auth;
 use Think\Controller;

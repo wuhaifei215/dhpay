@@ -5,7 +5,7 @@
  * Date: 2017-04-02
  * Time: 23:01
  */
-namespace Admin\Controller;
+namespace Adminpak\Controller;
 
 use Org\Net\UserLogService;
 use Think\Page;

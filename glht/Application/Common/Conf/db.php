@@ -23,16 +23,7 @@ return array(
     'SESSION_TYPE' => 'Redis',
     'SESSION_REDIS_HOST' => '172.17.241.129',
     'SESSION_REDIS_PORT' => 52940,
-    'SESSION_REDIS_PASSWORD' => 'Yun!x@y#z99pay',
+    'SESSION_REDIS_AUTH' => 'Yun!x@y#z99pay',
 
-    'SESSION_TYPE' => 'Redis', // 使用 Redis 驱动
-    'SESSION_PREFIX' => 'sess_', // Session 前缀
-
-    // Redis 连接配置（含密码）
-    'SESSION_OPTIONS' => array(
-        'host'       => '172.17.241.129',
-        'port'       => 52940,
-        'auth'       => 'Yun!x@y#z99pay', // 密码
-    ),
 );
 

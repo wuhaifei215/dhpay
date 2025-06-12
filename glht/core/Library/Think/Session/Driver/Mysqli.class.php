@@ -54,7 +54,7 @@ class Mysqli
         $name = explode(',', C('DB_NAME'));
         $user = explode(',', C('DB_USER'));
         $pwd = explode(',', C('DB_PWD'));
-        if (1 == C('DB_DEPLOY_TYPE')) {
+        if (1 == C('DB_TYPE')) {
             //读写分离
             if (C('DB_RW_SEPARATE')) {
                 $w = floor(mt_rand(0, C('DB_MASTER_NUM') - 1));

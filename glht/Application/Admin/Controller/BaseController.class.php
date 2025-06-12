@@ -33,6 +33,7 @@ class BaseController extends Controller{
         if(defined('UID')) return ;
         define("UID",is_login());
         if( !UID ){// 还没登录 跳转到登录页面
+            var_dump(1111);die;
             $this->redirect('Login/index');
         }
         // 是否是超级管理员

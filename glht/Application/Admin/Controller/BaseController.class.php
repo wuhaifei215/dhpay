@@ -28,11 +28,6 @@ class BaseController extends Controller{
      */
     public function __construct()
     {
-        // 获取服务器IP
-        $serverIP = $_SERVER['SERVER_ADDR'];
-
-        echo $serverIP;
-        die;
         parent::__construct();
         // 获取当前用户ID
         if(defined('UID')) return ;

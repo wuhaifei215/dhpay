@@ -25,7 +25,8 @@ class LoginController extends Controller
         $csrf_token = gen_token();
         session('admin_csrf_token', $csrf_token);//验证码token
         session('admin_csrf_token_times', 0);//token使用次数
-        var_dump($csrf_token);die;
+
+        var_dump(session('admin_csrf_token'));die;
         $this->assign('csrf_token', $csrf_token);
         $this->display();
     }

@@ -15,6 +15,8 @@ class CreateController extends PayController
     
     protected $product;
 
+    protected $currency;    //国家货币
+
     public function __construct()
     {
         parent::__construct();
@@ -31,7 +33,7 @@ class CreateController extends PayController
         
         $this->productIsOpen(); //判断通道是否开启
         
-        if(getPaytypeCurrency($this->product['paytype']) !=='PHP'){
+        if($this->currency !=='PHP'){
             $this->showmessage("国家货币类型不对！");
         }
 
@@ -51,7 +53,7 @@ class CreateController extends PayController
         
         $this->productIsOpen(); //判断通道是否开启
         
-        if(getPaytypeCurrency($this->product['paytype']) !=='INR'){
+        if($this->currency !=='INR'){
             $this->showmessage("国家货币类型不对！");
         }
 
@@ -75,9 +77,11 @@ class CreateController extends PayController
             $info_redis = $redis->get('channel_'. $this->channel['api']);
             $info = json_decode($info_redis,true);
             if(!$info_redis || empty($info)){
-                $info = M('Channel')->where(['id' => $this->channel['api'], 'status' => 1])->find();
-                $redis->set('channel_'. $this->channel['api'], json_encode($info, JSON_UNESCAPED_UNICODE));
-                $redis->expire('channel_'. $this->channel['api'] , 60);
+                $info = M('Channel')->where(['id' => $this->channel['api'], 'currency'=>$this->currency, 'status' => 1])->find();
+                if(!empty($info)){
+                    $redis->set('channel_'. $this->channel['api'], json_encode($info, JSON_UNESCAPED_UNICODE));
+                    $redis->expire('channel_'. $this->channel['api'] , 60);
+                }
             }
             
             //是否存在通道文件
@@ -139,7 +143,10 @@ class CreateController extends PayController
         if ($this->pay_amount == 0) {
             $this->showmessage('金额不能为空');
         }
-
+        $this->currency= I('post.pay_currency', '');
+        if (!$this->currency) {
+            $this->showmessage('国家货币不能为空！');
+        }
     }
 
     /**
@@ -147,7 +154,7 @@ class CreateController extends PayController
      */
     protected function userRiskcontrol()
     {
-        $l_UserRiskcontrol = new \Pay\Logic\UserRiskcontrolLogic($this->pay_amount, $this->memberid); //用户风控类
+        $l_UserRiskcontrol = new \Pay\Logic\UserRiskcontrolLogic($this->pay_amount, $this->memberid,$this->currency); //用户风控类
         $error_msg         = $l_UserRiskcontrol->monitoringData();
         if ($error_msg !== true) {
             $this->showmessage('商户：' . $error_msg);
@@ -164,7 +171,7 @@ class CreateController extends PayController
         $product_redis = $redis->get('Product_'. $this->bankcode);
         $product = json_decode($product_redis,true);
         if(!$product_redis || empty($product)){
-            $product = M('Product')->where(['id' => $this->bankcode, 'status' => 1])->field('id,paytype')->find();
+            $product = M('Product')->where(['id' => $this->bankcode, 'currency'=>$this->currency, 'status' => 1])->field('id,paytype')->find();
             $redis->set('Product_'. $this->bankcode, json_encode($product, JSON_UNESCAPED_UNICODE));
             $redis->expire('Product_'. $this->bankcode, 60);
         }
@@ -216,7 +223,7 @@ class CreateController extends PayController
 
                 list($pid, $weight) = explode(':', $v);
                 //检查是否开通
-                $temp_info = $m_Channel->where(['id' => $pid, 'status' => 1])->find();
+                $temp_info = $m_Channel->where(['id' => $pid, 'currency'=>$this->currency, 'status' => 1])->find();
                 if(!$temp_info) continue;
 
                 //判断通道是否开启风控并上线

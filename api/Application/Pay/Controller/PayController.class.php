@@ -302,6 +302,7 @@ class PayController extends Controller
             $data['channel_id'] = $this->channel['api'];
             $data['account_id'] = $channel_account['id'];
             $data['t'] = $tikuanconfig['t1zt'];
+            $data['currency'] = I('request.pay_currency', '');
             //添加订单
             try {
                 $or_add = $Order->table($Order->getRealTableName(date('Y-m-d', $data['pay_applydate'])))->add($data);
@@ -329,6 +330,7 @@ class PayController extends Controller
                 'pay_bankcode' => I('request.pay_bankcode', ''),
                 'pay_notifyurl' => I('request.pay_notifyurl', ''),
                 'pay_callbackurl' => I('request.pay_callbackurl', ''),
+                'pay_currency' => I('request.pay_currency', ''),
             );
             $md5str = "";
             ksort($requestarray);
@@ -650,6 +652,7 @@ class PayController extends Controller
             'pay_bankcode' => I('request.pay_bankcode', ''),
             'pay_notifyurl' => I('request.pay_notifyurl', ''),
             'pay_callbackurl' => I('request.pay_callbackurl', ''),
+            'pay_currency' => I('request.pay_currency', ''),
         );
         $md5key = $this->merchants['apikey'];
         $md5keysignstr = $this->createSign($md5key, $requestarray);

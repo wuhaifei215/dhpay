@@ -20,6 +20,6 @@ return array(
     'REDIS_PWD'   => 'Yun!x@y#z99pay',       //密码
     'REDIS_SELECT' => '0',
 
-    'SESSION_TYPE' => 'Mysqli',
+    'SESSION_TYPE' => 'Redis',
 );
 

@@ -53,6 +53,7 @@
                                         <th>编号</th>
                                         <th>代付接口名称</th>
                                         <th>代付接口代码</th>
+                                        <th>国家</th>
                                         <!--<th>代付接口类型</th>-->
                                         <th>更改或添加时间</th>
                                         <th>代付接口状态</th>  
@@ -66,6 +67,11 @@
                                         <td><{$v.id}></td>
                                         <td><{$v.title}></td>
                                         <td><{$v.code}></td>
+                                        <td>
+                                            <volist name="country" id="co">
+                                                <if condition="$p.currency eq $co['currency']"><{$co['title']}>(<{$co['currency']}>)</if>
+                                            </volist>
+                                        </td>
                                <!--         <td>-->
                                <!--             <volist name="paytypes" id="b">-->
                         						 <!-- <if condition="$v[paytype] eq $b[id]"><{$b.name}></if>-->

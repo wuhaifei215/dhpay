@@ -119,7 +119,7 @@ class UserController extends BaseController
         }
         $this->assign("channel_lists", $channel_lists);
 
-        $country = M('Country')->select();
+        $country = M('Country')->where(['status' => 1])->select();
         $this->assign('country', $country);
         $agency = M('Agency')->select();
         $this->assign('agency', $agency);

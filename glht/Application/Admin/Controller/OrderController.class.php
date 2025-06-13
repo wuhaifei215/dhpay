@@ -487,6 +487,9 @@ class OrderController extends BaseController
      */
     public function changeRecord()
     {
+        $country = M('Country')->select();
+        $this->assign('country', $country);
+
         $where = array();
         $currency = I("request.currency", '', 'trim,string,strip_tags,htmlspecialchars');
         $where['currency'] = ['eq', $currency];
@@ -533,7 +536,7 @@ class OrderController extends BaseController
         $count = $MoneychangeModel->getCount($where);
         $page = new Page($count, $rows);
         $list = $MoneychangeModel->getOrderByDateRange('*', $where, $page->firstRow . ',' . $page->listRows, 'id desc');
-
+var_dump($list);
         if ($bank == 9) {
             //总佣金笔数
             $stat['totalcount'] = $MoneychangeModel->getCount($where);

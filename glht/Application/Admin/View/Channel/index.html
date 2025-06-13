@@ -54,6 +54,7 @@
                                         <th>编号</th>
                                         <th>接口名称</th>
                                         <th>接口代码</th>
+                                        <th>国家</th>
 										<th>类型</th>
                                         <th>接口状态</th>
                                         <th>操作</th>
@@ -65,6 +66,11 @@
                                         <td><{$p.id}></td>
                                         <td><{$p.title}></td>
                                         <td><{$p.code}></td>
+                                        <td>
+                                            <volist name="country" id="co">
+                                                <if condition="$p.currency eq $co['currency']"><{$co['title']}>(<{$co['currency']}>)</if>
+                                            </volist>
+                                        </td>
 										<td><{$p[paytype]|getPaytype}></td>
                                         <td>
 											<div class="layui-form">

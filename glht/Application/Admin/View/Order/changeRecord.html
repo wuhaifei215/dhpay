@@ -103,7 +103,10 @@
                     </div>
                 </form>
                 <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
-                    <if condition="$currency neq ''">当前国家:<{$currency}><else /></if>
+                    <volist name="country" id="co">
+                        <if condition="$currency eq $co['currency']">当前国家:<{$co['title']}></if>
+                    </volist>
+                    <if condition="$currency eq ''">请选择国家</if>
                 </blockquote>
                 <if condition="$_GET[bank] eq 9">
                 <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">

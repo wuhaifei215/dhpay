@@ -153,7 +153,12 @@
             <!--<a class="layui-btn layui-btn-small" onclick="rate_view('查看已开启通道成功率', '<{:U('Admin/Order/showSuccessRate')}>',800,400)">通道成功率</a>-->
           </div>
       </form>
-
+        <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
+          <volist name="country" id="co">
+            <if condition="$currency eq $co['currency']"><span style="color:#333;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)</if>
+          </volist>
+          <if condition="$currency eq ''">请选择国家</if>
+        </blockquote>
         <div class="list item">
           <!--交易列表-->
           <table class="layui-table" lay-skin="line" lay-size="sm" lay-data="{width:'100%',limit:<{$rows}>,id:'userData'}">

@@ -9,6 +9,8 @@ class PayForAnotherController extends BaseController{
         //分类 类型
         $paytypes = C('PAYTYPES');
         $this->assign('paytypes', $paytypes);
+        $country = M('Country')->select();
+        $this->assign('country', $country);
     }
 
 	public function index(){

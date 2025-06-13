@@ -48,6 +48,17 @@
             </div>
           </div>
           <br>
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label">所属国家：</label>
+                <div class="layui-input-inline">
+                    <select name="currency">
+                        <option value="">全部国家</option>
+                        <volist name="country" id="co">
+                            <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                        </volist>
+                    </select>
+                </div>
+            </div>
           <div class="layui-form-item layui-inline">
             <label class="layui-form-label">通道类型</label>
             <div class="layui-input-inline">
@@ -94,6 +105,12 @@
           </div>
       </div>
       </form>
+        <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
+            <volist name="country" id="co">
+                <if condition="$currency eq $co['currency']"><span style="color:#333;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)</if>
+            </volist>
+            <if condition="$currency eq ''">请选择国家</if>
+        </blockquote>
         <blockquote class="layui-elem-quote" style="padding;8px;">
             <style type="text/css">
                 .channel_tr td{

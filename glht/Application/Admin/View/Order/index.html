@@ -81,6 +81,17 @@
             </div>
           </div>
           <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">所属国家：</label>
+            <div class="layui-input-inline">
+              <select name="currency">
+                <option value="">全部国家</option>
+                <volist name="country" id="co">
+                  <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                </volist>
+              </select>
+            </div>
+          </div>
+          <div class="layui-form-item layui-inline">
             <label class="layui-form-label">通道类型</label>
             <div class="layui-input-inline">
               <select name="bank">
@@ -175,6 +186,12 @@
       <!--    总未支付订单总额：<span class="label stat_fail"><{$stat.totalnopaidsum}>元</span>-->
       <!--  </blockquote>-->
       <!--</if>-->
+      <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
+        <volist name="country" id="co">
+          <if condition="$currency eq $co['currency']"><span style="color:#333;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)</if>
+        </volist>
+        <if condition="$currency eq ''">请选择国家</if>
+      </blockquote>
       <div class="list item">
         <!--交易列表-->
         <table class="layui-table" lay-skin="line" lay-size="sm" lay-data="{width:'100%',limit:<{$rows}>,id:'userData'}">
@@ -187,6 +204,7 @@
             <th lay-data="{field:'rate', width:100}">手续费</th>
             <th lay-data="{field:'actualamount', width:100,style:'color:#C00;'}">实际金额</th>
             <th lay-data="{field:'applydate', width:150}">提交时间/成功时间</th>
+            <th lay-data="{field:'currency', width:100}">国家</th>
             <th lay-data="{field:'body', width:120}">订单描述</th>
             <th lay-data="{field:'status', width:100}">状态</th>
             <th lay-data="{field:'op',width:350}">操作</th>
@@ -211,6 +229,11 @@
               <td style="text-align:center; color:#666"><{$vo.pay_poundage}></td>
               <td style="text-align:center; color:#C00"><{$vo.pay_actualamount}></td>
               <td style="text-align:center;"><{$vo.pay_applydate|date='Y-m-d H:i:s',###}><br><if condition="$vo[pay_successdate]"><{$vo.pay_successdate|date='Y-m-d H:i:s',###}><else/> --- </if></td>
+              <td>
+                <volist name="country" id="co">
+                  <if condition="$vo.currency eq $co['currency']"><{$co['title']}>(<{$co['currency']}>)</if>
+                </volist>
+              </td>
               <td style="text-align:center;"><{$vo.pay_productname}></td>
               <td style="text-align:center; color:#369"><{$vo['pay_status']|status=###}></td>
               <td>

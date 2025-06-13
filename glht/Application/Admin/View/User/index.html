@@ -154,8 +154,8 @@
                                 <br><{$vo['parentid']|getParentName=###}>
                                 </td>
                                 <td><{$vo.currency}>
-                                    <volist name="country" id="coun">
-                                        <if condition="$coun.currency eq $vo.currency"><{$coun['title']}></if>
+                                    <volist name="country" id="co">
+                                        <if condition="$vo.currency eq $co['currency']"><{$co['title']}></if>
                                     </volist>
                                 </td>
                                 <td>

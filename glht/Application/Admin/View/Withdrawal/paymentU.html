@@ -63,18 +63,17 @@
                                    placeholder="打款起始时间" value="<{$successtime}>" autocomplete="off">
                         </div>
                     </div>
-                    <eq name="type" value="2">
                     <div class="layui-form-item layui-inline">
-                        <label class="layui-form-label">国家</label>
+                        <label class="layui-form-label">所属国家：</label>
                         <div class="layui-input-inline">
-                            <select name="bankcode">
-                                <option value="">全部</option>
-                                <option <if condition="$bankcode eq '906'">selected</if> value="906">国家(1)</option>
-                                <option <if condition="$bankcode eq '909'">selected</if> value="909">国家(2)</option>
+                            <select name="currency">
+                                <option value="">全部国家</option>
+                                <volist name="country" id="co">
+                                    <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                                </volist>
                             </select>
                         </div>
                     </div>
-                    </eq>
                     <div class="layui-form-item layui-inline">
                         <label class="layui-form-label">状态</label>
                         <div class="layui-input-inline">
@@ -106,6 +105,12 @@
                         <a href="javascript:;" id="export" class="layui-btn layui-btn-danger"><span class="glyphicon glyphicon-export"></span> 导出数据</a>
                         <!--<div id="rate_div" style="display: inline;padding-left:10px;"></div>-->
                     </div>
+                    <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
+                        <volist name="country" id="co">
+                            <if condition="$currency eq $co['currency']"><span style="color:#333;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)</if>
+                        </volist>
+                        <if condition="$currency eq ''">请选择国家</if>
+                    </blockquote>
                     <blockquote class="layui-elem-quote" style="height:48px;font-size:18px;padding:8px;">
                         <a href="javascript:;" class="layui-btn layui-btn-warm" onclick="queryRate('<{:U("Payment/P2pPayDF/queryRate")}>')">查询U汇率</a><span class="stat_success" id="rate_div" style="padding-left:15px;"></span></blockquote>
                 </form>
@@ -125,6 +130,7 @@
                         <th lay-data="{field:'status', width:100}">状态</th>
                         <th lay-data="{field:'memo', width:100}">备注</th>
                         <th lay-data="{field:'code', width:150}">代付渠道</th>
+                        <th lay-data="{field:'currency', width:100}">国家</th>
                         <th lay-data="{field:'op',width:'100%'}">操作</th>
                     </tr>
                     </thead>
@@ -173,6 +179,11 @@
                                 <else / >
                                     <{$vo.df_name}>
                                 </if>
+                            </td>
+                            <td>
+                                <volist name="country" id="co">
+                                    <if condition="$vo.currency eq $co['currency']"><{$co['title']}>(<{$co['currency']}>)</if>
+                                </volist>
                             </td>
                             <td class="layui-input-inline">
                                 <if condition="$vo['status'] eq 0 or 1">

@@ -25,6 +25,8 @@ class WithdrawalController extends BaseController
         //分类 类型
         $paytypes = C('PAYTYPES');
         $this->assign('paytypes', $paytypes);
+        $country = M('Country')->select();
+        $this->assign('country', $country);
     }
 
     /**
@@ -347,13 +349,8 @@ class WithdrawalController extends BaseController
         $this->assign("banklist", $banklist);
 
         $where    = array();
-        $currency = I("request.currency", '', 'string,strip_tags,htmlspecialchars');
-        if($currency ==='PHP'){
-            $where['paytype'] = ['between', [1,3]];
-        }
-        if($currency ==='INR'){
-            $where['paytype'] = ['eq', 4];
-        }
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
         $this->assign('currency', $currency);
         
         $type = I("request.type",  0, 'intval');
@@ -495,11 +492,12 @@ class WithdrawalController extends BaseController
     public function payment1()
     {
         $where    = array();
-        $currency = I("request.currency");
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $where['currency'] = ['eq', $currency];
+        $this->assign('currency', $currency);
+
         $df_list = M('PayForAnother')->where($where)->select();
         $all_balance = M('member')->sum('balance');
-        $this->assign('currency', $currency);
         
         $memberid = I("request.memberid", '', 'string,strip_tags,htmlspecialchars');
         if ($memberid) {
@@ -573,9 +571,10 @@ class WithdrawalController extends BaseController
     public function payment1U()
     {
         $where    = array();
-        $currency = I("request.currency");
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $where['currency'] = ['eq', $currency];
         $this->assign('currency', $currency);
+
         $df_list = M('PayForAnother')->where($where)->select();
         $all_balance = M('member')->sum('balance');
         

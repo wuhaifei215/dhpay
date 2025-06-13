@@ -81,7 +81,7 @@
                                     </td>
                                     <td>
                                         <volist name="country" id="co">
-                                            <if condition="$vo.currency eq $co['currency']"><{$co['title']}></if>
+                                            <if condition="$vo.currency eq $co['currency']"><{$co['title']}>($co['currency'])</if>
                                         </volist>
                                     </td>
                                     <!--<td>-->

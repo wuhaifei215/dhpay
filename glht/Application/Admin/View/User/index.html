@@ -31,6 +31,17 @@
                             </div>
                         </div>
                         <div class="layui-form-item layui-inline">
+                            <label class="layui-form-label">所属国家：</label>
+                            <div class="layui-input-inline">
+                              <select name="agency_id">
+                                <option value="">全部国家</option>
+                                <volist name="country" id="co">
+                                  <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}></option>
+                                </volist>
+                              </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline">
                             <label class="layui-form-label">所属包网：</label>
                             <div class="layui-input-inline">
                               <select name="agency_id">
@@ -107,9 +118,9 @@
                         <thead>
                         <tr lay-data="{min-height:400px}">
                             <th lay-data="{field:'memberid', width:120}">商户号/用户名</th>
-                            <th lay-data="{field:'money1', width:200,style:'background-color: #7e98e6; color: #fff;cursor: pointer;'}">账户总额</th>
-                            <!--<th lay-data="{field:'money2', width:240,style:'background-color: #857ee6; color: #fff;cursor: pointer;'}">国家2账户总额</th>-->
+                            <th lay-data="{field:'money', width:200,style:'background-color: #7e98e6; color: #fff;cursor: pointer;'}">账户总额</th>
                             <th lay-data="{field:'groupid', width:90}">用户类型/上级用户</th>
+                            <th lay-data="{field:'currency', width:90}">所属国家</th>
                             <th lay-data="{field:'agency', width:90}">所属包网</th>
                             <th lay-data="{field:'status', width:90}">状态</th>
                             <th lay-data="{field:'authorized', width:80}">认证</th>
@@ -138,16 +149,14 @@
                                     <!--投诉保证金：<{:round($vo[complaintsDeposit],4)}>-->
                                     </div>
                                 </td>
-                                <!--<td>-->
-                                <!--    <div title="用户资金管理" onclick="member_money('商户：<{$vo.username}>--国家(2)','<{:U("User/usermoneyINR",['userid'=>$vo["id"]])}>',800,600)">-->
-                                <!--    可结算资金：<{:number_format($vo[balance_inr],4)}><br>-->
-                                <!--    未结算资金：<{:round($vo[blockedbalance_inr],4)}><br>-->
-                                    <!--投诉保证金：<{:round($vo[complaintsDeposit],4)}>-->
-                                <!--    </div>-->
-                                <!--</td>-->
                                 <td>
                                     <{$vo.groupname}>
                                 <br><{$vo['parentid']|getParentName=###}>
+                                </td>
+                                <td>
+                                    <volist name="country" id="co">
+                                        <if condition="$co['currency'] eq $vo['currency']">$co['title']</if>
+                                    </volist>
                                 </td>
                                 <td>
                                     <{$vo.agency}>

@@ -161,7 +161,12 @@ class ChannelController extends BaseController
     //产品列表
     public function product()
     {
-        $data = M('Product') ->order('id DESC')->select();
+        $where = array();
+        $currency = I("request.currency",'BRL');
+        $where['currency'] = ['eq', $currency];
+        $this->assign('currency', $currency);
+
+        $data = M('Product')->where($where)->order('id DESC')->select();
         $this->assign('list', $data);
         $this->display();
     }

@@ -33,6 +33,7 @@ class OrderController extends BaseController
      */
     public function index()
     {
+
         // $this->display();
         // $OrderModel = D('Order');
         // $OrderModel->getOrderByDateRange('id,pay_memberid','pay_memberid=240755606 or pay_orderid=2024080100000056489857576');
@@ -60,6 +61,10 @@ class OrderController extends BaseController
         $this->assign("banklist", $banklist);
 
         $where = array();
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
+        $this->assign('currency', $currency);
+
         $memberid = I("request.memberid", 0, 'intval');
         if ($memberid) {
             $where['pay_memberid'] = array('eq', $memberid);
@@ -186,7 +191,6 @@ class OrderController extends BaseController
      */
     public function indexCount()
     {
-
         $where = array();
         $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $where['currency'] = ['eq', $currency];

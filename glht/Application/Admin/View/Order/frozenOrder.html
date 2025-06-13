@@ -33,33 +33,22 @@
       <!--条件查询-->
       <div class="ibox-content">
         <form class="layui-form layui-form-pane form-search" action="" method="get" autocomplete="off" id="orderform">
-          <input type="hidden" name="m" value="<{$model}>">
-          <input type="hidden" name="c" value="Order">
-          <input type="hidden" name="a" value="index" id="action">
-          <input type="hidden" name="p" value="1">
-          <input type="hidden" name="rows" id="rows" value="<{$rows}>">
           <div class="layui-form-item layui-inline">
-            <label class="layui-form-label">商户号</label>
+            <label class="layui-form-label">商户编号</label>
             <div class="layui-input-inline">
-              <input type="text" name="memberid" value="<if condition="$memberid gt 0"><{$memberid}></if>" placeholder="请输入商户号" class="layui-input">
+              <input type="text" name="memberid" id="memberid" value="<if condition="$memberid gt 0"><{$memberid|htmlspecialchars}></if>" placeholder="请输入商户号" class="layui-input">
             </div>
           </div>
           <div class="layui-form-item layui-inline">
             <label class="layui-form-label">系统订单号</label>
             <div class="layui-input-inline">
-              <input type="text" name="pay_orderid" value="<if condition="$memberid gt 0"><{$memberid}></if>" placeholder="请输入系统订单号" class="layui-input">
+              <input type="text" name="orderid" value="<{$orderid|htmlspecialchars}>" placeholder="请输入系统订单号" class="layui-input">
             </div>
           </div>
           <div class="layui-form-item layui-inline">
-            <label class="layui-form-label">下游订单号</label>
+            <label class="layui-form-label">外部订单号</label>
             <div class="layui-input-inline">
-              <input type="text" name="orderid" value="<if condition="$memberid gt 0"><{$orderid}></if>" placeholder="请输入下游订单号" class="layui-input">
-            </div>
-          </div>
-          <div class="layui-form-item layui-inline">
-            <label class="layui-form-label">订单描述</label>
-            <div class="layui-input-inline">
-              <input type="text" name="body" value="<{$body|htmlspecialchars}>" placeholder="请输入订单描述" class="layui-input">
+              <input type="text" name="out_trade_id" value="<{$out_trade_id|htmlspecialchars}>" placeholder="请输入外部订单号" class="layui-input">
             </div>
           </div>
           <div class="layui-form-item layui-inline">
@@ -68,6 +57,9 @@
               <input type="text" class="layui-input" name="createtime" id="createtime"
                      placeholder="创建起始时间" value="<{$createtime|htmlspecialchars}>" autocomplete="off">
             </div>
+
+            <a href="javascript:;" class="layui-btn layui-btn-danger week">7天内</a>
+
           </div>
           <div class="layui-form-item layui-inline">
             <label class="layui-form-label">成功时间</label>
@@ -77,9 +69,32 @@
             </div>
           </div>
           <div class="layui-form-item layui-inline">
-            <label class="layui-form-label">通道</label>
+            <label class="layui-form-label">所属国家：</label>
             <div class="layui-input-inline">
-              <select name="tongdao">
+              <select name="currency">
+                <option value="">全部国家</option>
+                <volist name="country" id="co">
+                  <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                </volist>
+              </select>
+            </div>
+          </div>
+          <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">通道类型</label>
+            <div class="layui-input-inline">
+              <select name="bank">
+                <option value="">全部类型</option>
+                <volist name="banklist" id="vo">
+                  <option <if condition="$bank eq $vo['id']">selected</if>
+                  value="<{$vo.id}>"><{$vo.name}></option>
+                </volist>
+              </select>
+            </div>
+          </div>
+          <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">所属通道</label>
+            <div class="layui-input-inline">
+              <select name="tongdao" lay-filter="channel"  data-child="account">
                 <option value="">全部通道</option>
                 <volist name="tongdaolist" id="vo">
                   <option <if condition="$tongdao eq $vo['id']">selected</if>
@@ -88,27 +103,56 @@
               </select>
             </div>
           </div>
+          <!--<div class="layui-form-item layui-inline">-->
+          <!--  <label class="layui-form-label">通道子账号</label>-->
+          <!--  <div class="layui-input-inline">-->
+          <!--    <select name="account" lay-filter="channel">-->
+          <!--      <option value="">全部子账号</option>-->
+          <!--      <if condition="$accountlist">-->
+          <!--        <volist name="accountlist" id="vo">-->
+          <!--          <option <if condition="$account eq $vo['id']">selected</if>-->
+          <!--          value="<{$vo.id}>"><{$vo.title}></option>-->
+          <!--        </volist>-->
+          <!--      </if>-->
+          <!--    </select>-->
+          <!--  </div>-->
+          <!--</div>-->
           <div class="layui-form-item layui-inline">
-            <label class="layui-form-label">银行</label>
+            <label class="layui-form-label">订单状态</label>
             <div class="layui-input-inline">
-              <select name="bank">
-                <option value="">全部银行</option>
-                <volist name="banklist" id="vo">
-                  <option <if condition="$bank eq $vo['id']">selected</if>
-                  value="<{$vo.id}>"><{$vo.name}></option>
-                </volist>
+              <select name="status">
+                <option value="">全部状态</option>
+                <option <if condition="$status neq '' && $status eq 0">selected</if> value="0">未处理</option>
+                <option <if condition="$status eq 1">selected</if> value="1">成功，未返回</option>
+                <option <if condition="$status eq 2">selected</if> value="2">成功，已返回</option>
+                <option <if condition="$status eq 3">selected</if> value="3">失败</option>
+                <option <if condition="$status eq '1or2'">selected</if> value="1or2">成功，已/未返回</option>
               </select>
             </div>
           </div>
-            <div class="layui-form-item layui-inline">
-              <button type="submit" class="layui-btn"><span
-                      class="glyphicon glyphicon-search"></span> 搜索
-              </button>
-
-
+          <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">订单描述</label>
+            <div class="layui-input-inline">
+              <input type="text" name="body" value="<{$body|htmlspecialchars}>" placeholder="请输入订单描述" class="layui-input">
             </div>
           </div>
-        </form>
+          <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">交易金额</label>
+            <div class="layui-input-inline">
+              <input type="text" name="payamount" value="<{$payamount|htmlspecialchars}>" placeholder="请输入订单金额" class="layui-input">
+            </div>
+          </div>
+          <div class="layui-form-item layui-inline">
+            <button type="submit" class="layui-btn"><span
+                    class="glyphicon glyphicon-search"></span> 搜索
+            </button>
+            <a href="javascript:;" id="export" class="layui-btn layui-btn-warm"><span class="glyphicon glyphicon-export"></span> 导出数据</a>
+            <eq name="isrootadmin"  value="true">
+              <a href="javascript:;" id="delorder" onclick="chooseOrder_del()" class="layui-btn layui-btn-danger"><span class="glyphicon glyphicon-trash"></span> 删除无效订单</a>
+            </eq>
+            <!--<a class="layui-btn layui-btn-small" onclick="rate_view('查看已开启通道成功率', '<{:U('Admin/Order/showSuccessRate')}>',800,400)">通道成功率</a>-->
+          </div>
+      </form>
 
         <div class="list item">
           <!--交易列表-->

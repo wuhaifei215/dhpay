@@ -37,13 +37,14 @@ class UserController extends BaseController
     public function index()
     {
         UserLogService::HTwrite(1, '查看用户列表', '查看用户列表');
-        $groupid = I('get.groupid', '');
-        $username = I("get.username", '', 'trim');
-        $status = I("get.status");
-        $authorized = I("get.authorized");
-        $parentid = I('get.parentid');
-        $regdatetime = I('get.regdatetime');
-        $agency_id = I('get.agency_id');
+        $groupid = I('get.groupid', '', 'string,strip_tags,htmlspecialchars');
+        $username = I("get.username", '', 'trim,string,strip_tags,htmlspecialchars');
+        $status = I("get.status", '', 'trim,string,strip_tags,htmlspecialchars');
+        $authorized = I("get.authorized", '', 'trim,string,strip_tags,htmlspecialchars');
+        $parentid = I('get.parentid', '', 'trim,string,strip_tags,htmlspecialchars');
+        $regdatetime = I('get.regdatetime', '', 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I('get.currency', '', 'trim,string,strip_tags,htmlspecialchars');
+        $agency_id = I('get.agency_id', '', 'trim,string,strip_tags,htmlspecialchars');
         
 
         if ($groupid != '') {
@@ -55,6 +56,11 @@ class UserController extends BaseController
         } elseif (intval($username) - 10000 > 0) {
             $where['id'] = intval($username) - 10000;
         }
+
+        if ($currency != '') {
+            $where['currency'] = $currency;
+        }
+        $this->assign('agency_id', $agency_id);
 
         if ($agency_id != '') {
             $where['agency_id'] = $agency_id;

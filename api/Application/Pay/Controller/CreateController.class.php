@@ -106,7 +106,7 @@ class CreateController extends PayController
             $this->showmessage("不存在的商户编号!");
         }
             
-        $this->orderid = I('post.pay_orderid', '');
+        $this->orderid = I('post.pay_orderid', '', 'string,strip_tags,htmlspecialchars');
         if (!$this->orderid) {
             $this->showmessage('订单号不合法！');
         }
@@ -116,7 +116,7 @@ class CreateController extends PayController
         $redis = $this->redis_connect();
         $redis->set('userpost_' . $this->orderid, json_encode($postData, JSON_UNESCAPED_UNICODE), 300);
         
-        $this->pay_applydate = I('post.pay_applydate', '');
+        $this->pay_applydate = I('post.pay_applydate', '', 'string,strip_tags,htmlspecialchars');
         if (!$this->pay_applydate) {
             $this->showmessage('提交时间不能为空！');
         }
@@ -125,19 +125,19 @@ class CreateController extends PayController
         if ($this->bankcode == 0) {
             $this->showmessage('不存在的银行编码!', ['pay_banckcode' => $this->bankcode]);
         }
-        $this->pay_notifyurl = I('post.pay_notifyurl', '');
+        $this->pay_notifyurl = I('post.pay_notifyurl', '', 'string,strip_tags,htmlspecialchars');
         if (!$this->pay_notifyurl) {
             $this->showmessage('服务端通知地址不能为空！');
         }
-        $this->pay_callbackurl = I('post.pay_callbackurl', '');
+        $this->pay_callbackurl = I('post.pay_callbackurl', '', 'string,strip_tags,htmlspecialchars');
         if (!$this->pay_callbackurl) {
             $this->showmessage('页面跳转通知地址不能为空！');
         }
-        $this->pay_amount = I('post.pay_amount', '0');
+        $this->pay_amount = I('post.pay_amount', '0', 'string,strip_tags,htmlspecialchars');
         if ($this->pay_amount == 0) {
             $this->showmessage('金额不能为空');
         }
-        $this->currency= I('post.pay_currency', '');
+        $this->currency= I('post.pay_currency', '', 'string,strip_tags,htmlspecialchars');
         if (!$this->currency) {
             $this->showmessage('国家货币不能为空！');
         }

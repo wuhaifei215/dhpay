@@ -35,7 +35,7 @@
                                     <select name="currency">
                                         <option value="">全部国家</option>
                                         <volist name="country" id="co">
-                                            <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                                            <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}></option>
                                         </volist>
                                     </select>
                                 </div>
@@ -46,10 +46,12 @@
                                         class="glyphicon glyphicon-search"></span> 搜索
                                 </button>
                             </div>
+                        </form>
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
+
                                         <th>编号</th>
                                         <th>通道名称</th>
 										<th>通道代码</th>

@@ -492,7 +492,9 @@ class OrderController extends BaseController
 
         $where = array();
         $currency = I("request.currency", '', 'trim,string,strip_tags,htmlspecialchars');
-        $where['currency'] = ['eq', $currency];
+        if ($currency) {
+            $where['currency'] = ['eq', $currency];
+        }
         $this->assign('currency', $currency);
 
         $memberid = I("get.memberid", 0, 'intval');

@@ -52,7 +52,7 @@
                             <select name="currency">
                                 <option value="">全部国家</option>
                                 <volist name="country" id="co">
-                                    <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}></option>
+                                    <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
                                 </volist>
                             </select>
                         </div>

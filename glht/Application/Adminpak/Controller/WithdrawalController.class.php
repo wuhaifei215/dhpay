@@ -494,21 +494,14 @@ class WithdrawalController extends BaseController
      */
     public function payment1()
     {
-        $df_list = M('PayForAnother')->where($where)->select();
-        
-        
         $where    = array();
         $currency = I("request.currency");
-        if($currency ==='PHP'){
-            $where['paytype'] = ['between', [1,3]];
-            $all_balance = M('member')->sum('balance_php');
-        }
-        if($currency ==='INR'){
-            $where['paytype'] = ['eq', 4];
-            $all_balance = M('member')->sum('balance_inr');
-        }
+        $where['currency'] = ['eq', $currency];
         $this->assign('currency', $currency);
-        
+
+        $df_list = M('PayForAnother')->where($where)->select();
+        $all_balance = M('member')->sum('balance');
+
         $memberid = I("request.memberid", '', 'string,strip_tags,htmlspecialchars');
         if ($memberid) {
             $where['userid'] = array('eq', $memberid-10000);
@@ -581,18 +574,11 @@ class WithdrawalController extends BaseController
     public function payment1U()
     {
         $where    = array();
-        
         $currency = I("request.currency");
-        if($currency ==='PHP'){
-            $where['paytype'] = ['between', [1,3]];
-            $all_balance = M('member')->sum('balance_php');
-        }
-        if($currency ==='INR'){
-            $where['paytype'] = ['eq', 4];
-            $all_balance = M('member')->sum('balance_inr');
-        }
+        $where['currency'] = ['eq', $currency];
         $this->assign('currency', $currency);
         $df_list = M('PayForAnother')->where($where)->select();
+        $all_balance = M('member')->sum('balance');
         
         $where['df_type'] = ['eq', 2];
         
@@ -1176,14 +1162,8 @@ class WithdrawalController extends BaseController
             
             $Member     = M('Member');
             $memberInfo = $Member->where(['id' => $withdraw['userid']])->lock(true)->find();
-            if(getPaytypeCurrency($withdraw['paytype']) ==='PHP'){        //菲律宾余额
-                $res = $Member->where(['id' => $withdraw['userid']])->save(['balance_php' => array('exp', "balance_php+{$withdraw['tkmoney']}")]);
-                $ymoney = $memberInfo['balance_php'];
-            }
-            if(getPaytypeCurrency($withdraw['paytype']) ==='INR'){        //菲律宾余额
-                $res = $Member->where(['id' => $withdraw['userid']])->save(['balance_inr' => array('exp', "balance_inr+{$withdraw['tkmoney']}")]);
-                $ymoney = $memberInfo['balance_inr'];
-            }
+            $res = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['tkmoney']}")]);
+            $ymoney = $memberInfo['balance'];
             if (!$res) {
                 M()->rollback();
                 UserLogService::HTwrite(3, '退款操作失败', '退款操作失败');
@@ -1213,14 +1193,8 @@ class WithdrawalController extends BaseController
             }
             //退回手续费
             if ($withdraw['df_charge_type'] && $withdraw['sxfmoney']>0) {
-                if(getPaytypeCurrency($withdraw['paytype']) ==='PHP'){        //菲律宾余额
-                    $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance_php' => array('exp', "balance_php+{$withdraw['sxfmoney']}")]);
-                    $ymoney = $memberInfo['balance_php'];
-                }
-                if(getPaytypeCurrency($withdraw['paytype']) ==='INR'){        //菲律宾余额
-                    $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance_inr' => array('exp', "balance_inr+{$withdraw['sxfmoney']}")]);
-                    $ymoney = $memberInfo['balance_inr'];
-                }
+                $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['sxfmoney']}")]);
+                $ymoney = $memberInfo['balance'];
                 if (!$res1) {
                     M()->rollback();
                     UserLogService::HTwrite(3, '退款操作失败', '退款操作失败');

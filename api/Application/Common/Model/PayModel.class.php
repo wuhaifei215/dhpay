@@ -423,14 +423,8 @@ class PayModel
                     }
                     $brokerage = $arrayStr['money'] * $ratediff;
                     //代理佣金
-                    if(getPaytypeCurrency($arrayStr['paytype']) ==='PHP'){        //菲律宾余额
-                        $ymoney = $parent['balance_php'];
-                        $rows = ['balance_php' => array('exp', "balance_php+{$brokerage}")];
-                    }
-                    if(getPaytypeCurrency($arrayStr['paytype']) ==='INR'){        //越南余额
-                        $ymoney = $parent['balance_inr'];
-                        $rows = ['balance_inr' => array('exp', "balance_inr+{$brokerage}")];
-                    }
+                    $ymoney = $parent['balance'];
+                    $rows = ['balance' => array('exp', "balance+{$brokerage}")];
                     M('Member')->where(['id' => $parentid])->save($rows);
 
                     //代理商资金变动记录

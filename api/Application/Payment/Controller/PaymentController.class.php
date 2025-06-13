@@ -226,14 +226,8 @@ class PaymentController extends Controller
     				 //各种失败未返回 并退回金额
                     $Member     = M('Member');
                     $memberInfo = $Member->where(['id' => $withdraw['userid']])->lock(true)->find();
-                    if(getPaytypeCurrency($withdraw['paytype']) ==='PHP'){        //菲律宾余额
-                        $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance_php' => array('exp', "balance_php+{$withdraw['tkmoney']}")]);
-                        $ymoney = $memberInfo['balance_php'];
-                    }
-                    if(getPaytypeCurrency($withdraw['paytype']) ==='INR'){        //菲律宾余额
-                        $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance_inr' => array('exp', "balance_inr+{$withdraw['tkmoney']}")]);
-                        $ymoney = $memberInfo['balance_inr'];
-                    }
+                     $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['tkmoney']}")]);
+                     $ymoney = $memberInfo['balance'];
                     //2,记录流水订单号
                     $arrayField = array(
                         "userid"     => $withdraw['userid'],
@@ -255,12 +249,7 @@ class PaymentController extends Controller
                     $sxf_re = true;
                     //代付驳回退回手续费
                     if ($withdraw['df_charge_type'] && $withdraw['sxfmoney']>0) {
-                        if(getPaytypeCurrency($withdraw['paytype']) ==='PHP'){        //菲律宾余额
-                            $res3 = $Member->where(['id' => $withdraw['userid']])->save(['balance_php' => array('exp', "balance_php+{$withdraw['sxfmoney']}")]);
-                        }
-                        if(getPaytypeCurrency($withdraw['paytype']) ==='INR'){        //菲律宾余额
-                            $res3 = $Member->where(['id' => $withdraw['userid']])->save(['balance_inr' => array('exp', "balance_inr+{$withdraw['sxfmoney']}")]);
-                        }
+                        $res3 = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['sxfmoney']}")]);
                         if (!$res3) {
                             $sxf_re = false;
                         }

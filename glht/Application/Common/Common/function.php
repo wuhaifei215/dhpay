@@ -1771,14 +1771,8 @@ function Reject($Reject,$return=array(), $tableName='') {
         }
         $Member     = M('Member');
         $memberInfo = $Member->where(['id' => $withdraw['userid']])->lock(true)->find();
-        if(getPaytypeCurrency($withdraw['paytype']) ==='PHP'){        //菲律宾余额
-            $res = $Member->where(['id' => $withdraw['userid']])->save(['balance_php' => array('exp', "balance_php+{$withdraw['tkmoney']}")]);
-            $ymoney = $memberInfo['balance_php'];
-        }
-        if(getPaytypeCurrency($withdraw['paytype']) ==='INR'){        //菲律宾余额
-            $res = $Member->where(['id' => $withdraw['userid']])->save(['balance_inr' => array('exp', "balance_inr+{$withdraw['tkmoney']}")]);
-            $ymoney = $memberInfo['balance_inr'];
-        }
+        $res = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['tkmoney']}")]);
+        $ymoney = $memberInfo['balance'];
         if (!$res) {
             return false;
         }
@@ -1806,15 +1800,9 @@ function Reject($Reject,$return=array(), $tableName='') {
         }
         //代付驳回退回手续费
         if ($withdraw['df_charge_type'] && $withdraw['sxfmoney']>0) {
-            if(getPaytypeCurrency($withdraw['paytype']) ==='PHP'){        //菲律宾余额
-                $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance_php' => array('exp', "balance_php+{$withdraw['sxfmoney']}")]);
-                $ymoney = $memberInfo['balance_php'];
-            }
-            if(getPaytypeCurrency($withdraw['paytype']) ==='INR'){        //菲律宾余额
-                $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance_inr' => array('exp', "balance_inr+{$withdraw['sxfmoney']}")]);
-                $ymoney = $memberInfo['balance_inr'];
-            }
-            if (!$res) {
+            $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['sxfmoney']}")]);
+            $ymoney = $memberInfo['balance'];
+            if (!$res1) {
                 return false;
             }
             $chargeField = array(

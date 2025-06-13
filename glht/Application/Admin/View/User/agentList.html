@@ -115,8 +115,8 @@
                                 </a></td>
                                 <td>
                                     <div title="用户资金管理" onclick="member_money('商户：<{$vo.username}>--国家(1)','<{:U("User/usermoneyPHP",['userid'=>$vo["id"]])}>',800,600)">
-                                    可结算资金：<{:number_format($vo[balance_php],4)}><br>
-                                    未结算资金：<{:round($vo[blockedbalance_php],4)}><br>
+                                    可结算资金：<{:number_format($vo[balance],4)}><br>
+                                    未结算资金：<{:round($vo[blockedbalance],4)}><br>
                                     <!--投诉保证金：<{:round($vo[complaintsDeposit],4)}>-->
                                     </div>
                                 </td>

@@ -184,24 +184,18 @@ class OrderController extends BaseController
      */
     public function indexCount()
     {
+
+        $where = array();
+        $currency = I("request.currency");
+        $where['currency'] = ['eq', $currency];
+        $this->assign('currency', $currency);
+
         //银行
         $tongdaolist = M("Channel")->field('id,code,title')->where($where)->select();
         $this->assign("tongdaolist", $tongdaolist);
         //通道
         $banklist = M("Product")->field('id,name,code')->where($where)->select();
         $this->assign("banklist", $banklist);
-
-        $where = array();
-        $currency = I("request.currency");
-        if($currency ==='PHP'){
-            $where['paytype'] = ['between', [1,3]];
-            $profitMap['paytype'] = ['between', [1,3]];
-        }
-        if($currency ==='INR'){
-            $where['paytype'] = ['eq', 4];
-            $profitMap['paytype'] = ['eq', 4];
-        }
-        // $this->assign('currency', $currency);
 
         $memberid = I("request.memberid", 0, 'intval');
         if ($memberid) {
@@ -494,14 +488,10 @@ class OrderController extends BaseController
     public function changeRecord()
     {
         $where = array();
-        $currency = I("request.currency");
-        if($currency ==='PHP'){
-            $where['paytype'] = ['between', [1,3]];
-        }
-        if($currency ==='INR'){
-            $where['paytype'] = ['eq', 4];
-        }
+        $currency = I("request.currency", '', 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
         $this->assign('currency', $currency);
+
         $memberid = I("get.memberid", 0, 'intval');
         if ($memberid) {
             $where['userid'] = array('eq', ($memberid - 10000) > 0 ? ($memberid - 10000) : 0);
@@ -1269,18 +1259,10 @@ class OrderController extends BaseController
         if (empty($info)) {
             $this->error("商户不存在");
         }
-        if(getPaytypeCurrency($order['paytype']) ==='PHP'){        //菲律宾余额
-            $ymoney = $info['balance_php']; //改动前的金额
-            $gmoney = $info['balance_php'] - $order['pay_actualamount']; //改动后的金额
-            $member_data['balance_php'] = ['exp', 'balance_php-' . $order['pay_actualamount']]; //防止数据库并发脏读
-            $member_data['blockedbalance_php'] = ['exp', "blockedbalance_php+" . $order['pay_actualamount']];
-        }
-        if(getPaytypeCurrency($order['paytype']) ==='INR'){        //越南余额
-            $ymoney = $info['balance_inr']; //改动前的金额
-            $gmoney = $info['balance_inr'] - $order['pay_actualamount']; //改动后的金额
-            $member_data['balance_inr'] = ['exp', 'balance_inr-' . $order['pay_actualamount']]; //防止数据库并发脏读
-            $member_data['blockedbalance_inr'] = ['exp', "blockedbalance_inr+" . $order['pay_actualamount']];
-        }
+        $ymoney = $info['balance']; //改动前的金额
+        $gmoney = $info['balance'] - $order['pay_actualamount']; //改动后的金额
+        $member_data['balance'] = ['exp', 'balance-' . $order['pay_actualamount']]; //防止数据库并发脏读
+        $member_data['blockedbalance'] = ['exp', "blockedbalance+" . $order['pay_actualamount']];
         $order = M("order")->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['LT', 1]))->lock(true)->find();
 
         //需要检测是否已解冻，如果未解冻直接修改自动解冻状态，如果解冻，直接扣余额
@@ -1303,7 +1285,7 @@ class OrderController extends BaseController
         $data['tongdao'] = $order['pay_bankcode'];
         $data['transid'] = $order['pay_orderid'];//交易流水号
         $data['orderid'] = $order['pay_orderid'];
-        $data['paytype'] = $order['paytype'];
+        $data['currency'] = $order['currency'];
         $data['lx'] = 7;//冻结
         $data['contentstr'] = "手动冻结订单";
 
@@ -1345,18 +1327,10 @@ class OrderController extends BaseController
         if (empty($info)) {
             $this->error("商户不存在");
         }
-        if(getPaytypeCurrency($order['paytype']) ==='PHP'){        //菲律宾余额
-            $ymoney = $info['balance_php']; //改动前的金额
-            $gmoney = $info['balance_php'] + $order['pay_actualamount']; //改动后的金额
-            $member_data['balance_php'] = ['exp', 'balance_php+' . $order['pay_actualamount']]; //防止数据库并发脏读
-            $member_data['blockedbalance_php'] = ['exp', "blockedbalance_php-" . $order['pay_actualamount']];
-        }
-        if(getPaytypeCurrency($order['paytype']) ==='INR'){        //越南余额
-            $ymoney = $info['balance_inr']; //改动前的金额
-            $gmoney = $info['balance_inr'] + $order['pay_actualamount']; //改动后的金额
-            $member_data['balance_inr'] = ['exp', 'balance_inr+' . $order['pay_actualamount']]; //防止数据库并发脏读
-            $member_data['blockedbalance_inr'] = ['exp', "blockedbalance_inr-" . $order['pay_actualamount']];
-        }
+        $ymoney = $info['balance']; //改动前的金额
+        $gmoney = $info['balance'] + $order['pay_actualamount']; //改动后的金额
+        $member_data['balance'] = ['exp', 'balance+' . $order['pay_actualamount']]; //防止数据库并发脏读
+        $member_data['blockedbalance'] = ['exp', "blockedbalance-" . $order['pay_actualamount']];
         $order = M("order")->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['eq', 1]))->lock(true)->find();
         //需要检测是否已解冻，如果未解冻直接修改自动解冻状态，如果解冻，直接扣余额
         $res = M('member')->where(array('id' => $userId))->save($member_data);

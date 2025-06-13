@@ -8,7 +8,7 @@ class UserRiskcontrolLogic extends RiskcontrolLogic
 
     protected $member_info = false;
 
-    public function __construct($pay_amount = '0.00', $user_id = 0)
+    public function __construct($pay_amount = '0.00', $user_id = 0, $currency='PHP')
     {
         parent::__construct();
         $this->pay_amount              = $pay_amount; //交易金额
@@ -24,7 +24,7 @@ class UserRiskcontrolLogic extends RiskcontrolLogic
                 'unit_paying_amount',
                 'paying_money',
                 'last_paying_time',
-            ])->where(['id' => $user_id])
+            ])->where(['id' => $user_id,'currency'=>$currency])
             ->find();
         if (!$this->member_info) {
             return '无此商户号！';
@@ -76,7 +76,7 @@ class UserRiskcontrolLogic extends RiskcontrolLogic
             //----------------单位时间判断交易操作-----------------
             $unit_timeoperate_judge = $this->unitTimeOperate(function () {
                 //如果支付间隔不在单位时间内，将商户风控数据重置
-            
+
                 $data = [
                     'unit_paying_number'     => 0,
                     'unit_paying_amount'     => 0,

@@ -1727,7 +1727,7 @@ class WithdrawalController extends UserController
                 clear_auth_error($userid,6);
             }
 
-            $balance    = $info['balance_php'];
+            $balance    = $info['balance'];
             $tkmoneysum = 0;
             foreach ($data as $k => $v) {
                 if (!isset($errorTxt)) {
@@ -1796,7 +1796,7 @@ class WithdrawalController extends UserController
             }
 
             if (!isset($errorTxt)) {
-                $res1 = $Member->where(['id' => $userid])->save(['balance_php' => $balance]);
+                $res1 = $Member->where(['id' => $userid])->save(['balance' => $balance]);
                 $MoneychangeModel = D('Moneychange');
                 $Moneychangetable = $MoneychangeModel->getRealTableName($time);
                 $res2 = $MoneychangeModel->table($Moneychangetable)->addAll($mcData);

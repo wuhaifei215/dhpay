@@ -351,10 +351,9 @@ class ApiController extends Controller
             $message .= "商户数据播报\r\n--------------------------------\r\n";
             $message .= "商户号 ：`" . $uid . "`\r\n";
             $message .= "商户名称：`" . $userInfo['info']['username'] . "`\r\n";
-            $message .= "可用余额：" . $userInfo['info']['balance_php'] . "\r\n";
-            $message .= "冻结余额：" . $userInfo['info']['blockedbalance_php'] . "\r\n";
-            // $message .= "越南可用余额：" . $userInfo['info']['balance_inr'] . "\r\n";
-            // $message .= "越南冻结余额：" . $userInfo['info']['blockedbalance_inr'] . "\r\n";
+            $message .= "币种：`" . $userInfo['info']['currency'] . "`\r\n";
+            $message .= "可用余额：" . $userInfo['info']['balance'] . "\r\n";
+            $message .= "冻结余额：" . $userInfo['info']['blockedbalance'] . "\r\n";
             $message .= "======代收数据======\r\n";
             $message .= "订单金额：" . $statistics['all_o_sum'] . "  ";
             $message .= "笔数：" . $statistics['all_o_num'] . "\r\n";
@@ -826,7 +825,7 @@ class ApiController extends Controller
         if ($chat_id) {
             $where=[];
             $where['telegram_id'] = $chat_id;
-            $info = M('Member')->field('id, username, balance_php, blockedbalance_php, balance_inr, blockedbalance_inr, df_api, status, df_ip, operators')->where($where)->find();
+            $info = M('Member')->field('id, username, balance, blockedbalance, df_api, status, df_ip, operators,currency')->where($where)->find();
             // log_place_order($this->code . '_get_user', "sql", M('Member')->getLastSql());    //日志
             if ($info) {
                 $status = 1;

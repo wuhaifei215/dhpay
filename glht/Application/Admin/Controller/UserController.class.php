@@ -491,40 +491,20 @@ class UserController extends BaseController
             if (empty($info)) {
                 $this->ajaxReturn(['status' => 0, 'msg' => '用户不存在']);
             }
-            if($currency === 'PHP'){
-                if (($info['balance_php'] - $bgmoney) < 0 && $cztype == 4) {
-                    $this->ajaxReturn(['status' => 0, 'msg' => "账上余额不足" . $bgmoney . "元，不能完成减金操作"]);
-                }
-                if ($cztype == 3) {
-                    $data["balance_php"] = array('exp', "balance_php+" . $bgmoney);
-                    $gmoney = $info['balance_php'] + $bgmoney;
-                    UserLogService::HTwrite(3, '增加用户资金', '增加用户(' . $userid . ')菲律宾可用余额');
-                } elseif ($cztype == 4) {
-                    $data["balance_php"] = array('exp', "balance_php-" . $bgmoney);
-                    $where['balance_php'] = array('egt', $bgmoney);
-                    $gmoney = $info['balance_php'] - $bgmoney;
-                    UserLogService::HTwrite(3, '减少用户资金', '减少用户(' . $userid . ')菲律宾可用余额');
-                }
-                $ymoney = $info['balance_php'];
-                $paytype = 1;
+            if (($info['balance'] - $bgmoney) < 0 && $cztype == 4) {
+                $this->ajaxReturn(['status' => 0, 'msg' => "账上余额不足" . $bgmoney . "元，不能完成减金操作"]);
             }
-            if($currency === 'INR'){
-                if (($info['balance_inr'] - $bgmoney) < 0 && $cztype == 4) {
-                    $this->ajaxReturn(['status' => 0, 'msg' => "账上余额不足" . $bgmoney . "元，不能完成减金操作"]);
-                }
-                if ($cztype == 3) {
-                    $data["balance_inr"] = array('exp', "balance_inr+" . $bgmoney);
-                    $gmoney = $info['balance_inr'] + $bgmoney;
-                    UserLogService::HTwrite(3, '增加用户资金', '增加用户(' . $userid . ')越南可用余额');
-                } elseif ($cztype == 4) {
-                    $data["balance_inr"] = array('exp', "balance_inr-" . $bgmoney);
-                    $where['balance_inr'] = array('egt', $bgmoney);
-                    $gmoney = $info['balance_inr'] - $bgmoney;
-                    UserLogService::HTwrite(3, '减少用户资金', '减少用户(' . $userid . ')越南可用余额');
-                }
-                $ymoney = $info['balance_inr'];
-                $paytype = 4;
+            if ($cztype == 3) {
+                $data["balance"] = array('exp', "balance+" . $bgmoney);
+                $gmoney = $info['balance'] + $bgmoney;
+                UserLogService::HTwrite(3, '增加用户资金', '增加用户(' . $userid . ')菲律宾可用余额');
+            } elseif ($cztype == 4) {
+                $data["balance"] = array('exp', "balance-" . $bgmoney);
+                $where['balance'] = array('egt', $bgmoney);
+                $gmoney = $info['balance'] - $bgmoney;
+                UserLogService::HTwrite(3, '减少用户资金', '减少用户(' . $userid . ')菲律宾可用余额');
             }
+            $ymoney = $info['balance'];
 
             $where['id'] = $userid;
             $res1 = M('Member')->where($where)->save($data);
@@ -538,7 +518,7 @@ class UserController extends BaseController
                 "tongdao" => '',
                 "transid" => $orderid,
                 "orderid" => $orderid,
-                "paytype" => $paytype,
+                "currency" => $currency,
                 "lx" => $cztype, // 增减类型
                 "contentstr" => $contentstr . '【冲正周期:' . $date . '】',
             );
@@ -568,14 +548,8 @@ class UserController extends BaseController
             $userid = I("request.uid");
             $date = I("request.date");
             $info = M("Member")->where(["id" => $userid])->find();
-            if($currency === 'PHP'){
-                $info['balance'] = $info['balance_php'];
-                $info['blockedbalance'] = $info['blockedbalance_php'];
-            }
-            if($currency === 'INR'){
-                $info['balance'] = $info['balance_inr'];
-                $info['blockedbalance'] = $info['blockedbalance_inr'];
-            }
+            $info['balance'] = $info['balance'];
+            $info['blockedbalance'] = $info['blockedbalance'];
             $uid = session('admin_auth')['uid'];
             $user = M('Admin')->where(['id' => $uid])->find();
             $this->assign('mobile', $user['mobile']);
@@ -1199,17 +1173,11 @@ class UserController extends BaseController
             } else {
                 unset($u['password']);
             }
-            if (isset($u['balance_php'])) {
-                unset($u['balance_php']);
+            if (isset($u['balance'])) {
+                unset($u['balance']);
             }
-            if (isset($u['blockedbalance_php'])) {
-                unset($u['blockedbalance_php']);
-            }
-            if (isset($u['balance_inr'])) {
-                unset($u['balance_inr']);
-            }
-            if (isset($u['blockedbalance_inr'])) {
-                unset($u['blockedbalance_inr']);
+            if (isset($u['blockedbalance'])) {
+                unset($u['blockedbalance']);
             }
             if ($userid) {
                 $res = M('Member')->where(['id' => $userid])->save($u);

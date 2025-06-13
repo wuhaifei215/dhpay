@@ -60,16 +60,9 @@ class PayModel
                     //t+7 只限制提款和代付时间，每周一允许提款
                 case '30':
                     //t+30 只限制提款和代付时间，每月第一天允许提款
-                    if(getPaytypeCurrency($order_info['paytype']) ==='PHP'){        //菲律宾余额
-                        $ymoney = $member_info['balance_php']; //改动前的金额
-                        $gmoney = bcadd($member_info['balance_php'], $actualAmount, 4); //改动后的金额
-                        $member_data['balance_php'] = ['exp', 'balance_php+' . $actualAmount]; //防止数据库并发脏读
-                    }
-                    if(getPaytypeCurrency($order_info['paytype']) ==='INR'){        //越南余额
-                        $ymoney = $member_info['balance_inr']; //改动前的金额
-                        $gmoney = bcadd($member_info['balance_inr'], $actualAmount, 4); //改动后的金额
-                        $member_data['balance_inr'] = ['exp', 'balance_inr+' . $actualAmount]; //防止数据库并发脏读
-                    }
+                    $ymoney = $member_info['balance']; //改动前的金额
+                    $gmoney = bcadd($member_info['balance'], $actualAmount, 4); //改动后的金额
+                    $member_data['balance'] = ['exp', 'balance+' . $actualAmount]; //防止数据库并发脏读
                     break;
                 case '1':
                     //t+1结算，记录冻结资金
@@ -87,16 +80,9 @@ class PayModel
                         M()->rollback();
                         return false;
                     }
-                    if(getPaytypeCurrency($order_info['paytype']) ==='PHP'){        //菲律宾冻结余额
-                        $ymoney = $member_info['blockedbalance_php']; //原冻结资金
-                        $gmoney = bcadd($member_info['blockedbalance_php'], $actualAmount, 4); //改动后的冻结资金
-                        $member_data['blockedbalance_php'] = ['exp', 'blockedbalance_php+' . $actualAmount]; //防止数据库并发脏读
-                    }
-                    if(getPaytypeCurrency($order_info['paytype']) ==='INR'){        //越南冻结余额
-                        $ymoney = $member_info['blockedbalance_inr']; //改动前的金额
-                        $gmoney = bcadd($member_info['blockedbalance_inr'], $actualAmount, 4); //改动后的金额
-                        $member_data['blockedbalance_inr'] = ['exp', 'blockedbalance_inr+' . $actualAmount]; //防止数据库并发脏读
-                    }
+                    $ymoney = $member_info['blockedbalance']; //原冻结资金
+                    $gmoney = bcadd($member_info['blockedbalance'], $actualAmount, 4); //改动后的冻结资金
+                    $member_data['blockedbalance'] = ['exp', 'blockedbalance+' . $actualAmount]; //防止数据库并发脏读
                     break;
                 default:
                     # code...
@@ -309,20 +295,14 @@ class PayModel
                 if ($ratediff <= 0) {
                     return false;
                 } else {
-                    $parent = M('Member')->where(['id' => $parentid])->field('id,balance_php,balance_inr')->find();
+                    $parent = M('Member')->where(['id' => $parentid])->field('id,balance')->find();
                     if (empty($parent)) {
                         return false;
                     }
                     $brokerage = $arrayStr['money'] * $ratediff;
+                    $ymoney = $parent['balance'];
                     //代理佣金
-                    if(getPaytypeCurrency($arrayStr['paytype']) ==='PHP'){        //菲律宾余额
-                        $ymoney = $parent['balance_php'];
-                        $rows = ['balance_php' => array('exp', "balance_php+{$brokerage}")];
-                    }
-                    if(getPaytypeCurrency($arrayStr['paytype']) ==='INR'){        //越南余额
-                        $ymoney = $parent['balance_inr'];
-                        $rows = ['balance_inr' => array('exp', "balance_inr+{$brokerage}")];
-                    }
+                    $rows = ['balance' => array('exp', "balance+{$brokerage}")];
                     M('Member')->where(['id' => $parentid])->save($rows);
 
                     //代理商资金变动记录

@@ -156,8 +156,7 @@ class WinPayDFController extends PaymentController
     public function queryBalance()
     {
         if (IS_AJAX) {
-            $id = I('post.id', 1);
-            $config = M('pay_for_another')->where(['id' => $id])->find();
+            $config = M('pay_for_another')->where(['code' => $this->code])->find();
             $post_data = array(
                 "custId" => $config['mch_id'], //商户号
                 "appId" => $config['appid'], //商户号
@@ -192,7 +191,7 @@ AAA;
         }
     }
     
-        //账户余额查询
+    //账户余额查询
     public function queryBalance2($config)
     {
         $post_data = array(
@@ -207,7 +206,7 @@ AAA;
         $result = json_decode($returnContent, true);
         // if($result['code']==="0"){
             $result_data['resultCode'] = "0";
-            $result_data['balance'] = $result['available'] / 100;
+            $result_data['balance'] = $result['acBal'] / 100;
         // }
         return $result_data;
     }

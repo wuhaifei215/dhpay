@@ -4,17 +4,11 @@ namespace Pay\Controller;
 class CreateController extends PayController
 {
     protected $channel; //
-
     protected $memberid; //商户ID
-
     protected $pay_amount; //交易金额
-
     protected $bankcode; //银行码
-
     protected $orderid; //订单号
-    
     protected $product;
-
     protected $currency;    //国家货币
 
     public function __construct()
@@ -30,7 +24,7 @@ class CreateController extends PayController
     //代收接口
     public function payinBRL(){
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
-        
+
         $this->productIsOpen(); //判断通道是否开启
         
         if($this->currency !=='PHP'){
@@ -193,14 +187,14 @@ class CreateController extends PayController
         $productUser_redis = $redis->get('ProductUser_'. $this->bankcode . '_' . $this->memberid);
         $productUser = json_decode($productUser_redis,true);
         if(!$productUser_redis || empty($productUser)){
-            $productUser = M('ProductUser')->where(['pid' => $this->bankcode, 'userid' => $this->memberid, 'status' => 1])->find();
+            $productUser = M('ProductUser')->where(['pid' => $this->bankcode, 'currency'=>$this->currency, 'userid' => $this->memberid, 'status' => 1])->find();
             // $productUser['paytype'] = $this->product['paytype'];
             $redis->set('ProductUser_'. $this->bankcode . '_' . $this->memberid, json_encode($productUser, JSON_UNESCAPED_UNICODE));
             $redis->expire('ProductUser_'. $this->bankcode . '_' . $this->memberid, 60);
         }
         $this->channel = $productUser;
         //用户未分配
-        if (!$this->channel) {
+        if (!$this->channel || empty($this->channel)) {
             $this->showmessage('该通道已关闭!');
         }
     }
@@ -223,7 +217,7 @@ class CreateController extends PayController
 
                 list($pid, $weight) = explode(':', $v);
                 //检查是否开通
-                $temp_info = $m_Channel->where(['id' => $pid, 'currency'=>$this->currency, 'status' => 1])->find();
+                $temp_info = $m_Channel->where(['id' => $pid, 'status' => 1])->find();
                 if(!$temp_info) continue;
 
                 //判断通道是否开启风控并上线

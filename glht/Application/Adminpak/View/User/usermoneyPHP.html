@@ -5,8 +5,8 @@
                 <!-- Content -->
                 <div class="ibox-content">
 					<blockquote class="layui-elem-quote layui-quote-nm">
-					<p>可用余额：<span class="text-danger"><{$info.balance_php}></span> </p>
-					<p>冻结余额：<span class="text-danger"><{$info.blockedbalance_php}></span> </p>
+					<p>可用余额：<span class="text-danger"><{$info.balance}></span> </p>
+					<p>冻结余额：<span class="text-danger"><{$info.blockedbalance}></span> </p>
 					</blockquote>
                     <button class="layui-btn layui-btn-danger"
                             onclick="money_incr('增加/减少资金','<{:U('User/incrMoney',['uid'=>$info[id],'currency'=>'PHP'])}>',640,480)">

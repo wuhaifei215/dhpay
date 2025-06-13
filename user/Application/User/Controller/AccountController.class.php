@@ -116,20 +116,20 @@ class AccountController extends UserController
                 UserLogService::write(3, '商户内转', '原因：目标商户不存在');
                 $this->ajaxReturn(['status' => 0, 'msg' => '目标商户不存在']);
             }
-            if (($info['balance_php'] - $bgmoney) < 0) {
+            if (($info['balance'] - $bgmoney) < 0) {
                 M()->rollback();
                 UserLogService::write(3, '商户内转', '原因：商户余额不足');
                 $this->ajaxReturn(['status' => 0, 'msg' => "账上余额不足" . $bgmoney . "元，不能完成减金操作"]);
             }
             $where['id'] = $userid;
-            $data["balance_php"] = array('exp', "balance_php-" . $bgmoney);
-            $gmoney = $info['balance_php'] - $bgmoney;
+            $data["balance"] = array('exp', "balance-" . $bgmoney);
+            $gmoney = $info['balance'] - $bgmoney;
             $res1 = M('Member')->where($where)->save($data);
             UserLogService::write(3, '商户内转', '减少商户(' . $userid . ')可用余额');
 
             $where['id'] = $toUserid;
-            $data2["balance_php"] = array('exp', "balance_php+" . $bgmoney);
-            $gmoney2 = $info2['balance_php'] + $bgmoney;
+            $data2["balance"] = array('exp', "balance+" . $bgmoney);
+            $gmoney2 = $info2['balance'] + $bgmoney;
             $res2 = M('Member')->where($where)->save($data2);
             UserLogService::write(3, '商户内转', '增加商户(' . $toUserid . ')可用余额');
 
@@ -137,7 +137,7 @@ class AccountController extends UserController
             //2,记录流水订单号
             $arrayField = array(
                 "userid" => $userid,
-                "ymoney" => $info['balance_php'],
+                "ymoney" => $info['balance'],
                 "money" => $bgmoney,
                 "gmoney" => $gmoney,
                 "datetime" => date("Y-m-d H:i:s"),
@@ -151,7 +151,7 @@ class AccountController extends UserController
             //2,记录流水订单号
             $arrayField2 = array(
                 "userid" => $toUserid,
-                "ymoney" => $info2['balance_php'],
+                "ymoney" => $info2['balance'],
                 "money" => $bgmoney,
                 "gmoney" => $gmoney2,
                 "datetime" => date("Y-m-d H:i:s"),
@@ -272,20 +272,20 @@ class AccountController extends UserController
                 UserLogService::write(3, '商户内转', '原因：目标商户不存在');
                 $this->ajaxReturn(['status' => 0, 'msg' => '目标商户不存在']);
             }
-            if (($info['balance_php'] - $bgmoney) < 0) {
+            if (($info['balance'] - $bgmoney) < 0) {
                 M()->rollback();
                 UserLogService::write(3, '商户内转', '原因：商户余额不足');
                 $this->ajaxReturn(['status' => 0, 'msg' => "账上余额不足" . $bgmoney . "元，不能完成减金操作"]);
             }
             $where['id'] = $fromUserid;
-            $data["balance_php"] = array('exp', "balance_php-" . $bgmoney);
-            $gmoney = $info['balance_php'] - $bgmoney;
+            $data["balance"] = array('exp', "balance-" . $bgmoney);
+            $gmoney = $info['balance'] - $bgmoney;
             $res1 = M('Member')->where($where)->save($data);
             UserLogService::write(3, '商户内转', '减少商户 (' . $fromUserid . ') 可用余额');
 
             $where['id'] = $toUserid;
-            $data2["balance_php"] = array('exp', "balance_php+" . $bgmoney);
-            $gmoney2 = $info2['balance_php'] + $bgmoney;
+            $data2["balance"] = array('exp', "balance+" . $bgmoney);
+            $gmoney2 = $info2['balance'] + $bgmoney;
             $res2 = M('Member')->where($where)->save($data2);
             UserLogService::write(3, '商户内转', '增加商户 (' . $toUserid . ') 可用余额');
             
@@ -295,7 +295,7 @@ class AccountController extends UserController
             //2,记录流水订单号
             $arrayField = array(
                 "userid" => $fromUserid,
-                "ymoney" => $info['balance_php'],
+                "ymoney" => $info['balance'],
                 "money" => $bgmoney,
                 "gmoney" => $gmoney,
                 "datetime" => date("Y-m-d H:i:s"),
@@ -309,7 +309,7 @@ class AccountController extends UserController
             //2,记录流水订单号
             $arrayField2 = array(
                 "userid" => $toUserid,
-                "ymoney" => $info2['balance_php'],
+                "ymoney" => $info2['balance'],
                 "money" => $bgmoney,
                 "gmoney" => $gmoney2,
                 "datetime" => date("Y-m-d H:i:s"),
@@ -330,13 +330,13 @@ class AccountController extends UserController
             $this->ajaxReturn(['status' => 1, 'msg' => '转账成功']);
         } else {
             //可用余额
-            $members = M('Member')->field('username,balance_php')->where(['parentid' => $this->fans['uid']])->select();
-            $allbalance_php = 0;
+            $members = M('Member')->field('username,balance')->where(['parentid' => $this->fans['uid']])->select();
+            $allbalance = 0;
             foreach ($members as $k => $v){
-                $allbalance_php += $v['balance_php'];
+                $allbalance += $v['balance'];
             }
             $this->assign('members', $members);
-            $this->assign('allbalance_php', $allbalance_php);
+            $this->assign('allbalance', $allbalance);
             $this->display();
         }
     }

@@ -57,8 +57,8 @@ class P2pPayDFController extends PaymentController
                 // var_dump($e);
             }
         // }
-        log_place_order($this->code, $data['orderid'] . "----返回", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
 
+        log_place_order($this->code, $data['orderid'] . "----返回", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
         // log_place_order($this->code, $data['orderid'] . "----状态：", $result['status']);    //日志
         if($result['code'] === '0'){
             //保存第三方订单号
@@ -198,13 +198,12 @@ class P2pPayDFController extends PaymentController
     public function queryBalance()
     {
         if (IS_AJAX) {
-            $id = I('post.id', 1);
-            $config = M('pay_for_another')->where(['id' => $id])->find();
+            $config = M('pay_for_another')->where(['code' => $this->code])->find();
             $header = [
                 'AppId: ' . $config['mch_id'],
             ];
             
-            log_place_order($this->code . '_queryBalance', "提交", json_encode($header));    //日志
+            // log_place_order($this->code . '_queryBalance', "提交", json_encode($post_data));    //日志
             $returnContent = $this->http_get_json($config['serverreturn'], $header);
             $result = json_decode($returnContent, true);
             log_place_order($this->code . '_queryBalance', "返回", json_encode($result));    //日志
@@ -248,30 +247,7 @@ AAA;
         }
         return $result_data;
     }
-        
-    //获取U汇率
-    public function queryRate()
-    {
-        if (IS_AJAX) {
-            $config = M('pay_for_another')->where(['code' => $this->code])->find();
-            $header = [
-                'AppId: ' . $config['mch_id'],
-            ];
-            
-            // log_place_order($this->code . '_queryBalance', "提交", json_encode($post_data));    //日志
-            $returnContent = $this->http_get_json('https://api.p2ppay.vip/balance/queryRate', $header);
-            $result = json_decode($returnContent, true);
-            log_place_order($this->code . '_queryRate', "返回", json_encode($result));    //日志
-            if($result['code']==="0"){
-                $balance = $result['data']['rate'] ;
-                $time = date('Y-m-d H:i:s');
-                $html = <<<AAA
-P2P - USDT汇率：$balance （$time 有效期10分钟，请及时锁定）
-AAA;
-                $this->ajaxReturn(['status' => 1, 'msg' => '成功', 'data' => $html]);
-            }
-        }
-    }
+    
     
     /*-----------------------------------辅助方法---------------------------------------------*/
     /**
@@ -289,8 +265,8 @@ AAA;
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_HEADER => false,
                 CURLOPT_HTTPHEADER => $header,
-                CURLOPT_CONNECTTIMEOUT => 20,
-                CURLOPT_TIMEOUT => 120,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT => 10,
     
                 CURLOPT_URL => $url,
                 CURLOPT_POST => true,
@@ -324,7 +300,7 @@ AAA;
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
+            CURLOPT_TIMEOUT => 10,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_HTTPHEADER => $headerArray,

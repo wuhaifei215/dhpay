@@ -1063,8 +1063,8 @@ class StatisticsController extends BaseController
     //安全信息监控
     public function monitor(){
         $Member = M('Member');
-        $stat_total_wait = $Member->sum('balance_php');
-        $last = $Member->field('id,username,balance_php')->order('id desc')->limit(5)->select();
+        $stat_total_wait = $Member->sum('balance');
+        $last = $Member->field('id,username,balance')->order('id desc')->limit(5)->select();
 
         //查询通道剩余额
         $pfa_model = D('PayForAnother');

@@ -102,6 +102,9 @@
                         </div>
                     </div>
                 </form>
+                <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">
+                    <if condition="$currency neq ''">当前国家:<{$currency}></else>请选择国家</if>
+                </blockquote>
                 <if condition="$_GET[bank] eq 9">
                 <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">
                     今日佣金：<span class="label stat_success"><{$stat.todaysum}>元</span>&nbsp;&nbsp;&nbsp; 今日佣金笔数：<span class="label stat_fail"><{$stat.todaycount}>笔</span>

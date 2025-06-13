@@ -42,23 +42,23 @@ class MoneychangeModel extends Model {
                 $newId = 1;
             }
             $creatSql = "CREATE TABLE `" . $tableName . "` (
-                `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-                  `userid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '商户编号',
-                  `ymoney` decimal(15,4) unsigned NOT NULL DEFAULT '0.0000' COMMENT '原金额',
-                  `money` decimal(15,4) NOT NULL DEFAULT '0.0000' COMMENT '变动金额',
-                  `gmoney` decimal(15,4) unsigned NOT NULL DEFAULT '0.0000' COMMENT '变动后金额',
-                  `datetime` datetime DEFAULT NULL COMMENT '修改时间',
-                  `transid` varchar(50) DEFAULT NULL COMMENT '交易流水号',
-                  `tongdao` smallint(6) unsigned DEFAULT '0' COMMENT '支付通道ID',
-                  `channel_id` int(10) unsigned DEFAULT '0' COMMENT '渠道id',
-                  `paytype` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '渠道类型: 1 Gcash直连 2 Gcash扫码 3 Maya 4 VietQR',
-                  `lx` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '类型',
-                  `tcuserid` int(11) DEFAULT NULL,
-                  `tcdengji` int(11) DEFAULT NULL,
-                  `orderid` varchar(50) DEFAULT NULL COMMENT '订单号',
-                  `contentstr` varchar(255) DEFAULT NULL COMMENT '备注',
-                  `t` int(4) NOT NULL DEFAULT '0' COMMENT '结算方式',
-                  PRIMARY KEY (`id`) USING BTREE
+                      `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+                      `userid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '商户编号',
+                      `ymoney` decimal(15,4) unsigned NOT NULL DEFAULT '0.0000' COMMENT '原金额',
+                      `money` decimal(15,4) NOT NULL DEFAULT '0.0000' COMMENT '变动金额',
+                      `gmoney` decimal(15,4) unsigned NOT NULL DEFAULT '0.0000' COMMENT '变动后金额',
+                      `datetime` datetime DEFAULT NULL COMMENT '修改时间',
+                      `transid` varchar(50) DEFAULT NULL COMMENT '交易流水号',
+                      `tongdao` smallint(6) unsigned DEFAULT '0' COMMENT '支付通道ID',
+                      `channel_id` int(10) unsigned DEFAULT '0' COMMENT '渠道id',
+                      `paytype` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '渠道类型: 1 Gcash直连 2 Gcash扫码 3 Maya 4 VietQR',
+                      `lx` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '类型',
+                      `tcuserid` int(11) DEFAULT NULL,
+                      `tcdengji` int(11) DEFAULT NULL,
+                      `orderid` varchar(50) DEFAULT NULL COMMENT '订单号',
+                      `contentstr` varchar(255) DEFAULT NULL COMMENT '备注',
+                      `currency` varchar(10) NOT NULL COMMENT '国家货币',
+                      PRIMARY KEY (`id`)
                 ) ENGINE=InnoDB AUTO_INCREMENT=" . $newId . " DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;";
             $this->execute($creatSql);
         }

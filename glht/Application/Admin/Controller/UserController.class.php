@@ -518,7 +518,7 @@ class UserController extends BaseController
                 "tongdao" => '',
                 "transid" => $orderid,
                 "orderid" => $orderid,
-                "currency" => $currency,
+                "currency" => $info['currency'],
                 "lx" => $cztype, // 增减类型
                 "contentstr" => $contentstr . '【冲正周期:' . $date . '】',
             );
@@ -532,7 +532,7 @@ class UserController extends BaseController
                 'remark' => $arrayField['contentstr'],
                 'date' => $date,
                 'ctime' => time(),
-                "paytype" => $paytype,
+                "currency" => $info['currency'],
             );
             $res3 = M('redo_order')->add($arrayRedo);
             if ($res1 && $res2 && $res3) {

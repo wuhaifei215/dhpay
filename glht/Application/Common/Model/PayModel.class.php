@@ -22,35 +22,48 @@ class PayModel
             return false;
         }
         $redis->set('EditMoney' . $trans_id,'1',120);
-        
-        $m_Order = D("Order");
-        $date = date('Ymd', strtotime(substr($trans_id, 0, 8)));  //获取订单日期
 
+
+        $m_Order    = D("Order");
+        $date = date('Ymd',strtotime(substr($trans_id, 0, 8)));  //获取订单日期
         $order_info = $m_Order->table($m_Order->getRealTableName($date))->where(['pay_orderid' => $trans_id])->find(); //获取订单信息
-        
-        if (!$order_info) {
-            log_place_order('EditMoney', "处理订单异常", "查询(" . $trans_id . ")----通道：" . $pay_name);    //日志
-            return false;
-        }
-        $userid = intval($order_info["pay_memberid"] - 10000); // 商户ID
-        $time = time(); //当前时间
+        $userid     = intval($order_info["pay_memberid"] - 10000); // 商户ID
+        $time       = time(); //当前时间
 
         //********************************************订单支付成功上游回调处理********************************************//
         if ($order_info["pay_status"] == 0) {
             //开启事物
             M()->startTrans();
             //查询用户信息
-            $m_Member = M('Member');
+            $m_Member    = M('Member');
             $member_info = $m_Member->where(['id' => $userid])->lock(true)->find();
             //更新订单状态 1 已成功未返回 2 已成功已返回
-            $res = $m_Order->table($m_Order->getRealTableName($date))->where(['pay_orderid' => $trans_id, 'pay_status' => 0])->save(['pay_status' => 1, 'pay_successdate' => $time]);
-            if (!$res) {
+            $res = $m_Order->where(['pay_orderid' => $trans_id, 'pay_status' => 0])
+                ->save(['pay_status' => 1, 'pay_successdate' => $time]);
+            if(!$res) {
                 M()->rollback();
                 return false;
             }
             //-----------------------------------------修改用户数据 商户余额、冻结余额start-----------------------------------
             //要给用户增加的实际金额（扣除投诉保证金）
             $actualAmount = $order_info['pay_actualamount'];
+            //保证金
+//            $complaintsDepositRule = $this->getComplaintsDepositRule($userid);
+//            if (isset($complaintsDepositRule['status']) && $complaintsDepositRule['status'] == 1) {
+//                if ($complaintsDepositRule['ratio'] > 100) {
+//                    $complaintsDepositRule['ratio'] = 100;
+//                }
+//                $depositAmount = round($complaintsDepositRule['ratio'] / 100 * $actualAmount, 2);
+//                $actualAmount -= $depositAmount;
+//            }
+
+            //创建修改用户修改信息
+            $member_data = [
+                'last_paying_time'   => $time,
+                'unit_paying_number' => ['exp', 'unit_paying_number+1'],
+                'unit_paying_amount' => ['exp', 'unit_paying_amount+' . $actualAmount],
+                'paying_money'       => ['exp', 'paying_money+' . $actualAmount],
+            ];
 
             //判断用结算方式
             switch ($order_info['t']) {
@@ -60,29 +73,30 @@ class PayModel
                     //t+7 只限制提款和代付时间，每周一允许提款
                 case '30':
                     //t+30 只限制提款和代付时间，每月第一天允许提款
-                    $ymoney = $member_info['balance']; //改动前的金额
-                    $gmoney = bcadd($member_info['balance'], $actualAmount, 4); //改动后的金额
+                    $ymoney                 = $member_info['balance']; //改动前的金额
+                    $gmoney                 = bcadd($member_info['balance'], $actualAmount, 4); //改动后的金额
                     $member_data['balance'] = ['exp', 'balance+' . $actualAmount]; //防止数据库并发脏读
                     break;
                 case '1':
                     //t+1结算，记录冻结资金
                     $blockedlog_data = [
-                        'userid' => $userid,
-                        'orderid' => $order_info['pay_orderid'],
-                        'amount' => $actualAmount,
-                        'thawtime' => (strtotime('tomorrow') + rand(0, 7200)),
-                        'pid' => $order_info['pay_bankcode'],
+                        'userid'     => $userid,
+                        'orderid'    => $order_info['pay_orderid'],
+                        'amount'     => $actualAmount,
+                        'thawtime'   => (strtotime('tomorrow') + rand(0, 7200)),
+                        'pid'        => $order_info['pay_bankcode'],
                         'createtime' => $time,
-                        'status' => 0,
+                        'status'     => 0,
                     ];
                     $blockedlog_result = M('Blockedlog')->add($blockedlog_data);
                     if (!$blockedlog_result) {
                         M()->rollback();
                         return false;
                     }
-                    $ymoney = $member_info['blockedbalance']; //原冻结资金
-                    $gmoney = bcadd($member_info['blockedbalance'], $actualAmount, 4); //改动后的冻结资金
+                    $ymoney                        = $member_info['blockedbalance']; //原冻结资金
+                    $gmoney                        = bcadd($member_info['blockedbalance'], $actualAmount, 4); //改动后的冻结资金
                     $member_data['blockedbalance'] = ['exp', 'blockedbalance+' . $actualAmount]; //防止数据库并发脏读
+
                     break;
                 default:
                     # code...
@@ -97,18 +111,17 @@ class PayModel
 
             // 商户充值金额变动
             $moneychange_data = [
-                'userid' => $userid,
-                'ymoney' => $ymoney, //原金额或原冻结资金
-                'money' => $actualAmount,
-                'gmoney' => $gmoney, //改动后的金额或冻结资金
-                'datetime' => date('Y-m-d H:i:s'),
-                'tongdao' => $order_info['pay_bankcode'],
-                'transid' => $trans_id,
-                'orderid' => $order_info['out_trade_id'],
+                'userid'     => $userid,
+                'ymoney'     => $ymoney, //原金额或原冻结资金
+                'money'      => $actualAmount,
+                'gmoney'     => $gmoney, //改动后的金额或冻结资金
+                'datetime'   => date('Y-m-d H:i:s'),
+                'tongdao'    => $order_info['pay_bankcode'],
+                'transid'    => $trans_id,
+                'orderid'    => $order_info['out_trade_id'],
                 'contentstr' => $order_info['out_trade_id'] . '订单充值,结算方式：t+' . $order_info['t'],
-                'paytype' => $order_info['paytype'],
-                'lx' => 1,
-                't' => $order_info['t'],
+                'lx'         => 1,
+                't'          => $order_info['t']
             ];
 
             $moneychange_result = $this->MoenyChange($moneychange_data); // 资金变动记录
@@ -118,28 +131,137 @@ class PayModel
                 return false;
             }
 
+//            // 记录投诉保证金
+//            if (isset($depositAmount) && $depositAmount > 0) {
+//                $depositResult = M('ComplaintsDeposit')->add([
+//                    'user_id'       => $userid,
+//                    'pay_orderid'   => $trans_id,
+//                    'out_trade_id'  => $order_info['out_trade_id'],
+//                    'freeze_money'  => $depositAmount,
+//                    'unfreeze_time' => time() + $complaintsDepositRule['freeze_time'],
+//                    'status'        => 0,
+//                    'create_at'     => time(),
+//                    'update_at'     => time(),
+//                ]);
+//                if ($depositResult == false) {
+//                    M()->rollback();
+//                    return false;
+//                }
+//            }
+
             // 通道ID
             $bianliticheng_data = [
-                "userid" => $userid, // 用户ID
+                "userid"  => $userid, // 用户ID
                 "transid" => $trans_id, // 订单号
-                "money" => $order_info["pay_amount"], // 金额
+                "money"   => $order_info["pay_amount"], // 金额
                 "tongdao" => $order_info['pay_bankcode'],
-                'paytype' => $order_info['paytype'],
             ];
             $this->bianliticheng($bianliticheng_data); // 提成处理
 
-            M()->commit();
+            /******************2018.12.26添加通道代理处理***********************/
+            // $tongdao_ticheng_data = [
+            //     "userid" => $userid, // 用户ID
+            //     "transid" => $trans_id, // 订单号
+            //     "money" => $order_info["pay_amount"], // 金额
+            //     "tongdao" => $order_info['pay_bankcode'],       //产品号
+            //     "channel" => $order_info['channel_id'],     //渠道号
+            // ];
+            // $this->tongdao_ticheng($tongdao_ticheng_data);  //提成处理
+
+            M()->commit();echo 111;
+
+            //-----------------------------------------修改用户数据 商户余额、冻结余额end-----------------------------------
+
+            //-----------------------------------------修改通道风控支付数据start----------------------------------------------
+            $m_Channel     = M('Channel');
+            $channel_where = ['id' => $order_info['channel_id']];
+            $channel_info  = $m_Channel->where($channel_where)->find();
+            //判断当天交易金额并修改支付状态
+            $channel_res = $this->saveOfflineStatus(
+                $m_Channel,
+                $order_info['channel_id'],
+                $order_info['pay_amount'],
+                $channel_info
+            );
+
+            //-----------------------------------------修改通道风控支付数据end------------------------------------------------
+
+            //-----------------------------------------修改子账号风控支付数据start--------------------------------------------
+            $m_ChannelAccount      = M('ChannelAccount');
+            $channel_account_where = ['id' => $order_info['account_id']];
+            $channel_account_info  = $m_ChannelAccount->where($channel_account_where)->find();
+            if ($channel_account_info['is_defined'] == 0) {
+                //继承自定义风控规则
+                $channel_info['paying_money'] = $channel_account_info['paying_money']; //当天已交易金额应该为子账号的交易金额
+                $channel_account_info         = $channel_info;
+            }
+            //判断当天交易金额并修改支付状态
+            $channel_account_res = $this->saveOfflineStatus(
+                $m_ChannelAccount,
+                $order_info['account_id'],
+                $order_info['pay_amount'],
+                $channel_account_info
+            );
+            if ($channel_account_info['unit_interval']) {
+                $m_ChannelAccount->where([
+                    'id' => $order_info['account_id'],
+                ])->save([
+                    'unit_paying_number' => ['exp', 'unit_paying_number+1'],
+                    'unit_paying_amount' => ['exp', 'unit_paying_amount+' . $order_info['pay_actualamount']],
+                ]);
+            }
+
+            //-----------------------------------------修改子账号风控支付数据end----------------------------------------------
             //订单信息存入缓存
             $order_info['pay_status'] = 1;
             $redis->set($order_info['pay_orderid'],json_encode($order_info),3600 * 2);
         }
 
+        //************************************************回调，支付跳转*******************************************//
+        $return_array = [ // 返回字段
+            "memberid"       => $order_info["pay_memberid"], // 商户ID
+            "orderid"        => $order_info['out_trade_id'], // 订单号
+            'transaction_id' => $order_info["pay_orderid"], //支付流水号
+            "amount"         => $order_info["pay_amount"], // 交易金额
+            "datetime"       => date("YmdHis"), // 交易时间
+            "returncode"     => "00", // 交易状态
+        ];
+        if(!isset($member_info)) {
+            $member_info = M('Member')->where(['id' => $userid])->find();
+        }
+        $sign                   = $this->createSign($member_info['apikey'], $return_array);
+        $return_array["sign"]   = $sign;
+        $return_array["attach"] = $order_info["attach"];
         switch ($returntype) {
             case '0':
-                
                 // 在列表尾部插入元素
                 $redis->rPush('notifyList', $order_info['pay_orderid']);
-
+                // $notifystr = "";
+                // foreach ($return_array as $key => $val) {
+                //     $notifystr = $notifystr . $key . "=" . $val . "&";
+                // }
+                // $notifystr = rtrim($notifystr, '&');
+                // $ch        = curl_init();
+                // curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+                // curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+                // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                // curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                // curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                // curl_setopt($ch, CURLOPT_POST, 1);
+                // curl_setopt($ch, CURLOPT_URL, $order_info["pay_notifyurl"]);
+                // curl_setopt($ch, CURLOPT_POSTFIELDS, $notifystr);
+                // $contents = curl_exec($ch);
+                // curl_close($ch);
+                // if (strstr(strtolower($contents), "ok") != false) {
+                //     //更新交易状态
+                //     $order_where = [
+                //         'id'          => $order_info['id'],
+                //         'pay_orderid' => $order_info["pay_orderid"],
+                //     ];
+                //     $order_result = $m_Order->where($order_where)->setField("pay_status", 2);
+                // } else {
+                //     // $this->jiankong($order_info['pay_orderid']);
+                // }
                 break;
 
             case '1':
@@ -247,6 +369,7 @@ class PayModel
         $Moneychange = D("Moneychange");
         $tablename = $Moneychange -> getRealTableName($data['datetime']);
         $result = $Moneychange->table($tablename)->add($data);
+//        $result = $Moneychange->add($data);
         return $result ? true : false;
     }
 
@@ -262,17 +385,16 @@ class PayModel
         if ($num <= 0) {
             return false;
         }
-        $userid = $arrayStr["userid"];
+        $userid    = $arrayStr["userid"];
         $tongdaoid = $arrayStr["tongdao"];
-        $trans_id = $arrayStr["transid"];
-        $paytype = $arrayStr['paytype'];
+        $trans_id = $arrayStr["trans_id"];
         $feilvfind = $this->huoqufeilv($userid, $tongdaoid, $trans_id);
 
         if ($feilvfind["status"] == "error") {
             return false;
         } else {
             //商户费率（下级）
-            $x_feilv = $feilvfind["feilv"];
+            $x_feilv    = $feilvfind["feilv"];
             $x_fengding = $feilvfind["fengding"];
 
             //代理商(上级)
@@ -287,7 +409,7 @@ class PayModel
             } else {
 
                 //代理商(上级）费率
-                $s_feilv = $parentRate["feilv"];
+                $s_feilv    = $parentRate["feilv"];
                 $s_fengding = $parentRate["fengding"];
 
                 //费率差
@@ -295,13 +417,13 @@ class PayModel
                 if ($ratediff <= 0) {
                     return false;
                 } else {
-                    $parent = M('Member')->where(['id' => $parentid])->field('id,balance')->find();
-                    if (empty($parent)) {
+                    $parent    = M('Member')->where(['id' => $parentid])->field('id,balance')->find();
+                    if(empty($parent)) {
                         return false;
                     }
                     $brokerage = $arrayStr['money'] * $ratediff;
-                    $ymoney = $parent['balance'];
                     //代理佣金
+                    $ymoney = $parent['balance'];
                     $rows = ['balance' => array('exp', "balance+{$brokerage}")];
                     M('Member')->where(['id' => $parentid])->save($rows);
 
@@ -312,19 +434,86 @@ class PayModel
                         "money" => $brokerage,
                         "gmoney" => $ymoney + $brokerage,
                         "datetime" => date("Y-m-d H:i:s"),
-                        "tongdao" => $tongdaoid,
-                        "transid" => $arrayStr["transid"],
-                        "orderid" => "tx" . date("YmdHis"),
+                        "tongdao"  => $tongdaoid,
+                        "transid"  => $arrayStr["transid"],
+                        "orderid"  => "tx" . date("YmdHis"),
                         "tcuserid" => $userid,
                         "tcdengji" => $tcjb,
-                        'paytype' => $arrayStr['paytype'],
-                        "lx" => 9,
+                        "lx"       => 9,
                     );
                     $this->MoenyChange($arrayField); // 资金变动记录
-                    $num = $num - 1;
-                    $tcjb = $tcjb + 1;
+                    $num                = $num - 1;
+                    $tcjb               = $tcjb + 1;
                     $arrayStr["userid"] = $parentid;
                     $this->bianliticheng($arrayStr, $num, $tcjb);
+                }
+            }
+        }
+    }
+
+    /**
+     * 通道代理提成处理
+     * @param $array
+     */
+    private function tongdao_ticheng($array)
+    {
+        $where = [
+            "pid" => $array['tongdao'],             //产品号
+            "channel" => $array['channel'],     //渠道号
+            "status" => 1,                      //状态
+        ];
+        $useid_arr = M('ProductUser')->where($where)->field("userid")->select();
+        if (empty($useid_arr)) {
+            return false;
+        } else {
+            $useid_str = '';
+            foreach ($useid_arr as $v) {
+                $useid_str .= $v['userid'] . ",";
+            }
+            $useid_str = substr($useid_str, 0, -1);
+            $member_arr = M('Member')->where("id in ($useid_str)")->field("id,groupid")->select();
+            if (empty($member_arr)) return false;
+            foreach ($member_arr as $mk => $mv) {
+                if ($mv['groupid'] == 8) {
+                    $parentRate = $this->huoqufeilv($mv['id'], $array['tongdao'], $array['transid']);
+                    if ($parentRate["status"] == "error") {
+                        return false;
+                    } else {
+                        //代理商费率
+                        $s_feilv = $parentRate["feilv"];
+
+                        if ($s_feilv <= 0) {
+                            return false;
+                        } else {
+                            $parent = M('Member')->where(['id' => $mv['id']])->field('id,balance')->find();
+                            if (empty($parent)) {
+                                return false;
+                            }
+                            $brokerage = $array['money'] * $s_feilv;
+                            //代理佣金
+                            $rows = [
+                                'balance' => array('exp', "balance+{$brokerage}"),
+                            ];
+                            M('Member')->where(['id' => $mv['id']])->save($rows);
+
+                            //代理商资金变动记录
+                            $arrayField = array(
+                                "userid" => $mv['id'],
+                                "ymoney" => $parent['balance'],
+                                "money" => $array["money"] * $s_feilv,
+                                "gmoney" => $parent['balance'] + $brokerage,
+                                "datetime" => date("Y-m-d H:i:s"),
+                                "tongdao" => $array['tongdao'],
+                                "transid" => $array["transid"],
+                                "orderid" => "td" . date("YmdHis"),
+                                "tcuserid" => $array["userid"],
+                                "tcdengji" => 1,
+                                "lx" => 9,
+
+                            );
+                            $this->MoenyChange($arrayField); // 资金变动记录
+                        }
+                    }
                 }
             }
         }
@@ -336,7 +525,8 @@ class PayModel
         //用户费率
         $userrate = M("Userrate")->where(["userid" => $userid, "payapiid" => $payapiid])->find();
         $return["status"]   = "ok";
-        $return["feilv"]    = $userrate['feilv'];
+        $return["feilv"]    = $userrate['t0feilv'];
+        $return["fengding"] = $userrate['t0fengding'];
         return $return;
     }
 

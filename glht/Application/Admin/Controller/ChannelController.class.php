@@ -26,7 +26,12 @@ class ChannelController extends BaseController
     //供应商接口列表
     public function index()
     {
-        $count = M('Channel')->count();
+        $where = array();
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
+        $this->assign('currency', $currency);
+
+        $count = M('Channel')->where($where)->count();
         $size  = 15;
         $rows  = I('get.rows', $size, 'intval');
         if (!$rows) {
@@ -35,6 +40,7 @@ class ChannelController extends BaseController
         $Page = new Page($count, $rows);
         $data = M('Channel')
             ->limit($Page->firstRow . ',' . $Page->listRows)
+            ->where($where)
             ->order('id DESC')
             ->select();
         $this->assign('rows', $rows);

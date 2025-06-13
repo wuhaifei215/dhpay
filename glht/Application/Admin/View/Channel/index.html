@@ -19,7 +19,25 @@
 
         <div class="row">
             <div class="col-sm-12">
+                <form class="layui-form layui-form-pane form-search" action="" method="get" autocomplete="off" id="userform">
+                    <div class="layui-form-item layui-inline">
+                        <label class="layui-form-label">所属国家：</label>
+                        <div class="layui-input-inline">
+                            <select name="currency">
+                                <option value="">全部国家</option>
+                                <volist name="country" id="co">
+                                    <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                                </volist>
+                            </select>
+                        </div>
+                    </div>
 
+                    <div class="layui-form-item layui-inline">
+                        <button type="submit" class="layui-btn"><span
+                                class="glyphicon glyphicon-search"></span> 搜索
+                        </button>
+                    </div>
+                </form>
                 <div class="ibox float-e-margins">
                     <div class="ibox-title">
                         <h5>代收渠道管理</h5>

@@ -60,7 +60,7 @@ class UserController extends BaseController
         if ($currency != '') {
             $where['currency'] = $currency;
         }
-        $this->assign('agency_id', $agency_id);
+        $this->assign('currency', $currency);
 
         if ($agency_id != '') {
             $where['agency_id'] = $agency_id;

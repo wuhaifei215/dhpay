@@ -24,6 +24,8 @@ class OrderController extends BaseController
     public function __construct()
     {
         parent::__construct();
+        $country = M('Country')->select();
+        $this->assign('country', $country);
     }
 
     /**
@@ -487,8 +489,6 @@ class OrderController extends BaseController
      */
     public function changeRecord()
     {
-        $country = M('Country')->select();
-        $this->assign('country', $country);
 
         $where = array();
         $currency = I("request.currency", '', 'trim,string,strip_tags,htmlspecialchars');

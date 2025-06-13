@@ -19,6 +19,8 @@ class ChannelController extends BaseController
             ->select();
         $this->assign('channels', $channels);
         $this->assign('channellist', json_encode($channels));
+        $country = M('Country')->select();
+        $this->assign('country', $country);
     }
 
     //供应商接口列表

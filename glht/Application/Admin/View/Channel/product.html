@@ -37,6 +37,7 @@
                                         <th>编号</th>
                                         <th>通道名称</th>
 										<th>通道代码</th>
+                                        <th>国家</th>
                                         <th>类型</th>
                                         <th>费率下限</th>
                                         <th>费率上限</th>
@@ -52,6 +53,11 @@
                                         <td><{$p.id}></td>
                                         <td><{$p.name}></td>
                                         <td><{$p.code}></td>
+                                        <td>
+                                            <volist name="country" id="co">
+                                                <if condition="$vo.currency eq $co['currency']"><{$co['title']}></if>
+                                            </volist>
+                                        </td>
 										<td><{$p[paytype]|getPaytype}></td>
                                         <td><span id="dfRate<{$p.id}>"><span style="color:green">T+0</span>：<{$p.t0defaultrate}>，<span style="color:red">T+1</span>：<{$p.defaultrate}></span></td>
                                         <td><span id="fdRate<{$p.id}>"><span style="color:green">T+0</span>：<{$p.t0fengding}>，<span style="color:red">T+1</span>：<{$p.fengding}></span></td>

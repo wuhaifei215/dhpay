@@ -20,11 +20,13 @@
             <div class="col-sm-12">
                 <div class="ibox float-e-margins">
                     <div class="ibox-title">
-                        <h5>支付产品管理</h5>
-                        <div class="row">
-                            <div class="col-sm-2 pull-right">
-                                <a href="javascript:;" id="addProduct" class="layui-btn layui-btn-warm">添加支付产品</a>
-                            </div>
+                        <h5>代收渠道管理</h5>
+						<div class="row">
+
+							<div class="col-sm-2 pull-right" style="width: 280px;">
+								<a href="javascript:;" id="showEven" class="layui-btn">风控实况</a>
+								<a href="javascript:;" id="addSupplier" class="layui-btn">添加供应商</a>
+							</div>
                         </div>
                     </div>
                     <div class="ibox-content">
@@ -48,69 +50,55 @@
                             </div>
                         </form>
                     </div>
-                    <div class="ibox float-e-margins">
-                        <div class="ibox-title">
-                            <h5>代收渠道管理</h5>
-                            <div class="row">
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table class="table table-hover" lay-data="{width:'100%',limit:<{$rows}>}">
+                                <thead>
+                                    <tr>
 
-                                <div class="col-sm-2 pull-right" style="width: 280px;">
-                                    <a href="javascript:;" id="showEven" class="layui-btn">风控实况</a>
-                                    <a href="javascript:;" id="addSupplier" class="layui-btn">添加供应商</a>
-                                </div>
-                            </div>
+                                        <th>编号</th>
+                                        <th>接口名称</th>
+                                        <th>接口代码</th>
+										<th>类型</th>
+                                        <th>接口状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+								<volist name="list" id="p">
+                                    <tr>
+                                        <td><{$p.id}></td>
+                                        <td><{$p.title}></td>
+                                        <td><{$p.code}></td>
+										<td><{$p[paytype]|getPaytype}></td>
+                                        <td>
+											<div class="layui-form">
+											<input type="checkbox" <if condition="$p['status']">checked</if> name="status" value="1" data-id="<{$p.id}>" data-name="<{$p.title}>" lay-skin="switch" lay-filter="switchTest" lay-text="开启|关闭">
+											</div>
+										</td>
+                                        <td>
+											<div class="layui-btn-group">
+
+                                              	<a href="<{:U('Channel/account', array('pid' => $p[id]))}>" class="layui-btn layui-btn-small"  >子账户</a>
+
+											  	<button class="layui-btn layui-btn-small" onclick="admin_control('编辑风控','<{:U('Channel/editControl',array('pid' => $p[id]))}>')">风控</button>
+
+											  	<button class="layui-btn layui-btn-small" onclick="admin_edit('编辑供应商接口','<{:U('Channel/editSupplier',array('pid'=>$p[id]))}>')">编辑</button>
+
+											  <button class="layui-btn layui-btn-small" onclick="admin_del(this,'<{:$p[id]}>')">删除</button>
+											</div>
+                                        </td>
+                                    </tr>
+                                </volist>
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="ibox-content">
-
-                            <div class="table-responsive">
-                                <table class="table table-hover" lay-data="{width:'100%',limit:<{$rows}>}">
-                                    <thead>
-                                        <tr>
-
-                                            <th>编号</th>
-                                            <th>接口名称</th>
-                                            <th>接口代码</th>
-                                            <th>类型</th>
-                                            <th>接口状态</th>
-                                            <th>操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    <volist name="list" id="p">
-                                        <tr>
-                                            <td><{$p.id}></td>
-                                            <td><{$p.title}></td>
-                                            <td><{$p.code}></td>
-                                            <td><{$p[paytype]|getPaytype}></td>
-                                            <td>
-                                                <div class="layui-form">
-                                                <input type="checkbox" <if condition="$p['status']">checked</if> name="status" value="1" data-id="<{$p.id}>" data-name="<{$p.title}>" lay-skin="switch" lay-filter="switchTest" lay-text="开启|关闭">
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="layui-btn-group">
-
-                                                    <a href="<{:U('Channel/account', array('pid' => $p[id]))}>" class="layui-btn layui-btn-small"  >子账户</a>
-
-                                                    <button class="layui-btn layui-btn-small" onclick="admin_control('编辑风控','<{:U('Channel/editControl',array('pid' => $p[id]))}>')">风控</button>
-
-                                                    <button class="layui-btn layui-btn-small" onclick="admin_edit('编辑供应商接口','<{:U('Channel/editSupplier',array('pid'=>$p[id]))}>')">编辑</button>
-
-                                                  <button class="layui-btn layui-btn-small" onclick="admin_del(this,'<{:$p[id]}>')">删除</button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </volist>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="page"><{$page}></div>
-                        </div>
+					    <div class="page"><{$page}></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
     <script src="/Public/Front/js/jquery.min.js"></script>
     <script src="/Public/Front/js/bootstrap.min.js"></script>
     <script src="/Public/Front/js/plugins/peity/jquery.peity.min.js"></script>

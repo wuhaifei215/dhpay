@@ -140,11 +140,11 @@
 			  </div>
 				<div class="layui-form-item">
 					<label class="layui-form-label">所属国家：</label>
-					<div class="layui-input-block">
-						<select name="pd[currency]" lay-verify="required" lay-search="">
+					<div class="layui-input-inline">
+						<select name="currency" lay-verify="required" lay-search="">
 							<option value="">直接选择或搜索选择</option>
 							<volist name="country" id="b">
-								<option <if condition="$pd[currency] eq $b['currency']">selected</if> value="<{$b.currency}>"><{$b.title}>(<{$b.currency}>)</option>
+								<option <if condition="$list[currency] eq $b[currency]">selected</if> value="<{$b.currency}>"><{$b.title}>(<{$b.currency}>)</option>
 							</volist>
 						</select>
 					</div>

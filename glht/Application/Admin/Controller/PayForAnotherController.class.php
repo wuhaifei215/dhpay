@@ -10,7 +10,7 @@ class PayForAnotherController extends BaseController{
         $paytypes = C('PAYTYPES');
         $this->assign('paytypes', $paytypes);
     }
-    
+
 	public function index(){
         $where = array();
         $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');

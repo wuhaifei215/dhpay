@@ -57,18 +57,6 @@
                         </div>
                     </div>
                     </neq>
-                    <eq name="type" value="2">
-                    <div class="layui-form-item layui-inline">
-                        <label class="layui-form-label">币种</label>
-                        <div class="layui-input-inline">
-                            <select name="currency">
-                                <option value="">全部</option>
-                                <option <if condition="$currency eq PHP">selected</if> value="PHP">国家(1)</option>
-                                <option <if condition="$currency eq INR">selected</if> value="INR">国家(2)</option>
-                            </select>
-                        </div>
-                    </div>
-                    </eq>
                     <br>
                     <!--<div class="layui-form-item layui-inline">-->
                     <!--    <label class="layui-form-label">申请时间</label>-->
@@ -77,6 +65,17 @@
                     <!--               placeholder="申请起始时间" value="<{$createtime}>" autocomplete="off">-->
                     <!--    </div>-->
                     <!--</div>-->
+                    <div class="layui-form-item layui-inline">
+                        <label class="layui-form-label">所属国家：</label>
+                        <div class="layui-input-inline">
+                            <select name="currency">
+                                <option value="">全部国家</option>
+                                <volist name="country" id="co">
+                                    <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                                </volist>
+                            </select>
+                        </div>
+                    </div>
                     <div class="layui-form-item layui-inline">
                         <label class="layui-form-label">成功时间</label>
                         <div class="layui-input-inline" style="width:270px;">
@@ -91,6 +90,12 @@
                         </button>
                     </div>
                 </form>
+                <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
+                    <volist name="country" id="co">
+                        <if condition="$currency eq $co['currency']"><span style="color:#333;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)</if>
+                    </volist>
+                    <if condition="$currency eq ''">请选择国家</if>
+                </blockquote>
                 <blockquote class="layui-elem-quote" style="padding;8px;">
                     <style type="text/css">
                         .channel_tr td{

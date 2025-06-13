@@ -162,7 +162,7 @@ class ChannelController extends BaseController
     public function product()
     {
         $where = array();
-        $currency = I("request.currency",C('DEFAULT_COUNTRY'));
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $where['currency'] = ['eq', $currency];
         $this->assign('currency', $currency);
 

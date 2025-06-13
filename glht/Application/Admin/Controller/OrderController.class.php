@@ -188,7 +188,7 @@ class OrderController extends BaseController
     {
 
         $where = array();
-        $currency = I("request.currency");
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $where['currency'] = ['eq', $currency];
         $this->assign('currency', $currency);
 
@@ -491,7 +491,7 @@ class OrderController extends BaseController
     {
 
         $where = array();
-        $currency = I("request.currency", '', 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
 //        if ($currency) {
         $where['currency'] = ['eq', $currency];
 //        }

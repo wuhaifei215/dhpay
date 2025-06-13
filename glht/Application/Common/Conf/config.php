@@ -35,7 +35,7 @@ return array(
     'agent'=>'agent',//代理url
     'imageDriver'=>'gd',//二维码画图 Supported: "gd", "imagick"
     'google_discrepancy'=>1,//谷歌验证码容差时间 如果这里是2 那么就是 2* 30 sec 一分钟.
-    'DEFAULT_COUNTRY' =>  'PHP',
+    'DEFAULT_COUNTRY' =>  'BRL',
 //    'DEFAULT_TIMEZONE' => 'America/Belem'
 ) ;
 ?>

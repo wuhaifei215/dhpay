@@ -55,7 +55,7 @@
                                         <td><{$p.code}></td>
                                         <td>
                                             <volist name="country" id="co">
-                                                <if condition="$vo.currency eq $co['currency']"><{$co['title']}></if>
+                                                <if condition="$p.currency eq $co['currency']"><{$co['title']}></if>
                                             </volist>
                                         </td>
 										<td><{$p[paytype]|getPaytype}></td>

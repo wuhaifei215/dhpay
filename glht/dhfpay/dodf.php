@@ -14,9 +14,9 @@ if($_POST['extends']) {
 	$_POST['extends'] = base64_encode(json_encode($_POST['extends']));
 }
 if($_POST['bankcode']=='909'){
-    $tjurl = "https://api.yunpay.me/Payment_CreateDF_payoutINR.html";   //提交地址
+    $tjurl = "https://api.dhpay.vip/Payment_CreateDF_payoutINR.html";   //提交地址
 }else{
-    $tjurl = "https://api.yunpay.me/Payment_CreateDF_payoutBRL.html";   //提交地址
+    $tjurl = "https://api.dhpay.vip/Payment_CreateDF_payoutBRL.html";   //提交地址
 }
 
 ksort($_POST);

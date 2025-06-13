@@ -11,12 +11,12 @@ if(empty($pay_memberid)||empty($pay_amount)||empty($pay_bankcode)){
 $pay_applydate = date("Y-m-d H:i:s");  //订单时间
 $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://'; 
 $pay_notifyurl = $http_type . $_SERVER['HTTP_HOST'] . "/gmtest/server.php";   //服务端返回地址
-$pay_callbackurl = $http_type . "glht.yunpay.me/gmtest/page.php";  //页面跳转返回地址
+$pay_callbackurl = $http_type . "glht.dhpay.vip/gmtest/page.php";  //页面跳转返回地址
 $Md5key = "sy016baa755zjmp6dnxl0ezr2asxio8z";   //密钥
 // if($pay_bankcode=='909'){
-    $tjurl = $http_type . "api.yunpay.me/Pay_Create_payinBRL.html";   //提交地址
+    $tjurl = $http_type . "api.dhpay.vip/Pay_Create_payinBRL.html";   //提交地址
 // }else{
-//     $tjurl = $http_type . "api.yunpay.me/Pay_Create_payinPHP.html";   //提交地址
+//     $tjurl = $http_type . "api.dhpay.vip/Pay_Create_payinPHP.html";   //提交地址
 // }
 
 

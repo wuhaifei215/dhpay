@@ -69,7 +69,7 @@
                                         <td><{$v.code}></td>
                                         <td>
                                             <volist name="country" id="co">
-                                                <if condition="$p.currency eq $co['currency']"><{$co['title']}>(<{$co['currency']}>)</if>
+                                                <if condition="$v.currency eq $co['currency']"><{$co['title']}>(<{$co['currency']}>)</if>
                                             </volist>
                                         </td>
                                <!--         <td>-->

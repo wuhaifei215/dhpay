@@ -493,12 +493,9 @@ class OrderController extends BaseController
      */
     public function changeRecord()
     {
-
         $where = array();
         $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
-//        if ($currency) {
         $where['currency'] = ['eq', $currency];
-//        }
         $this->assign('currency', $currency);
 
         $memberid = I("get.memberid", 0, 'intval');
@@ -986,7 +983,6 @@ class OrderController extends BaseController
     //设置订单为已支付
     public function setOrderPaid()
     {
-
         $uid = session('admin_auth')['uid'];
         $verifysms = 0;//是否可以短信验证
         $sms_is_open = smsStatus();
@@ -1382,6 +1378,10 @@ class OrderController extends BaseController
         $this->assign("banklist", $banklist);
 
         $where = array();
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
+        $this->assign('currency', $currency);
+
         $memberid = I("request.memberid", 0, 'intval');
         if ($memberid) {
             $where['O.pay_memberid'] = array('eq', $memberid);

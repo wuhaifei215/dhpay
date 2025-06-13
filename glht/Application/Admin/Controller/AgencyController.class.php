@@ -22,6 +22,8 @@ class AgencyController extends BaseController
     public function __construct()
     {
         parent::__construct();
+        $country = M('Country')->select();
+        $this->assign('country', $country);
     }
 
     /**
@@ -31,9 +33,14 @@ class AgencyController extends BaseController
     {
         UserLogService::HTwrite(1, '查看包网机构列表', '查看包网机构列表');
 
+        $where = array();
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
+        $this->assign('currency', $currency);
+
         $username = I("get.username", '', 'trim');
-        
         $this->assign('username', $username);
+
         $status = I("get.status");
         $regdatetime = I('get.regdatetime');
         if (!empty($username) && !is_numeric($username)) {

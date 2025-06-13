@@ -10,13 +10,16 @@ class PayForAnotherController extends BaseController{
         $paytypes = C('PAYTYPES');
         $this->assign('paytypes', $paytypes);
     }
-
-
+    
 	public function index(){
+        $where = array();
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
+        $this->assign('currency', $currency);
+
 		$pfa_model = D('PayForAnother');
-		$count = $pfa_model->count();
+		$count = $pfa_model->where($where)->count();
 		$page = new Page($count, 15);
-		$where = [];
 		$lists = $pfa_model->where($where)->limit($page->firstRow . ',' . $page->listRows) ->order('id DESC')->select();
 		foreach($lists as $k => $v){
 			$lists[$k]['updatetime'] = date('Y-m-d H:i:s', $v['updatetime']);

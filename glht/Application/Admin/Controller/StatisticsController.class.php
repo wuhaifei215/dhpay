@@ -21,6 +21,8 @@ class StatisticsController extends BaseController
     public function __construct()
     {
         parent::__construct();
+        $country = M('Country')->select();
+        $this->assign('country', $country);
     }
 
     /**

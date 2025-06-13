@@ -13,11 +13,17 @@
                 <!--条件查询-->
                 <div class="ibox-content">
                     <form class="layui-form layui-form-pane form-search" action="" method="get" autocomplete="off" id="userform">
-                        <input type="hidden" name="m" value="<{$model}>">
-                        <input type="hidden" name="c" value="User">
-                        <input type="hidden" name="a" value="index">
-                        <input type="hidden" name="p" value="1">
-                        <input type="hidden" name="rows" id="rows" value="<{$rows}>">
+                        <div class="layui-form-item layui-inline">
+                            <label class="layui-form-label">所属国家：</label>
+                            <div class="layui-input-inline">
+                                <select name="currency">
+                                    <option value="">全部国家</option>
+                                    <volist name="country" id="co">
+                                        <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                                    </volist>
+                                </select>
+                            </div>
+                        </div>
                         <div class="layui-form-item layui-inline">
                             <label class="layui-form-label">包网名</label>
                             <div class="layui-input-inline">
@@ -59,6 +65,7 @@
                         <tr lay-data="{min-height:400px}">
                             <th lay-data="{field:'id', width:120}">ID</th>
                             <th lay-data="{field:'username', width:120}">包网名</th>
+                            <th lay-data="{field:'currency', width:90}">所属国家</th>
                             <!--<th lay-data="{field:'status', width:90}">状态</th>-->
                             <th lay-data="{field:'op',width:'600'}">操作</th>
                         </tr>
@@ -72,7 +79,11 @@
                                     <td>
                                         <{$vo.username}>
                                     </td>
-                                    
+                                    <td>
+                                        <volist name="country" id="co">
+                                            <if condition="$vo.currency eq $co['currency']"><{$co['title']}></if>
+                                        </volist>
+                                    </td>
                                     <!--<td>-->
                                     <!--    <input type="checkbox"-->
                                     <!--           data-uid="<{$vo.id}>"-->

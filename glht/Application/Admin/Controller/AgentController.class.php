@@ -22,6 +22,8 @@ class AgentController extends BaseController
     public function __construct()
     {
         parent::__construct();
+        $country = M('Country')->select();
+        $this->assign('country', $country);
     }
 
     /**
@@ -30,13 +32,16 @@ class AgentController extends BaseController
     public function index()
     {
 
-        $groupid     = I('get.groupid', '');
-        $username    = I("get.username");
-        $status      = I("get.status");
-        $authorized  = I("get.authorized");
-        $parentid    = I('get.parentid');
-        $regdatetime = I('get.regdatetime');
+        $groupid = I('get.groupid', '', 'string,strip_tags,htmlspecialchars');
+        $username = I("get.username", '', 'trim,string,strip_tags,htmlspecialchars');
+        $status = I("get.status", '', 'trim,string,strip_tags,htmlspecialchars');
+        $authorized = I("get.authorized", '', 'trim,string,strip_tags,htmlspecialchars');
+        $parentid = I('get.parentid', '', 'trim,string,strip_tags,htmlspecialchars');
+        $regdatetime = I('get.regdatetime', '', 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
 
+        $where =[];
+        $where['currency'] = $currency;
         if ($groupid != '') {
             $where['groupid'] = $groupid != 1 ? $groupid : ['neq', '4'];
         }

@@ -33,7 +33,17 @@
 				</div>
 				  <div class="layui-form-mid layui-word-aux">注意：即支付接口类名称（不含Controller）</div>
 			  </div>
-			  
+				<div class="layui-form-item">
+					<label class="layui-form-label">所属国家：</label>
+					<div class="layui-input-block">
+						<select name="pa[currency]" lay-verify="required" lay-search="">
+							<option value="">直接选择或搜索选择</option>
+							<volist name="country" id="b">
+								<option <if condition="$pa[currency] eq $b['currency']">selected</if> value="<{$b.currency}>"><{$b.title}>(<{$b.currency}>)</option>
+							</volist>
+						</select>
+					</div>
+				</div>
 			 <div class="layui-form-item">
 				  <label class="layui-form-label">网关地址：</label>
 				  <div class="layui-input-block">

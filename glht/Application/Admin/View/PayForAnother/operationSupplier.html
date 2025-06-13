@@ -139,6 +139,17 @@
 				</div>
 			  </div>
 				<div class="layui-form-item">
+					<label class="layui-form-label">所属国家：</label>
+					<div class="layui-input-block">
+						<select name="pd[currency]" lay-verify="required" lay-search="">
+							<option value="">直接选择或搜索选择</option>
+							<volist name="country" id="b">
+								<option <if condition="$pd[currency] eq $b['currency']">selected</if> value="<{$b.currency}>"><{$b.title}>(<{$b.currency}>)</option>
+							</volist>
+						</select>
+					</div>
+				</div>
+				<div class="layui-form-item">
 					<label class="layui-form-label">是否默认：</label>
 					<div class="layui-input-block">
 						<input type="radio" name="is_default" value="1" title="开启" <if condition="$list[is_default] eq 1">checked</if> checked="" >

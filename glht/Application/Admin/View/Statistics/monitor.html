@@ -20,6 +20,30 @@
             </div>
             <!--条件查询-->
             <div class="ibox-content">
+                <form class="layui-form layui-form-pane form-search" action="" method="get" autocomplete="off">
+                    <div class="layui-form-item layui-inline">
+                        <label class="layui-form-label">所属国家：</label>
+                        <div class="layui-input-inline">
+                            <select name="currency">
+                                <option value="">全部国家</option>
+                                <volist name="country" id="co">
+                                    <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                                </volist>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <button type="submit" class="layui-btn"><span
+                                class="glyphicon glyphicon-search"></span> 搜索
+                        </button>
+                    </div>
+                </form>
+                <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
+                    <volist name="country" id="co">
+                        <if condition="$currency eq $co['currency']"><span style="color:#333;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)</if>
+                    </volist>
+                    <if condition="$currency eq ''">请选择国家</if>
+                </blockquote>
                 <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">
                     最后 5 个商户信息： <br>
                     <table style="margin-top:8px;">

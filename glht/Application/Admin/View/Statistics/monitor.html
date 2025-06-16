@@ -6,7 +6,7 @@
                 <h5>安全信息监控</h5>
             </div>
             <div class="ibox-content">
-                <form class="layui-form layui-form-pane form-search" action="" method="get" autocomplete="off">
+                <form class="layui-form " action="" method="get" autocomplete="off">
                     <div class="layui-form-item layui-inline">
                         <label class="layui-form-label">所属国家：</label>
                         <div class="layui-input-inline">
@@ -19,8 +19,7 @@
                         </div>
                     </div>
                     <div class="layui-form-item layui-inline">
-                        <button type="submit" class="layui-btn"><span
-                                class="glyphicon glyphicon-search"></span> 搜索
+                        <button type="submit" class="layui-btn"><span class="glyphicon glyphicon-search"></span> 搜索
                         </button>
                     </div>
                 </form>
@@ -36,7 +35,7 @@
                     <a class="layui-btn layui-btn-small layui-btn-danger" href="<{$targetUrl}>" target="_blank">新窗口打开</a>
                 </div>
                 <!--</div>-->
-                
+
                 <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
                     <volist name="country" id="co">
                         <if condition="$currency eq $co['currency']"><span style="color:#333;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)</if>
@@ -88,6 +87,8 @@
 </div>
 <include file="Public/footer"/>
 <script>
+    layui.use(['laydate', 'laypage', 'layer', 'table', 'form'], function() {
+    });
     function set_time() {
         // var t=document.getElementById("time").value;
         var t=120;

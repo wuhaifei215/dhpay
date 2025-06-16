@@ -28,6 +28,17 @@
     </div>
     <form class="layui-form layui-form-pane" action="" method="get" autocomplete="off" id="orderform">
         <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">所属国家：</label>
+            <div class="layui-input-inline">
+                <select name="currency">
+                    <option value="">全部国家</option>
+                    <volist name="country" id="co">
+                        <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                    </volist>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline">
             <label class="layui-form-label">时间范围</label>
             <div class="layui-input-inline" style="width: 300px;">
                 <input type="text" class="layui-input" name="createtime" id="createtime"
@@ -40,6 +51,12 @@
             </button>
         </div>
     </form>
+      <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
+          <volist name="country" id="co">
+              <if condition="$currency eq $co['currency']"><span style="color:#333;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)</if>
+          </volist>
+          <if condition="$currency eq ''">请选择国家</if>
+      </blockquote>
     <div class="row">
         <foreach name="list" item="v">
         <div class="col-sm-4">
@@ -51,6 +68,7 @@
                     <p>交易金额：<{$v.pay_amount}>元</p>
                     <p>手续费  &nbsp;&nbsp;&nbsp;：<{$v.pay_poundage}>元</p>
                     <p>入金总额：<{$v.pay_actualamount}>元</p>
+                    <th lay-data="{field:'currency', width:90}">所属国家</th>
                 </div>
                 <div class="ibox-content">
                     <p>
@@ -61,6 +79,11 @@
                     <p>
                         <span style="font-size: 16px;color:#008000b0;">成功笔数：<strong><{$v.success_count}></strong></span>
                         <span style="margin-left: 80px;font-size: 16px;color: #ff0000b3;">失败笔数：<strong><{$v.fail_count}></strong></span>
+                    </p>
+                    <p>
+                        <volist name="country" id="co">
+                            <if condition="$vo.currency eq $co['currency']"><{$co['title']}>(<{$co['currency']}>)</if>
+                        </volist>
                     </p>
                 </div>
             </div>

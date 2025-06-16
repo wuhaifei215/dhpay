@@ -309,6 +309,15 @@ class StatisticsController extends BaseController
 
     public function productChannelFinance()
     {
+        $where = array();
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
+        $this->assign('currency', $currency);
+
+        $where['status'] = ['eq',1];
+        $where['id'] = ['neq',6];
+        $list = M('channel')->where($where)->select();
+
         $createtime = urldecode(I("request.createtime", '', 'string,strip_tags,htmlspecialchars'));
         if ($createtime) {
             list($cstime,$cetime) = explode('|',$createtime);
@@ -318,9 +327,6 @@ class StatisticsController extends BaseController
             $createtime = $cstime . ' | ' . $cetime;
         }
         $this->assign('createtime', $createtime);
-        
-
-        $list = M('channel')->where(['status'=>1,'id' =>['neq',6]])->select();
         $countSuccess = $countFail = 0;
         $S_where = $F_where = [];
         foreach($list as $k => $v) {
@@ -360,25 +366,27 @@ class StatisticsController extends BaseController
      */
     public function productReconciliation()
     {
+
+        $where = array();
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
+
         $memberid = urldecode(I("request.memberid", '', 'string,strip_tags,htmlspecialchars'));
         
-        $channel = M('channel')->where(['status'=>1,'id' =>['neq',6]])->select();
-        $payChannel = M('PayForAnother')->where(['status'=>1,'id' =>['neq',6]])->select();
+        $channel = M('channel')->where(['currency'=>$currency,'status'=>1,'id' =>['neq',6]])->select();
+        $payChannel = M('PayForAnother')->where(['currency'=>$currency,'status'=>1,'id' =>['neq',6]])->select();
         $max_date = strtotime(date('Y-m-d'));   //今日日期
         
         for($i=0; $i<30; $i++) {
             $start_time = $max_date-$i*86400;
-            if($start_time<$time) {
-                break;
-            }
             $list[$i]['date'] = date('Y-m-d',$start_time);
             $begin = date('Y-m-d',$start_time).' 00:00:00';
             $end = date('Y-m-d H:i:s',strtotime(date('Y-m-d',$start_time))+86400-1);
             foreach($channel as $k => $v) {
-                $list[$i]['payin'][$v['id']] = $this->getDayReconciliationPayin($begin, $end, $v['id'], $memberid);
+                $list[$i]['payin'][$v['id']] = $this->getDayReconciliationPayin($begin, $end, $v['id'], $memberid, $currency);
             }
             foreach($payChannel as $pk => $pv) {
-                $list[$i]['payout'][$pv['id']] = $this->getDayReconciliationPayout($begin, $end, $pv['id'], $memberid);
+                $list[$i]['payout'][$pv['id']] = $this->getDayReconciliationPayout($begin, $end, $pv['id'], $memberid, $currency);
             }
         }
         // echo "<pre>";
@@ -387,12 +395,16 @@ class StatisticsController extends BaseController
         $this->assign('channel', $channel);
         $this->assign('payChannel', $payChannel);
         $this->assign('memberid', $memberid);
+        $this->assign('currency', $currency);
         C('TOKEN_ON', false);
         $this->display();
     }
 
     //获取代收对账单
-    private function getDayReconciliationPayin($begin, $end, $channelId, $memberid = 0) {
+    private function getDayReconciliationPayin($begin, $end, $channelId, $memberid = 0, $currency) {
+        if(!$currency){
+            $currency=C('DEFAULT_COUNTRY');
+        }
         if($memberid!=0 && $memberid > 10002){
             $memberid = $memberid-10000;
         }elseif($memberid==0){
@@ -419,12 +431,14 @@ class StatisticsController extends BaseController
             
             //代收信息
             $where = [
+                'currency'=>$currency,
                 'channel_id'=>$channelId,
                 'pay_status' => ['between', [1, 2]],
                 'pay_applydate' => ['between', [strtotime($begin)-86400*7, strtotime($end)]],
                 'pay_successdate' => ['between', [strtotime($begin), strtotime($end)]],
             ];            
             $O_where = [
+                'currency'=>$currency,
                 'channel_id'=>$channelId,
                 'pay_applydate' => ['between', [strtotime($begin), strtotime($end)]],
             ];
@@ -463,7 +477,10 @@ class StatisticsController extends BaseController
     }
 
     //获取代付对账单
-    private function getDayReconciliationPayout($begin, $end, $channelId, $memberid = 0) {
+    private function getDayReconciliationPayout($begin, $end, $channelId, $memberid = 0, $currency) {
+        if(!$currency){
+            $currency=C('DEFAULT_COUNTRY');
+        }
         if($memberid!=0 && $memberid > 10002){
             $memberid = $memberid-10000;
         }elseif($memberid==0){
@@ -489,6 +506,7 @@ class StatisticsController extends BaseController
             
             //代付信息
             $where = [
+                'currency'=>$currency,
                 'df_id'=>$channelId,
                 'status' => ['between', ['2', '3']],
                 'sqdatetime' => ['between', [date('Y-m-d',strtotime($begin)-86400*7), $end]], 
@@ -1064,17 +1082,23 @@ class StatisticsController extends BaseController
     
     //安全信息监控
     public function monitor(){
+        $where = array();
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
+        $this->assign('currency', $currency);
+
         $Member = M('Member');
-        $stat_total_wait = $Member->sum('balance');
-        $last = $Member->field('id,username,balance')->order('id desc')->limit(5)->select();
+        $stat_total_wait = $Member->where($where)->sum('balance');
+        $last = $Member->field('id,username,balance')->where($where)->order('id desc')->limit(5)->select();
 
         //查询通道剩余额
         $pfa_model = D('PayForAnother');
-        $where = [
+        $pfa_where = [
+            'currency'=> $currency,
             'status'=> 1,
             'id'=>['gt',6],
         ];
-        $channel_lists = $pfa_model->where($where)->select();
+        $channel_lists = $pfa_model->where($pfa_where)->select();
         $total_channel_balance = 0;
         $PayForAnother=[];
         foreach($channel_lists as $k => $v){

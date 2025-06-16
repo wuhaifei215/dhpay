@@ -171,28 +171,28 @@ $product_name = "Vip基础服务";
                 <label for="BRLH5">
                     <li class="pay_li active" data_power_id="3000000001" data_product_id="3000000001">
                         <input value="910" checked="checked" name="channel" id="BRLH5" type="radio">
-                        <i class="i1"></i>
+<!--                        <i class="i1"></i>-->
                         <span>巴西H5</span>
                     </li>
                 </label>
                 <label for="BRLQR">
                     <li class="pay_li" data_power_id="3000000002" data_product_id="3000000002">
                         <input value="911" name="channel" id="BRLQR" type="radio">
-                        <i class="i1"></i>
+<!--                        <i class="i1"></i>-->
                         <span>巴西QR</span>
                     </li>
                 </label>
                 <label for="BRLH5CPF">
                     <li class="pay_li active" data_power_id="3000000003" data_product_id="3000000003">
                         <input value="912" checked="checked" name="channel" id="BRLH5CPF" type="radio">
-                        <i class="i1"></i>
+<!--                        <i class="i1"></i>-->
                         <span>巴西H5--CPF</span>
                     </li>
                 </label>
                 <label for="PKR">
                     <li class="pay_li" data_power_id="3000000004" data_product_id="3000000004">
                         <input value="913" name="channel" id="PKR" type="radio">
-                        <i class="i1"></i>
+<!--                        <i class="i1"></i>-->
                         <span>巴基斯坦PK</span>
                     </li>
                 </label>

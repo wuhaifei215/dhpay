@@ -4,6 +4,17 @@
         <div class="ibox float-e-margins">
             <div class="ibox-title">
                 <h5>安全信息监控</h5>
+                <!--<div class="ibox-tools">-->
+                <div class="layui-form-item layui-inline" style="line-height: 22px; margin: 5px;">
+                    <label class="layui-form-label" style="width: 80px;">刷新时间：</label>
+                    <div class="layui-input-inline" style="width: 50px;">
+                        <input type="text" id="time"  name="time" value="120" style=" width: 30px;" readonly> 秒
+                    </div>
+                    <a href="javascript:;" class="layui-btn layui-btn-small" onclick="set_time();" style="color: white">开始</a>
+                    <a href="javascript:;" class="layui-btn layui-btn-small" onclick="shua_end();" style="color: white">关闭</a>
+                    <a class="layui-btn layui-btn-small layui-btn-danger" href="<{$targetUrl}>" target="_blank">新窗口打开</a>
+                </div>
+                <!--</div>-->
             </div>
             <div class="ibox-content">
                 <form class="layui-form " action="" method="get" autocomplete="off">
@@ -24,17 +35,6 @@
                     </div>
                 </form>
 
-                <!--<div class="ibox-tools">-->
-                <div class="layui-form-item layui-inline" style="line-height: 22px; margin: 5px;">
-                    <label class="layui-form-label" style="width: 80px;">刷新时间：</label>
-                    <div class="layui-input-inline" style="width: 50px;">
-                        <input type="text" id="time"  name="time" value="120" style=" width: 30px;" readonly> 秒
-                    </div>
-                    <a href="javascript:;" class="layui-btn layui-btn-small" onclick="set_time();" style="color: white">开始</a>
-                    <a href="javascript:;" class="layui-btn layui-btn-small" onclick="shua_end();" style="color: white">关闭</a>
-                    <a class="layui-btn layui-btn-small layui-btn-danger" href="<{$targetUrl}>" target="_blank">新窗口打开</a>
-                </div>
-                <!--</div>-->
 
                 <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
                     <volist name="country" id="co">

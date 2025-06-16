@@ -4,6 +4,8 @@
         <div class="ibox float-e-margins">
             <div class="ibox-title">
                 <h5>安全信息监控</h5>
+            </div>
+            <div class="ibox-content">
                 <!--<div class="ibox-tools">-->
                 <div class="layui-form-item layui-inline" style="line-height: 22px; margin: 5px;">
                     <label class="layui-form-label" style="width: 80px;">刷新时间：</label>
@@ -27,7 +29,7 @@
                                     <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
                                 </volist>
                             </select>
-                        </div> 
+                        </div>
                     </div>
                     <div class="layui-form-item layui-inline">
                         <button type="submit" class="layui-btn"><span class="glyphicon glyphicon-search"></span> 搜索

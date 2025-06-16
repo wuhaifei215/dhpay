@@ -70,7 +70,7 @@
 				<!--</li>-->
 				<li>
 					<label>回调地址</label>
-					<input type="text" name="notifyurl" value="https://glht.yunpay.me/dhfpay/notify.php"  />
+					<input type="text" name="notifyurl" value="https://glht.dhpay.vip/dhfpay/notify.php"  />
 				</li>
 				<li style="margin-top: 50px">
 					<label></label>

@@ -15,17 +15,17 @@ if($_POST['extends']) {
 }
 
 $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
-$apidomain = $http_type . "api.dhpay.vip";
 
+$apidomain = $http_type . "api.dhpay.vip";
 if (in_array($pay_bankcode, [910, 911, 912])) {
     $pay_currency = 'BRL';
-    $tjurl = $apidomain . "/Pay_CreateDF_payoutBRL.html";   //提交地址
+    $tjurl = $apidomain . "/Payment_CreateDF_payoutBRL.html";   //提交地址
 } elseif ($pay_bankcode == 913) {
     $pay_currency = 'PKR';
-    $tjurl = $apidomain . "/Pay_CreateDF_payoutPAK.html";   //提交地址
+    $tjurl = $apidomain . "/Payment_CreateDF_payoutPAK.html";   //提交地址
 } else {
     $pay_currency = 'PHP';
-    $tjurl = $apidomain . "/Pay_CreateDF_payoutPHP.html";   //提交地址
+    $tjurl = $apidomain . "/Payment_CreateDF_payoutPHP.html";   //提交地址
 }
 $_POST['currency'] = $pay_currency;
 
@@ -34,7 +34,7 @@ ksort($_POST);
 $md5str = "";
 foreach ($_POST as $key => $val) {
     $md5str = $md5str . $key . "=" . $val . "&";
-	
+
 }
 $sign = strtoupper(md5($md5str . "key=" . $Md5key));
 $param = $_POST;

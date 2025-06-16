@@ -42,7 +42,17 @@ class CreateDFController extends Controller
         $this->doFirst();
 
         if($this->currency !=='PHP'){
-            $this->showmessage("国家货币类型不对！");
+            $this->showmessage("国家货币不对！");
+        }
+        $this->doNext();
+    }
+
+    //巴基斯坦代付接口
+    public function payoutPAK(){
+        $this->doFirst();
+
+        if($this->currency !=='PKR'){
+            $this->showmessage("国家货币不对！");
         }
         $this->doNext();
     }

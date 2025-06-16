@@ -26,7 +26,7 @@ class CreateController extends PayController
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
         if($this->currency !=='PHP'){
-            $this->showmessage("国家货币类型不对！");
+            $this->showmessage("国家货币不对！");
         }
 
         $this->productIsOpen(); //判断通道是否开启
@@ -46,7 +46,7 @@ class CreateController extends PayController
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
         if($this->currency !=='PKR'){
-            $this->showmessage("国家货币类型不对！");
+            $this->showmessage("国家货币不对！");
         }
         
         $this->productIsOpen(); //判断通道是否开启

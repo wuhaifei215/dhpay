@@ -1586,7 +1586,7 @@ class UserController extends BaseController
     //批量编辑用户默认代收通道
     public function editAllUserProductType()
     {
-        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I('get.currency');
         //系统产品列表
         $product = M('Product')
             ->where(['isdisplay' => 1,'currency' => $currency])
@@ -1602,7 +1602,7 @@ class UserController extends BaseController
     //批量编辑用户默认代收通道
     public function editAllUserProduct()
     {
-        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I('get.currency');
         //系统产品列表
         $product = M('Product')
             ->where(['isdisplay' => 1,'currency' => $currency])
@@ -1676,7 +1676,7 @@ class UserController extends BaseController
     //批量编辑用户默认代付通道
     public function editAllUserWithdrawalType()
     {
-        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I('get.currency');
         //系统产品列表
         $product = M('Product')
             ->where(['isdisplay' => 1,'currency'=>$currency])

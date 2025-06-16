@@ -191,11 +191,11 @@ class PaymentController extends Controller
     }
 
     protected function changeStatus($id, $status = 1, $return,$table='Wttklist'){
-        $redis = $this->redis_connect();
-        if($redis->get('changestatus' . $status . $id)){
-            return;
-        }
-        $redis->set('changestatus' . $status . $id,'1',120);
+//        $redis = $this->redis_connect();
+//        if($redis->get('changestatus' . $status . $id)){
+//            return;
+//        }
+//        $redis->set('changestatus' . $status . $id,'1',120);
         
         $where = ['id'=>$id, 'status'=>['in', '0,1']];
 	    //处理成功返回的数据

@@ -1,6 +1,6 @@
 #!/bin/bash
 for i in {1..60}; do
-  cd /www/wwwroot/api && php cli.php NotifyDF
+  cd /www/wwwroot/api; php cli.php NotifyDF
   #>> /www/wwwroot/api/Data/cli_notify.log 2>&1
   sleep 1
 done

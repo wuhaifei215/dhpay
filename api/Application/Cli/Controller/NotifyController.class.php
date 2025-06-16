@@ -115,7 +115,7 @@ class NotifyController extends Controller
             ];
             $order_result = $m_Order->table($talbe)->where($order_where)->setField("pay_status", 2);
             
-            // log_server_notify($order_info["pay_orderid"], $order_info["pay_notifyurl"], 'sql', $m_Order->getLastSql(), '');
+             log_server_notify($order_info["pay_orderid"], $order_info["pay_notifyurl"], 'sql', $m_Order->getLastSql(), '');
             
             // 订单信息存入缓存
             $order_info['pay_status'] = 2;

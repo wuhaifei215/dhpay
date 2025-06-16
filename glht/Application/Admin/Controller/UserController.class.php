@@ -1074,11 +1074,10 @@ class UserController extends BaseController
         //是否可以谷歌安全码验证
         $verifyGoogle = adminGoogleBind($uid);
 
-        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $userid = I('get.uid', 0, 'intval');
         if ($userid) {
             $data = M('Member')
-                ->where(['id' => $userid,'currency' => $currency])->find();
+                ->where(['id' => $userid])->find();
 
             $this->assign('u', $data);
 

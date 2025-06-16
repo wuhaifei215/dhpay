@@ -239,6 +239,7 @@ class PaymentController extends Controller
                         "transid"    => $withdraw['orderid'],
                         "orderid"    => $withdraw['out_trade_no'],
                         "paytype"    => $withdraw['paytype'],
+                        'currency' => $withdraw['currency'],
                         "lx"         => 18,
                         'contentstr' => $contentstr.': '.$withdraw['orderid'],
                     );
@@ -263,6 +264,7 @@ class PaymentController extends Controller
                             "transid"    => $withdraw['orderid'],
                             "orderid"    => $withdraw['out_trade_no'],
                             "paytype"    => $withdraw['paytype'],
+                            'currency' => $withdraw['currency'],
                             "lx"         => 19,
                             'contentstr' => $contentstr.' 结算退回手续费',
                         );

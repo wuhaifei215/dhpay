@@ -45,7 +45,7 @@ class UserController extends BaseController
         $authorized = I("get.authorized", '', 'trim,string,strip_tags,htmlspecialchars');
         $parentid = I('get.parentid', '', 'trim,string,strip_tags,htmlspecialchars');
         $regdatetime = I('get.regdatetime', '', 'trim,string,strip_tags,htmlspecialchars');
-        $currency = I('get.currency', '', 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $agency_id = I('get.agency_id', '', 'trim,string,strip_tags,htmlspecialchars');
         
 

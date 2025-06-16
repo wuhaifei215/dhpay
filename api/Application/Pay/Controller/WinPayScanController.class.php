@@ -5,7 +5,7 @@ namespace Pay\Controller;
 class WinPayScanController extends PayController
 {
     private $code = '';
-    private $query_url='https://api.winpay.site/br/query.json';
+    private $query_url='https://phlapi.newwinpay.site/br/query.json';
 
     public function __construct()
     {
@@ -171,8 +171,8 @@ class WinPayScanController extends PayController
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 0,
-            CURLOPT_TIMEOUT => 10,
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',

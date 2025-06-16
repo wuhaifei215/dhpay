@@ -11,15 +11,21 @@ class TradeController extends PayController
 {
     private $userid;
     private $apikey;
+    private $currency;
+
     public function __construct()
     {
         parent::__construct();
+        $this->currency= I('post.pay_currency', '', 'string,strip_tags,htmlspecialchars');
+        if (!$this->currency) {
+            $this->showmessage('国家货币不能为空！');
+        }
         $memberid = I("request.pay_memberid",0,'intval') - 10000;
         if (empty($memberid) || $memberid<=0) {
             $this->showmessage("不存在的商户编号!");
         }
         $this->userid = $memberid;
-        $fans = M('Member')->where(['id'=>$this->userid])->find();
+        $fans = M('Member')->where(['id'=>$this->userid,'currency' => $this->currency])->find();
         if(!$fans){
             $this->showmessage('商户不存在');
         }
@@ -42,6 +48,7 @@ class TradeController extends PayController
             $this->showmessage("商户号不能为空！");
         }
         $request = [
+            'pay_currency' =>$this->currency,
             'pay_memberid'=>$pay_memberid,
             'pay_orderid'=>$out_trade_id,
             'pay_applydate'=>$pay_applydate,
@@ -71,6 +78,7 @@ class TradeController extends PayController
         // $order = $redis->get($out_trade_id);
         // if(!$order || empty($order)){
             $where = [
+                'currency' =>$this->currency,
                 'pay_memberid'=>$pay_memberid,
                 'out_trade_id'=>$out_trade_id,
                 'pay_applydate'=>['between',[strtotime($pay_applydate . ' 00:00:00'),strtotime($pay_applydate . ' 23:59:59')]],
@@ -80,6 +88,7 @@ class TradeController extends PayController
             // echo $OrderModel->table($OrderModel->getRealTableName($pay_applydate))->getLastSql();
             if(!$order){
                 $where = [
+                    'currency' =>$this->currency,
                     'pay_memberid'=>$pay_memberid,
                     'out_trade_id'=>$out_trade_id,
                     'pay_applydate'=>['between',[strtotime($pay_applydate . ' 00:00:00'),strtotime($pay_applydate . ' 23:59:59') + 86400]],

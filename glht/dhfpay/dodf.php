@@ -13,11 +13,21 @@ if(empty($mchid)||empty($_POST['money']) || empty($_POST['accountname']) || empt
 if($_POST['extends']) {
 	$_POST['extends'] = base64_encode(json_encode($_POST['extends']));
 }
-if($_POST['bankcode']=='909'){
-    $tjurl = "https://api.dhpay.vip/Payment_CreateDF_payoutINR.html";   //提交地址
-}else{
-    $tjurl = "https://api.dhpay.vip/Payment_CreateDF_payoutBRL.html";   //提交地址
+
+$http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
+$apidomain = $http_type . "api.dhpay.vip";
+
+if (in_array($pay_bankcode, [910, 911, 912])) {
+    $pay_currency = 'BRL';
+    $tjurl = $apidomain . "/Pay_CreateDF_payoutBRL.html";   //提交地址
+} elseif ($pay_bankcode == 913) {
+    $pay_currency = 'PKR';
+    $tjurl = $apidomain . "/Pay_CreateDF_payoutPAK.html";   //提交地址
+} else {
+    $pay_currency = 'PHP';
+    $tjurl = $apidomain . "/Pay_CreateDF_payoutPHP.html";   //提交地址
 }
+$_POST['currency'] = $pay_currency;
 
 ksort($_POST);
 //var_dump($_POST);die;

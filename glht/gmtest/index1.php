@@ -10,11 +10,11 @@ if (empty($pay_memberid) || empty($pay_amount) || empty($pay_bankcode)) {
 }
 $pay_applydate = date("Y-m-d H:i:s");  //订单时间
 $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
-$pay_notifyurl = "https://glht.dhpay.vip/gmtest/server.php";   //服务端返回地址
-$pay_callbackurl = "https://glht.dhpay.vip/gmtest/page.php";  //页面跳转返回地址
+$pay_notifyurl = $http_type . "glht.dhpay.vip/gmtest/server.php";   //服务端返回地址
+$pay_callbackurl = $http_type . "glht.dhpay.vip/gmtest/page.php";  //页面跳转返回地址
 $Md5key = "1ni0s1x77i94vusp4m0ssq0dsk3rrlu2";   //密钥
 
-$apidomain = "https://api.dhpay.vip";
+$apidomain = $http_type . "api.dhpay.vip";
 if (in_array($pay_bankcode, [910, 911, 912])) {
     $pay_currency = 'BRL';
     $tjurl = $apidomain . "/Pay_Create_payinBRL.html";   //提交地址

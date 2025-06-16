@@ -29,8 +29,6 @@ class UserController extends BaseController
             ->select();
         $this->assign('channels', json_encode($channels));
         $this->assign('channellist', $channels);
-        $country = M('Country')->select();
-        $this->assign('country', $country);
     }
 
     /**
@@ -1339,9 +1337,10 @@ class UserController extends BaseController
     //批量编辑用户费率
     public function userAllRateEdit()
     {
+        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         //系统产品列表
         $products = M('Product')
-            ->where(['status' => 1, 'isdisplay' => 1])
+            ->where(['status' => 1, 'isdisplay' => 1,'currency'=>$currency])
             ->field('id,name')
             ->select();
         // //用户产品列表
@@ -1434,10 +1433,11 @@ class UserController extends BaseController
     //编辑用户通道
     public function editUserProduct()
     {
-        $userid = I('get.uid', 0, 'intval');
+        $currency = I("post.currency");
+        $userid = I('post.uid', 0, 'intval');
         //系统产品列表
         $products = M('Product')
-            ->where(['isdisplay' => 1])
+            ->where(['isdisplay' => 1,'currency'=>$currency])
             ->field('id,name,status,paytype')
             ->select();
         //用户产品列表
@@ -1513,10 +1513,11 @@ class UserController extends BaseController
     //编辑用户默认代付通道
     public function editUserChannel()
     {
+        $currency = I("post.currency");
         $userid = I('get.uid', 0, 'intval');
         //系统产品列表
         $products = M('Product')
-            ->where(['isdisplay' => 1])
+            ->where(['isdisplay' => 1,'currency' => $currency])
             ->field('id,name,status,paytype')
             ->select();
         //用户产品列表
@@ -1583,9 +1584,10 @@ class UserController extends BaseController
     //批量编辑用户默认代收通道
     public function editAllUserProductType()
     {
+        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         //系统产品列表
         $product = M('Product')
-            ->where(['isdisplay' => 1])
+            ->where(['isdisplay' => 1,'currency' => $currency])
             ->field('id,name,status,paytype')
             ->select();
         $agency = M('Agency')->select();
@@ -1598,9 +1600,10 @@ class UserController extends BaseController
     //批量编辑用户默认代收通道
     public function editAllUserProduct()
     {
+        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         //系统产品列表
         $product = M('Product')
-            ->where(['isdisplay' => 1])
+            ->where(['isdisplay' => 1,'currency' => $currency])
             ->field('id,name,status,paytype')
             ->select();
         $userList = M('Member')->where(['status' => 1])->order('id desc')->select();
@@ -1671,12 +1674,13 @@ class UserController extends BaseController
     //批量编辑用户默认代付通道
     public function editAllUserWithdrawalType()
     {
+        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         //系统产品列表
         $product = M('Product')
-            ->where(['isdisplay' => 1])
+            ->where(['isdisplay' => 1,'currency'=>$currency])
             ->field('id,name,status,paytype')
             ->select();
-        $agency = M('Agency')->select();
+        $agency = M('Agency')->where(['currency'=>$currency])->select();
         
         $this->assign('product', $product);
         $this->assign('agency', $agency);
@@ -1686,9 +1690,10 @@ class UserController extends BaseController
     //批量编辑用户默认代付通道
     public function editAllUserWithdrawal()
     {
+        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         //系统产品列表
         $product = M('Product')
-            ->where(['isdisplay' => 1])
+            ->where(['isdisplay' => 1,'currency'=>$currency])
             ->field('id,name,status,paytype')
             ->select();
         $userList = M('Member')->where(['status' => 1])->order('id desc')->select();
@@ -2088,7 +2093,6 @@ class UserController extends BaseController
      */
     public function getChannelAccount()
     {
-
         $uid = I('request.uid', 0, 'intval');
         $productUserList = M('ProductUser')->where(['userid' => $uid, 'status' => 1])->select();
         //因为有些渠道是轮询的，要将所有渠道id处理出来

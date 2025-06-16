@@ -99,6 +99,7 @@ class WinPayPakDFController extends PaymentController
     public function notifyurl()
     {
         $re_data = $_REQUEST;
+        unset($re_data['PHPSESSID']);
         //获取报文信息
         $orderid = $re_data['merchantOrderId'];
         //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志

@@ -17,10 +17,10 @@ if($_POST['extends']) {
 $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
 
 $apidomain = $http_type . "api.dhpay.vip";
-if (in_array($pay_bankcode, [910, 911, 912])) {
+if (in_array($_POST["bankcode"], [910, 911, 912])) {
     $pay_currency = 'BRL';
     $tjurl = $apidomain . "/Payment_CreateDF_payoutBRL.html";   //提交地址
-} elseif ($pay_bankcode == 913) {
+} elseif ($_POST["bankcode"] == 913) {
     $pay_currency = 'PKR';
     $tjurl = $apidomain . "/Payment_CreateDF_payoutPAK.html";   //提交地址
 } else {

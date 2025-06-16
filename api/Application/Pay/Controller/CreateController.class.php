@@ -187,7 +187,7 @@ class CreateController extends PayController
         $productUser_redis = $redis->get('ProductUser_'. $this->bankcode . '_' . $this->memberid);
         $productUser = json_decode($productUser_redis,true);
         if(!$productUser_redis || empty($productUser)){
-            $productUser = M('ProductUser')->where(['pid' => $this->bankcode, 'currency'=>$this->currency, 'userid' => $this->memberid, 'status' => 1])->find();
+            $productUser = M('ProductUser')->where(['pid' => $this->bankcode, 'userid' => $this->memberid, 'status' => 1])->find();
             // $productUser['paytype'] = $this->product['paytype'];
             $redis->set('ProductUser_'. $this->bankcode . '_' . $this->memberid, json_encode($productUser, JSON_UNESCAPED_UNICODE));
             $redis->expire('ProductUser_'. $this->bankcode . '_' . $this->memberid, 60);

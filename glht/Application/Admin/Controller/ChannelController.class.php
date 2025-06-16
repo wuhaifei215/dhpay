@@ -77,7 +77,7 @@ class ChannelController extends BaseController
             $_request['unlockdomain'] = $papiacc['unlockdomain'];
             $_request['paytype']      = $papiacc['paytype'];
             $_request['status']       = $papiacc['status'];
-            $_request['currency']       = $papiacc['currency']; 
+            $_request['currency']       = $papiacc['currency'];
             $_request['notifyIP']     = trim($papiacc['notifyIP']);
             if ($id) {
                 //更新

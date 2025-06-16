@@ -1590,7 +1590,7 @@ class UserController extends BaseController
             ->where(['isdisplay' => 1,'currency' => $currency])
             ->field('id,name,status,paytype')
             ->select();
-        $agency = M('Agency')->select();
+        $agency = M('Agency')->where(['currency' => $currency])->select();
         
         $this->assign('product', $product);
         $this->assign('agency', $agency);
@@ -1606,7 +1606,7 @@ class UserController extends BaseController
             ->where(['isdisplay' => 1,'currency' => $currency])
             ->field('id,name,status,paytype')
             ->select();
-        $userList = M('Member')->where(['status' => 1])->order('id desc')->select();
+        $userList = M('Member')->where(['status' => 1,'currency' => $currency])->order('id desc')->select();
         
         $this->assign('product', $product);
         $this->assign('userList', $userList);

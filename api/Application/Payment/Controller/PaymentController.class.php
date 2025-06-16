@@ -238,7 +238,6 @@ class PaymentController extends Controller
                         "tongdao"    => 0,
                         "transid"    => $withdraw['orderid'],
                         "orderid"    => $withdraw['out_trade_no'],
-                        "paytype"    => $withdraw['paytype'],
                         'currency' => $withdraw['currency'],
                         "lx"         => 18,
                         'contentstr' => $contentstr.': '.$withdraw['orderid'],
@@ -246,7 +245,7 @@ class PaymentController extends Controller
                     $Moneychange = D("Moneychange");
                     $tablename = $Moneychange -> getRealTableName($arrayField['datetime']);
                     $res2 = $Moneychange->table($tablename)->add($arrayField);
-                    // log_place_order( 'DFadd_error', $withdraw['orderid'],   $Moneychange->table($tablename)->getLastSql());    //日志
+                     log_place_order( 'DFadd_error', $withdraw['orderid'],   $Moneychange->table($tablename)->getLastSql());    //日志
                     $sxf_re = true;
                     //代付驳回退回手续费
                     if ($withdraw['df_charge_type'] && $withdraw['sxfmoney']>0) {
@@ -263,7 +262,6 @@ class PaymentController extends Controller
                             "tongdao"    => 0,
                             "transid"    => $withdraw['orderid'],
                             "orderid"    => $withdraw['out_trade_no'],
-                            "paytype"    => $withdraw['paytype'],
                             'currency' => $withdraw['currency'],
                             "lx"         => 19,
                             'contentstr' => $contentstr.' 结算退回手续费',

@@ -3,25 +3,28 @@ error_reporting(0);
 header("Content-type: text/html; charset=utf-8");
 $pay_memberid = "10002";//商户ID
 $pay_orderid = $_POST["orderid"];    //订单号
-$pay_amount =  $_POST["amount"];    //交易金额
+$pay_amount = $_POST["amount"];    //交易金额
 $pay_bankcode = $_POST["channel"];   //银行编码
-if(empty($pay_memberid)||empty($pay_amount)||empty($pay_bankcode)){
+if (empty($pay_memberid) || empty($pay_amount) || empty($pay_bankcode)) {
     die("信息不完整！");
 }
 $pay_applydate = date("Y-m-d H:i:s");  //订单时间
-$http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://'; 
+$http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
 $pay_notifyurl = $http_type . $_SERVER['HTTP_HOST'] . "/gmtest/server.php";   //服务端返回地址
 $pay_callbackurl = $http_type . "glht.dhpay.vip/gmtest/page.php";  //页面跳转返回地址
 $Md5key = "sy016baa755zjmp6dnxl0ezr2asxio8z";   //密钥
 
 $apidomain = "https://api.dhpay.vip";
- if(in_array($pay_bankcode,[910,911,912])){
+if (in_array($pay_bankcode, [910, 911, 912])) {
+    $pay_currency = 'BRL';
     $tjurl = $apidomain . "/Pay_Create_payinBRL.html";   //提交地址
- }elseif($pay_bankcode == 913){
-     $tjurl = $apidomain . "/Pay_Create_payinPAK.html";   //提交地址
- }else{
-     $tjurl = $apidomain . "/Pay_Create_payinPHP.html";   //提交地址
- }
+ } elseif ($pay_bankcode == 913) {
+    $pay_currency = 'PKR';
+    $tjurl = $apidomain . "/Pay_Create_payinPAK.html";   //提交地址
+} else {
+    $pay_currency = 'PHP';
+    $tjurl = $apidomain . "/Pay_Create_payinPHP.html";   //提交地址
+}
 
 
 //扫码
@@ -33,6 +36,7 @@ $native = array(
     "pay_bankcode" => $pay_bankcode,
     "pay_notifyurl" => $pay_notifyurl,
     "pay_callbackurl" => $pay_callbackurl,
+    "pay_currency" => $pay_currency,
 );
 ksort($native);
 $md5str = "";
@@ -43,8 +47,8 @@ foreach ($native as $key => $val) {
 $sign = strtoupper(md5($md5str . "key=" . $Md5key));
 $native["pay_md5sign"] = $sign;
 $native['pay_attach'] = "1234|456";
-$native['pay_productname'] ='Vip基础服务';
-$native['ip'] =$_SERVER['HTTP_X_FORWARDED_FOR'];
+$native['pay_productname'] = 'Vip基础服务';
+$native['ip'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
 ?>
 
 <!DOCTYPE html>
@@ -66,7 +70,7 @@ $native['ip'] =$_SERVER['HTTP_X_FORWARDED_FOR'];
                     echo '<input type="hidden" name="' . $key . '" value="' . $val . '">';
                 }
                 ?>
-                <button type="submit" style='display:none;' ></button>
+                <button type="submit" style='display:none;'></button>
             </form>
         </div>
     </div>

@@ -183,8 +183,8 @@ $product_name = "Vip基础服务";
                     </li>
                 </label>
                 <label for="BRLH5CPF">
-                    <li class="pay_li active" data_power_id="3000000003" data_product_id="3000000003">
-                        <input value="912" checked="checked" name="channel" id="BRLH5CPF" type="radio">
+                    <li class="pay_li" data_power_id="3000000003" data_product_id="3000000003">
+                        <input value="912" name="channel" id="BRLH5CPF" type="radio">
 <!--                        <i class="i1"></i>-->
                         <span>巴西H5--CPF</span>
                     </li>

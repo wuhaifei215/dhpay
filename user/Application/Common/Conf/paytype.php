@@ -4,9 +4,9 @@ return [
     'PAYTYPES'=>[
         ['id'=>'1','currency'=>'BRL','name'=>'巴西H5'],
         ['id'=>'2','currency'=>'BRL','name'=>'巴西QR'],
-        ['id'=>'3','currency'=>'INR','name'=>'越南VietQR'],
-        ['id'=>'4','currency'=>'MXN','name'=>'MXN'],
-        ['id'=>'5','currency'=>'PAK','name'=>'PAK'],
+        ['id'=>'3','currency'=>'VND','name'=>'越南VN'],
+        ['id'=>'4','currency'=>'MXN','name'=>'墨西哥MX'],
+        ['id'=>'5','currency'=>'PAK','name'=>'巴基斯坦PK'],
         ['id'=>'6','currency'=>'PHP','name'=>'Gcash原生'],
         ['id'=>'7','currency'=>'PHP','name'=>'Gcash原生扫码'],
         ['id'=>'8','currency'=>'PHP','name'=>'Gcash伪原生'],

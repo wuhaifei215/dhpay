@@ -21,6 +21,17 @@
 			<form class="layui-form" action="" id="payaccess">
 				<input type="hidden" name="id" value="<{$list.id}>">
 				<div class="layui-form-item">
+					<label class="layui-form-label">所属国家：</label>
+					<div class="layui-input-inline">
+						<select name="currency" lay-verify="required" lay-search="">
+							<option value="">直接选择或搜索选择</option>
+							<volist name="country" id="b">
+								<option <if condition="$list[currency] eq $b[currency]">selected</if> value="<{$b.currency}>"><{$b.title}>(<{$b.currency}>)</option>
+							</volist>
+						</select>
+					</div>
+				</div>
+				<div class="layui-form-item">
 					<label class="layui-form-label">中文名称：</label>
 					<div class="layui-input-inline">
 						<input type="text" name="title" lay-verify="required" autocomplete="off" value="<{$list.title}>" placeholder="中文名称" class="layui-input">
@@ -125,17 +136,6 @@
 					</div>
 				</div>
 
-				<div class="layui-form-item">
-					<label class="layui-form-label">所属国家：</label>
-					<div class="layui-input-inline">
-						<select name="currency" lay-verify="required" lay-search="">
-							<option value="">直接选择或搜索选择</option>
-							<volist name="country" id="b">
-								<option <if condition="$list[currency] eq $b[currency]">selected</if> value="<{$b.currency}>"><{$b.title}>(<{$b.currency}>)</option>
-							</volist>
-						</select>
-					</div>
-				</div>
             <div class="layui-form-item">
 				<label class="layui-form-label">分类：</label>
 				<div class="layui-input-inline">

@@ -29,6 +29,8 @@ class UserController extends BaseController
             ->select();
         $this->assign('channels', json_encode($channels));
         $this->assign('channellist', $channels);
+        $country = M('Country')->select();
+        $this->assign('country', $country);
     }
 
     /**

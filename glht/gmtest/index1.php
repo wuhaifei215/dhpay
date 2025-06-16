@@ -17,7 +17,7 @@ $Md5key = "sy016baa755zjmp6dnxl0ezr2asxio8z";   //密钥
 $apidomain = "https://api.dhpay.vip";
  if(in_array($pay_bankcode,[910,911,912])){
     $tjurl = $apidomain . "/Pay_Create_payinBRL.html";   //提交地址
- }elseif(in_array($pay_bankcode,[913])){
+ }elseif(in_array($pay_bankcode==913)){
      $tjurl = $apidomain . "/Pay_Create_payinPAK.html";   //提交地址
  }{
      $tjurl = $apidomain . "/Pay_Create_payinPHP.html";   //提交地址

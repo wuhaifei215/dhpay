@@ -1433,7 +1433,7 @@ class UserController extends BaseController
     //编辑用户通道
     public function editUserProduct()
     {
-        $currency = I("reuqest.currency");
+        $currency = I("get.currency");
         $userid = I('post.uid', 0, 'intval');
         //系统产品列表
         $products = M('Product')

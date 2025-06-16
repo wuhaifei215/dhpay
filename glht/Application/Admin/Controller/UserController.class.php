@@ -43,7 +43,7 @@ class UserController extends BaseController
         $authorized = I("get.authorized", '', 'trim,string,strip_tags,htmlspecialchars');
         $parentid = I('get.parentid', '', 'trim,string,strip_tags,htmlspecialchars');
         $regdatetime = I('get.regdatetime', '', 'trim,string,strip_tags,htmlspecialchars');
-        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I('reuqest.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $agency_id = I('get.agency_id', '', 'trim,string,strip_tags,htmlspecialchars');
         
 
@@ -578,7 +578,7 @@ class UserController extends BaseController
             //开启事物
             M()->startTrans();
             $userid = I("post.uid", 0, 'intval');
-            $currency = I("post.currency");
+            $currency = I("reuqest.currency");
             $cztype = I("post.cztype", 0, 'intval');
             $bgmoney = I("post.bgmoney", 0, 'float');
             $contentstr = I("post.memo", "", 'string,strip_tags,htmlspecialchars');
@@ -676,7 +676,7 @@ class UserController extends BaseController
         //通道
         UserLogService::HTwrite(1, '查看定时解冻任务列表', '查看定时解冻任务列表');
         $where = array();
-        $currency = I("post.currency");
+        $currency = I("reuqest.currency");
         $memberid = I("get.uid", 0, 'intval');
         if ($memberid) {
             $where['userid'] = array('eq', $memberid);
@@ -719,7 +719,7 @@ class UserController extends BaseController
         //通道
         UserLogService::HTwrite(1, '查看冻结资金列表', '查看管理手动冻结资金');
         $where = array();
-        $currency = I("post.currency");
+        $currency = I("reuqest.currency");
         $memberid = I("get.uid", 0, 'intval');
         if ($memberid) {
             $where['user_id'] = array('eq', $memberid);
@@ -1337,7 +1337,7 @@ class UserController extends BaseController
     //批量编辑用户费率
     public function userAllRateEdit()
     {
-        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I('reuqest.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         //系统产品列表
         $products = M('Product')
             ->where(['status' => 1, 'isdisplay' => 1,'currency'=>$currency])
@@ -1433,7 +1433,7 @@ class UserController extends BaseController
     //编辑用户通道
     public function editUserProduct()
     {
-        $currency = I("post.currency");
+        $currency = I("reuqest.currency");
         $userid = I('post.uid', 0, 'intval');
         //系统产品列表
         $products = M('Product')
@@ -1513,7 +1513,7 @@ class UserController extends BaseController
     //编辑用户默认代付通道
     public function editUserChannel()
     {
-        $currency = I("post.currency");
+        $currency = I("get.currency");
         $userid = I('get.uid', 0, 'intval');
         //系统产品列表
         $products = M('Product')
@@ -1528,7 +1528,7 @@ class UserController extends BaseController
             }
         }
         $PayForAnother = M('PayForAnother')
-            ->where(['status' => 1])
+            ->where(['status' => 1,'currency' => $currency])
             ->field('id,title,status,paytype')
             ->select();
         $this->assign('channellist', $PayForAnother);
@@ -1584,7 +1584,7 @@ class UserController extends BaseController
     //批量编辑用户默认代收通道
     public function editAllUserProductType()
     {
-        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I('reuqest.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         //系统产品列表
         $product = M('Product')
             ->where(['isdisplay' => 1,'currency' => $currency])
@@ -1600,7 +1600,7 @@ class UserController extends BaseController
     //批量编辑用户默认代收通道
     public function editAllUserProduct()
     {
-        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I('reuqest.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         //系统产品列表
         $product = M('Product')
             ->where(['isdisplay' => 1,'currency' => $currency])
@@ -1674,7 +1674,7 @@ class UserController extends BaseController
     //批量编辑用户默认代付通道
     public function editAllUserWithdrawalType()
     {
-        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I('reuqest.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         //系统产品列表
         $product = M('Product')
             ->where(['isdisplay' => 1,'currency'=>$currency])
@@ -1690,7 +1690,7 @@ class UserController extends BaseController
     //批量编辑用户默认代付通道
     public function editAllUserWithdrawal()
     {
-        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I('reuqest.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         //系统产品列表
         $product = M('Product')
             ->where(['isdisplay' => 1,'currency'=>$currency])
@@ -1706,7 +1706,7 @@ class UserController extends BaseController
     //按类型查询代付通道
     public function getWithdrawal()
     {
-        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $currency = I('reuqest.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $productid = I('post.productid');
         //系统产品列表
         $product = M('Product')

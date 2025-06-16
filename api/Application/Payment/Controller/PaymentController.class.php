@@ -191,7 +191,7 @@ class PaymentController extends Controller
     }
 
     protected function changeStatus($id, $status = 1, $return,$table='Wttklist'){
-//        $redis = $this->redis_connect();
+        $redis = $this->redis_connect();
 //        if($redis->get('changestatus' . $status . $id)){
 //            return;
 //        }

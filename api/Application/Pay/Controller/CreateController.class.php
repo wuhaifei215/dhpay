@@ -42,10 +42,10 @@ class CreateController extends PayController
         $this->doNext();
     }
     //越南代收接口
-    public function payinINR(){
+    public function payinPAK(){
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
-        if($this->currency !=='INR'){
+        if($this->currency !=='PKR'){
             $this->showmessage("国家货币类型不对！");
         }
         

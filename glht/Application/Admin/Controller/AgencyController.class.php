@@ -209,9 +209,11 @@ class AgencyController extends BaseController
     //批量编辑用户默认代付通道
     public function editUserAgency()
     {
-        $where = [
-            'status' => 1,
-            ];
+        $where = array();
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
+        $this->assign('currency', $currency);
+        $where['status'] = 1;
         $userList = M('Member')->where($where)->order('id desc')->select();
         $this->assign('userList', $userList);
         $this->display();

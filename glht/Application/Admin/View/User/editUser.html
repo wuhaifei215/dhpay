@@ -20,8 +20,7 @@
 					<select name="u[parentid]" lay-verify="" lay-search="">
 						<option value=""></option>
 						<foreach name="agent" item="v" key="k">
-							<option <if condition="$u['parentid'] eq $v['id']">selected</if>
-							value="<{$v['id']}>"><{$v['username']}></option>
+							<option <if condition="$u['parentid'] eq $v['id']">selected</if> value="<{$v['id']}>"><{$v['username']}></option>
 						</foreach>
 
 					</select>

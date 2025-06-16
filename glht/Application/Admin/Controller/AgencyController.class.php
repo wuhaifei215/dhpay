@@ -93,6 +93,7 @@ class AgencyController extends BaseController
     {
         $uid = session('admin_auth')['uid'];
         $verifysms = 0;//是否可以短信验证
+
         $sms_is_open = smsStatus();
         if ($sms_is_open) {
             $adminMobileBind = adminMobileBind($uid);

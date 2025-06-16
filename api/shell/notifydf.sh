@@ -1,7 +1,6 @@
 #!/bin/bash
 for i in {1..60}; do
-  cd /hx/www/dhpay/api && php cli.php NotifyDF
-  #>> /hx/www/dhpay/api/Data/cli_notify.log 2>&1
+  cd /hx/www/dhpay/api; php cli.php NotifyDF >> /hx/www/dhpay/api/Data/cli_notifydf.log 2>&1
   sleep 1
 done
 

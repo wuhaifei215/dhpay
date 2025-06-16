@@ -455,6 +455,7 @@ class PayController extends Controller
                 'orderid' => $order_info['out_trade_id'],
                 'contentstr' => $order_info['out_trade_id'] . '订单充值,结算方式：t+' . $order_info['t'],
                 'paytype' => $order_info['paytype'],
+                'currency' => $order_info['currency'],
                 'lx' => 1,
                 't' => $order_info['t'],
             ];
@@ -473,6 +474,7 @@ class PayController extends Controller
                 "money" => $order_info["pay_amount"], // 金额
                 "tongdao" => $order_info['pay_bankcode'],
                 'paytype' => $order_info['paytype'],
+                'currency' => $order_info['currency'],
             ];
             $this->bianliticheng($bianliticheng_data); // 提成处理
 
@@ -722,7 +724,6 @@ class PayController extends Controller
         $userid = $arrayStr["userid"];
         $tongdaoid = $arrayStr["tongdao"];
         $trans_id = $arrayStr["transid"];
-        $paytype = $arrayStr['paytype'];
         $feilvfind = $this->huoqufeilv($userid, $tongdaoid, $trans_id);
 
         if ($feilvfind["status"] == "error") {
@@ -730,7 +731,6 @@ class PayController extends Controller
         } else {
             //商户费率（下级）
             $x_feilv = $feilvfind["feilv"];
-            $x_fengding = $feilvfind["fengding"];
 
             //代理商(上级)
             $parentid = M("Member")->where(["id" => $userid])->getField("parentid");
@@ -775,6 +775,7 @@ class PayController extends Controller
                         "tcuserid" => $userid,
                         "tcdengji" => $tcjb,
                         'paytype' => $arrayStr['paytype'],
+                        'currency' => $arrayStr['currency'],
                         "lx" => 9,
                     );
                     $this->MoenyChange($arrayField); // 资金变动记录
@@ -844,6 +845,8 @@ class PayController extends Controller
 //                                "orderid" => "td" . date("YmdHis"),
 //                                "tcuserid" => $array["userid"],
 //                                "tcdengji" => 1,
+//                                'paytype' => $array['paytype'],
+//                                'currency' => $array['currency'],
 //                                "lx" => 9,
 //
 //                            );

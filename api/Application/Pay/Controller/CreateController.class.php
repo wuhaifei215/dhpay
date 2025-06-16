@@ -25,11 +25,11 @@ class CreateController extends PayController
     public function payinBRL(){
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
-        $this->productIsOpen(); //判断通道是否开启
-        
         if($this->currency !=='PHP'){
             $this->showmessage("国家货币类型不对！");
         }
+
+        $this->productIsOpen(); //判断通道是否开启
 
         $this->judgeRepeatOrder(); //验证是否可以提交重复订单
 
@@ -44,12 +44,12 @@ class CreateController extends PayController
     //越南代收接口
     public function payinINR(){
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
-        
-        $this->productIsOpen(); //判断通道是否开启
-        
+
         if($this->currency !=='INR'){
             $this->showmessage("国家货币类型不对！");
         }
+        
+        $this->productIsOpen(); //判断通道是否开启
 
         $this->judgeRepeatOrder(); //验证是否可以提交重复订单
 

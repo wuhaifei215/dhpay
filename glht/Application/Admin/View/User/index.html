@@ -225,9 +225,9 @@
                                         <!--        '<{:U('User/userDepositRule',['uid'=>$vo[id]])}>')">保证金</button>-->
                                         <!--<button class="layui-btn layui-btn-small" onclick="member_edit('收款指定子账号','<{:U('User/getChannelAccount',['uid'=>$vo[id]])}>',680,680)">收款子账号</button>-->
                     
-                                        <button class="layui-btn layui-btn-small" onclick="member_withdrawal('收款风控','<{:U('Transaction/userConfig',['uid'=>$vo[id]])}>')">收款风控</button>
+                                        <button class="layui-btn layui-btn-small" onclick="member_withdrawal('收款风控','<{:U('Transaction/userConfig',['uid'=>$vo[id],'currency'=> $currency])}>')">收款风控</button>
                     
-                                        <button class="layui-btn layui-btn-small" onclick="member_rate('编辑收款费率','<{:U('User/userRateEdit',['uid'=>$vo[id]])}>',640,680)">收款费率</button>
+                                        <button class="layui-btn layui-btn-small" onclick="member_rate('编辑收款费率','<{:U('User/userRateEdit',['uid'=>$vo[id],'currency'=> $currency])}>',640,680)">收款费率</button>
                     
                                         <button class="layui-btn layui-btn-small layui-btn-danger"></button>
                     

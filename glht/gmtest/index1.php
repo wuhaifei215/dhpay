@@ -12,7 +12,7 @@ $pay_applydate = date("Y-m-d H:i:s");  //订单时间
 $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
 $pay_notifyurl = "https://glht.dhpay.vip/gmtest/server.php";   //服务端返回地址
 $pay_callbackurl = "https://glht.dhpay.vip/gmtest/page.php";  //页面跳转返回地址
-$Md5key = "sy016baa755zjmp6dnxl0ezr2asxio8z";   //密钥
+$Md5key = "1ni0s1x77i94vusp4m0ssq0dsk3rrlu2";   //密钥
 
 $apidomain = "https://api.dhpay.vip";
 if (in_array($pay_bankcode, [910, 911, 912])) {

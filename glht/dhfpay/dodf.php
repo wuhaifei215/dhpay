@@ -2,7 +2,7 @@
 error_reporting(0);
 header("Content-type: text/html; charset=utf-8");	
 $mchid = "10002";  
-$Md5key = "sy016baa755zjmp6dnxl0ezr2asxio8z";
+$Md5key = "1ni0s1x77i94vusp4m0ssq0dsk3rrlu2";
 $out_trade_no = date("YmdHis").mt_rand(1000,9999);    //订单号
 $_POST['out_trade_no'] = $out_trade_no;
 $money =  $_POST["money"];    //交易金额

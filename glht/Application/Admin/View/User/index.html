@@ -13,11 +13,18 @@
                 <!--条件查询-->
                 <div class="ibox-content">
                     <form class="layui-form layui-form-pane form-search" action="" method="get" autocomplete="off" id="userform">
-                        <input type="hidden" name="m" value="<{$model}>">
-                        <input type="hidden" name="c" value="User">
-                        <input type="hidden" name="a" value="index">
-                        <input type="hidden" name="p" value="1">
                         <input type="hidden" name="rows" id="rows" value="<{$rows}>">
+                        <div class="layui-form-item layui-inline">
+                            <label class="layui-form-label">所属国家：</label>
+                            <div class="layui-input-inline">
+                                <select name="currency">
+                                    <option value="">全部国家</option>
+                                    <volist name="country" id="co">
+                                        <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                                    </volist>
+                                </select>
+                            </div>
+                        </div>
                         <div class="layui-form-item layui-inline">
                             <label class="layui-form-label">商户号或用户名</label>
                             <div class="layui-input-inline">
@@ -28,17 +35,6 @@
                             <label class="layui-form-label">上级代理号或用户名</label>
                             <div class="layui-input-inline">
                                 <input type="text" name="parentid" value="<if condition="$memberid gt 0"><{$parentid}></if>" placeholder="请输入上级代理号或用户名" class="layui-input">
-                            </div>
-                        </div>
-                        <div class="layui-form-item layui-inline">
-                            <label class="layui-form-label">所属国家：</label>
-                            <div class="layui-input-inline">
-                              <select name="currency">
-                                <option value="">全部国家</option>
-                                <volist name="country" id="co">
-                                  <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
-                                </volist>
-                              </select>
                             </div>
                         </div>
                         <div class="layui-form-item layui-inline">

@@ -21,7 +21,7 @@ class CreateController extends PayController
     public function index(){
         $this->showmessage("请使用正确的接口地址！");
     }
-    //代收接口
+    //巴西代收接口
     public function payinBRL(){
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
@@ -59,6 +59,26 @@ class CreateController extends PayController
         
         $this->setChannelApiControl(); //判断是否开启支付渠道 ，获取并设置支付通api的id和通道风控
         
+        $this->doNext();
+    }
+    //菲律宾代收接口
+    public function payinPHP(){
+        $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
+
+        if($this->currency !=='PHP'){
+            $this->showmessage("国家货币不对！");
+        }
+
+        $this->productIsOpen(); //判断通道是否开启
+
+        $this->judgeRepeatOrder(); //验证是否可以提交重复订单
+
+        $this->userRiskcontrol(); //用户风控检测
+
+        $this->productUserIsSet();
+
+        $this->setChannelApiControl(); //判断是否开启支付渠道 ，获取并设置支付通api的id和通道风控
+
         $this->doNext();
     }
     

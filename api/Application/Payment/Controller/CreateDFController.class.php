@@ -37,7 +37,7 @@ class CreateDFController extends Controller
         $this->showmessage("请使用正确的接口地址！");
     }
 
-    //菲律宾代付接口
+    //巴西代付接口
     public function payoutBRL(){
         $this->doFirst();
 
@@ -52,6 +52,16 @@ class CreateDFController extends Controller
         $this->doFirst();
 
         if($this->currency !=='PKR'){
+            $this->showmessage("国家货币不对！");
+        }
+        $this->doNext();
+    }
+
+    //菲律宾代付接口
+    public function payoutPHP(){
+        $this->doFirst();
+
+        if($this->currency !=='PHP'){
             $this->showmessage("国家货币不对！");
         }
         $this->doNext();

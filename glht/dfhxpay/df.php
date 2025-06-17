@@ -41,7 +41,7 @@
 					<input type="text" name="cardnumber" value="" />
 				</li>
 				<li>
-					<label>是否到卡</label>
+					<label>类型</label>
 					<input type="text" name="type" value="" />（CPF/PHONE/EMAIL/EVP）
 				</li>
 				<li>

@@ -1,0 +1,5 @@
+* * * * * /hx/www/dhpay/api/shell/notifydf.sh
+* * * * * /hx/www/dhpay/api/shell/notify.sh
+* * * * * /hx/www/dhpay/api/shell/posturl.sh
+*/10 * * * * /hx/www/dhpay/api/shell/export.sh
+0 * * * * /hx/www/dhpay/api/shell/notifydf.sh

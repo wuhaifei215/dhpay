@@ -202,6 +202,27 @@ AAA;
         }
     }
 
+
+    //账户余额查询
+    public function queryBalance2($config)
+    {
+        $post_data = array(
+            "custId" => $config['mch_id'], //商户号
+            "appId" => $config['appid'], //商户号
+            "currencyCode" => 'PKR',
+        );
+        $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
+        log_place_order($this->code . '_queryBalance2', "提交", json_encode($post_data));    //日志
+        $returnContent = $this->http_post_json($config['serverreturn'], $post_data);
+        log_place_order($this->code . '_queryBalance2', "返回", $returnContent);    //日志
+        $result = json_decode($returnContent, true);
+        if($result['code'] === '000000'){
+            $result_data['resultCode'] = "0";
+            $result_data['balance'] = $result['available'] / 100;
+        }
+        return $result_data;
+    }
+
     //代付订单查询
     public function PaymentQuery($data, $config)
     {

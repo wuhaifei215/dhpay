@@ -22,7 +22,7 @@
         <div class="ibox float-e-margins">
             <!--条件查询-->
             <div class="ibox-title">
-                <h5>提款管理</h5>
+                <h5>代付订单</h5>
                 <div class="ibox-tools">
                     <i class="layui-icon" onclick="location.replace(location.href);" title="刷新"
                        style="cursor:pointer;">ဂ</i>
@@ -367,6 +367,7 @@
             'bankcode' : bankcode,
             'status': status,
             'memo' : "<{$memo}>",
+            'currency' : "<{$currency}>",
         };
         layer.confirm('确认下载后，请到“下载中心”查询，请勿重复下载', function (index) {
             $.ajax({
@@ -377,7 +378,7 @@
                     'down_name': "下载代付订单",
                     'down_url': down_url,
                     'where' : where,
-                    'uid' : <{$uid}> ,
+                    'uid' : "<{$uid}>" ,
                 },
                 beforeSend:function(){
                   loading=layer.load();

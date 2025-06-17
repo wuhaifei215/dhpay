@@ -22,6 +22,8 @@ class OrderController extends UserController
     {
         parent::__construct();
         $this->assign("Public", MODULE_NAME); // 模块名称
+        $country = M('Country')->select();
+        $this->assign('country', $country);
     }
 
     public function index()
@@ -47,10 +49,11 @@ class OrderController extends UserController
         UserLogService::write(1, '访问' . $title . '列表页面', '访问' . $title . '订单列表页面');
 
         //通道
-        $banklist = M("Product")->field('id,name,code')->select();
+        $banklist = M("Product")->field('id,name,code')->where(['currency'=>$this->fans['currency']])->select();
         $this->assign("banklist", $banklist);
         $where = array();
 
+        $where['currency'] = $this->fans['currency'];
         $orderid = I("request.orderid", '', 'string,strip_tags,htmlspecialchars');
         if ($orderid) {
             $where['pay_orderid'] = $orderid;
@@ -100,7 +103,6 @@ class OrderController extends UserController
 
         //通道代理商户
         if ($this->fans['groupid'] == 8) {
-            $where['channel_id'] = $products[0]['channel'];
             $where['pay_status'] = ['between', [1, 2]];
 
             $statistic = $OrderModel->getSum('pay_amount,pay_actualamount',$where);
@@ -113,7 +115,7 @@ class OrderController extends UserController
             }
             $list = M('ProductUser')
                 ->join('LEFT JOIN __PRODUCT__ ON __PRODUCT__.id = __PRODUCT_USER__.pid')
-                ->where(['pay_product_user.userid' => $this->fans['uid'], 'pay_product_user.status' => 1, 'pay_product.isdisplay' => 1])
+                ->where(['pay_product_user.userid' => $this->fans['uid'], 'pay_product_user.status' => 1, 'pay_product.isdisplay' => 1, 'pay_product.currency'=>$this->fans['currency']])
                 ->field('pay_product.name,pay_product.id,pay_product.t0defaultrate,pay_product.t0fengding,pay_product.defaultrate,pay_product.fengding')
                 ->select();
             if (!empty($list)) {

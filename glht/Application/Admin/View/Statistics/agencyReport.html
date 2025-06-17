@@ -54,8 +54,8 @@
                     <table class="layui-table" lay-data="{width:'100%',limit:<{$rows}>,id:'userData'}">
                         <thead>
                         <tr>
-                            <th lay-data="{field:'uid',width:80,style:'text-align:center;',fixed: true}">用户ID</th>
-                            <th lay-data="{field:'username',width:110,style:'text-align:center;',fixed: true}">用户名</th>
+                            <th lay-data="{field:'uid',width:80,style:'text-align:center;',fixed: true}">包网ID</th>
+                            <th lay-data="{field:'username',width:110,style:'text-align:center;',fixed: true}">包网名</th>
                             <volist name="channel" id="cho">
                                 <th lay-data="{field:'pay_amount<{$cho.id}>',style:'text-align:center;',width:180}"><{$cho.title}>--总金额</th>
                                 <th lay-data="{field:'countSuccess<{$cho.id}>',style:'text-align:center;background-color:#b8c7eb;',width:180}"><{$cho.title}>--成功笔数</th>

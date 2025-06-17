@@ -25,7 +25,7 @@ class CreateController extends PayController
     public function payinBRL(){
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
-        if($this->currency !=='PHP'){
+        if($this->currency !=='BRL'){
             $this->showmessage("国家货币不对！");
         }
 

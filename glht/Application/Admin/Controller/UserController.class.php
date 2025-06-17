@@ -109,11 +109,15 @@ class UserController extends BaseController
             $list[$k]['complaintsDeposit'] = number_format((double)$deposit['complaintsDeposit'], 2, '.', '');
             $list[$k]['complaintsDepositPaused'] = number_format((double)$deposit['complaintsDepositPaused'], 2, '.', '');
 
-            $pay = M('Channel')->alias('a')->join('pay_product_user ON a.id=pay_product_user.channel')->field('a.title')->where(['pay_product_user.userid' => $v['id'],['pay_product_user.status' => 1]])->select();
+            $pay = M('Channel')->alias('a')->join('pay_product_user ON a.id=pay_product_user.channel')->field('a.title')
+                ->where(['pay_product_user.userid' => $v['id'],['pay_product_user.status' => 1],'a.currency'=>$currency])->select();
             $list[$k]['tongdao'] = $pay;
-            $dfpay = M('UserPayForAnother')->alias('a')->join('pay_pay_for_another ON a.channel=pay_pay_for_another.id')->field('pay_pay_for_another.title')->where(['a.userid' => $v['id'],'pay_pay_for_another.status'=>1])->select();
+
+            $dfpay = M('UserPayForAnother')->alias('a')->join('pay_pay_for_another ON a.channel=pay_pay_for_another.id')->field('pay_pay_for_another.title')
+                ->where(['a.userid' => $v['id'],'pay_pay_for_another.status'=>1,'a.currency'=>$currency])->select();
             $list[$k]['dftongdao'] = $dfpay;
-            $agency = M('Agency')->where(['id' => $v['agency_id']])->find();
+
+            $agency = M('Agency')->where(['id' => $v['agency_id'],'currency'=>$currency])->find();
             $list[$k]['agency'] = $agency['username'];
         }
 

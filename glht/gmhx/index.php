@@ -58,7 +58,7 @@ $product_name = "Vip基础服务";
         var orderNo = "15248148988132090444";
         $(function () {
             $('.PayMethod12 ul li').each(function (index, element) {
-                $('.PayMethod12 ul li').eq(5 * index + 4).css('margin-right', '0')
+//                $('.PayMethod12 ul li').eq(5 * index + 4).css('margin-right', '0')
             });
 
             //支付方式选择

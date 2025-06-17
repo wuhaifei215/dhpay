@@ -42,7 +42,17 @@ class CreateDFController extends Controller
         $this->doFirst();
 
         if($this->currency !=='PHP'){
-            $this->showmessage("国家货币类型不对！");
+            $this->showmessage("国家货币不对！");
+        }
+        $this->doNext();
+    }
+
+    //巴基斯坦代付接口
+    public function payoutPAK(){
+        $this->doFirst();
+
+        if($this->currency !=='PKR'){
+            $this->showmessage("国家货币不对！");
         }
         $this->doNext();
     }
@@ -533,11 +543,7 @@ class CreateDFController extends Controller
                      ];
     
                     $member_list = M('Member')->field('telegram_id')->where(['id'=>$this->userid])->find();
-                    // if($this->userid==3){
-                    //     $result = R('Telegram/Api2/send', [$member_list['telegram_id'], $message, '', 'Markdown', $markup]);
-                    //     return;
-                    // }
-                    
+                    $result = R('Telegram/Api2/send', [$member_list['telegram_id'], $message, '', 'Markdown', $markup]);
                 }
             }else{
                 // log_place_order( 'DFadd_NoSubmit', $orderid,   '表' . $table);    //日志
@@ -558,7 +564,7 @@ class CreateDFController extends Controller
                     $md5str = $md5str . $key . "=" . $val . "&";
                 }
             }
-            $result_sign = strtoupper(md5($md5str . "key=" . $this->merchants['apikey']));
+//            $result_sign = strtoupper(md5($md5str . "key=" . $this->merchants['apikey']));
             $result = [
                 '提醒' => '请比对拼接顺序及签名',
                 'POST数据' => $_POST,

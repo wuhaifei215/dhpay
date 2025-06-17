@@ -2,7 +2,7 @@
 
 namespace Payment\Controller;
 
-class WinPayDFController extends PaymentController
+class WinPayPhpDFController extends PaymentController
 {
     private $code = '';
 
@@ -16,20 +16,24 @@ class WinPayDFController extends PaymentController
     //代付提交
     public function PaymentExec($data, $config)
     {
+        $cardType = $data['type'];
+        if($data['type']=='Gcash'){
+            $cardType = 'GCASH';
+            $data['type']='pmpo-ip-gxchph';
+        }
         $post_data = array(
             "amount" => intval($data['money'] * 100),  //提现金额（单位分）
             "appId" => $config['appid'], //appId
             "backUrl" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
-            'countryCode' =>'BR',
-            'currencyCode' =>'BRL',
-            "merchantOrderId" => $data['orderid']?$data['orderid']:$data['out_trade_no'], //订单号
+            "cardType" => $cardType,
+            'countryCode' =>'PH',
+            'currencyCode' =>'PHP',
+            "merchantOrderId" => $data['orderid'], //订单号
             "custId" => $config['mch_id'], //商户号
             "remark" => $data['extends']?$data['extends']:'remark',
             "email" => '123456789@gmail.com',
-            "cpf" => '12345678901',
             "phone" => '12345678901',
-            "type" => 'PIX',
-            "cardType" => $data['type'],
+            "type" => $data['type'],
             "userName" => $data['bankfullname'],  //户名
             "walletId" => $data['banknumber'],    //账号
         );
@@ -49,12 +53,12 @@ class WinPayDFController extends PaymentController
                 $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
                 $userdfpost = json_decode($userdfpost,true);
                 
-                logApiAddPayment('下游商户提交YunPay', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
+                logApiAddPayment('商户提交', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
                 
                 // 结束并输出执行时间
                 $endTime = microtime(TRUE);
                 $doTime = floor(($endTime-$beginTime)*1000);
-                logApiAddPayment('YunPay订单提交上游WinPay', __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '2');
+                logApiAddPayment('订单提交三方', __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '2');
             }catch (\Exception $e) {
                 // var_dump($e);
             }
@@ -83,7 +87,13 @@ class WinPayDFController extends PaymentController
                     $return = ['status' => 3, 'msg' => '申请失败'];
                     break;
             }
-        }elseif($result['code'] === '900003' || $result['code'] === '999999' || $result['code'] === '000218'){
+        }elseif($result['code'] === '900003'){
+            $return = ['status' => 0, 'msg' => $result['msg']];
+        }elseif($result['code'] === '999999'){
+            $return = ['status' => 3, 'msg' => $result['msg']];
+        }elseif($result['code'] === '000218'){
+            $return = ['status' => 3, 'msg' => $result['msg']];
+        }elseif($result['code'] === '000913'){
             $return = ['status' => 3, 'msg' => $result['msg']];
         }else{
             $return = ['status' => 0, 'msg' => $result['msg']];
@@ -190,26 +200,6 @@ AAA;
             $this->ajaxReturn(['status' => 1, 'msg' => '成功', 'data' => $html]);
         }
     }
-    
-    //账户余额查询
-    public function queryBalance2($config)
-    {
-        $post_data = array(
-            "custId" => $config['mch_id'], //商户号
-            "appId" => $config['appid'], //商户号
-            "currencyCode" => 'BRL',
-        );
-        $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
-        log_place_order($this->code . '_queryBalance2', "提交", json_encode($post_data));    //日志
-        $returnContent = $this->http_post_json($config['serverreturn'], $post_data);
-        log_place_order($this->code . '_queryBalance2', "返回", $returnContent);    //日志
-        $result = json_decode($returnContent, true);
-        // if($result['code']==="0"){
-            $result_data['resultCode'] = "0";
-            $result_data['balance'] = $result['acBal'] / 100;
-        // }
-        return $result_data;
-    }
 
     //代付订单查询
     public function PaymentQuery($data, $config)
@@ -255,13 +245,13 @@ AAA;
             ];
             $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
             log_place_order($this->code . '_PaymentVoucher', $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
-            $returnContent = $this->http_post_json('https://api.winpay.site/br/voucherData.json', $post_data);
+            $returnContent = $this->http_post_json('https://phlapi.newwinpay.site/br/voucherData.json', $post_data);
             log_place_order($this->code . '_PaymentVoucher', $data['orderid'] . "----返回", $returnContent);    //日志
             $result = json_decode($returnContent, true);
         
             // $redata = json_decode(file_get_contents('https://api.winpay.site/payment/br/voucherData.webapp?casOrdNo=' . $data['three_orderid']),true);
             log_place_order($this->code . '_PaymentVoucher', $data['three_orderid'] . "----返回",  json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
-            if(!empty($result)){
+            if(!empty($result) && $result['code'] === '000000'){
                 return  $result;
             }else{
                 return false;
@@ -282,8 +272,8 @@ AAA;
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 0,
-            CURLOPT_TIMEOUT => 10,
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',

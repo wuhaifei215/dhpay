@@ -17,6 +17,10 @@ class TradeController extends CreateDFController
     //代付查询
     public function query()
     {
+        $currency= I('post.currency', '', 'string,strip_tags,htmlspecialchars');
+        if (!$currency) {
+            $this->showmessage('国家货币不能为空！');
+        }
         $out_trade_no = I('request.out_trade_no', '', 'string,strip_tags,htmlspecialchars');
         if (!$out_trade_no) {
             $this->showmessage("缺少订单号");
@@ -31,7 +35,7 @@ class TradeController extends CreateDFController
         }
         $user_id = $this->memberid - 10000;
         //用户信息
-        $this->merchants = D('Member')->where(array('id' => $user_id))->find();
+        $this->merchants = D('Member')->where(array('id' => $user_id,'currency'=>$currency))->find();
         if (empty($this->merchants)) {
             $this->showmessage('商户不存在！');
         }
@@ -60,6 +64,7 @@ class TradeController extends CreateDFController
             }
         }
         $request = [
+            'currency' =>$currency,
             'mchid' => $this->memberid,
             'out_trade_no' => $out_trade_no,
             'datetime' => $datetime
@@ -84,6 +89,7 @@ class TradeController extends CreateDFController
             $this->showmessage('签名验证失败', $result);
         }
         $where = [
+            'currency' =>$currency,
             'userid' => $user_id,
             'out_trade_no' => $out_trade_no,
             'sqdatetime'=>['between',[date('Y-m-d H:i:s',strtotime($datetime . ' 00:00:00')),date('Y-m-d H:i:s',strtotime($datetime . ' 23:59:59'))]],
@@ -92,6 +98,7 @@ class TradeController extends CreateDFController
         $order = $Wttklist->table($Wttklist->getRealTableName($datetime))->where($where)->find();
         if(!$order || empty($order)){
             $where = [
+                'currency' =>$currency,
                 'userid' => $user_id,
                 'out_trade_no' => $out_trade_no,
                 'sqdatetime'=>['between',[date('Y-m-d H:i:s',strtotime($datetime . ' 00:00:00')),date('Y-m-d H:i:s',strtotime($datetime . ' 23:59:59') + 86400)]],
@@ -156,13 +163,17 @@ class TradeController extends CreateDFController
     //余额查询
     public function balance()
     {
+        $currency= I('post.currency', '', 'string,strip_tags,htmlspecialchars');
+        if (!$currency) {
+            $this->showmessage('国家货币不能为空！');
+        }
         $sign = I('request.pay_md5sign', '', 'string');
         if (!$sign) {
-            $this->showmessage("缺少签名参数");
+            $this->showmessage("签名参数不能为空！");
         }
         $user_id = $this->memberid - 10000;
         //用户信息
-        $this->merchants = D('Member')->where(array('id' => $user_id))->find();
+        $this->merchants = D('Member')->where(array('id' => $user_id,'currency'=>$currency))->find();
         if (empty($this->merchants)) {
             $this->showmessage('商户不存在！');
         }
@@ -192,7 +203,8 @@ class TradeController extends CreateDFController
         }
 
         $request = [
-            'mchid' => $this->memberid
+            'mchid' => $this->memberid,
+            'currency'=>$currency
         ];
 
         $signature = $this->createSign($this->merchants['apikey'], $request);
@@ -229,6 +241,10 @@ class TradeController extends CreateDFController
     
     //获取凭证
     public function voucher(){
+        $currency= I('post.currency', '', 'string,strip_tags,htmlspecialchars');
+        if (!$currency) {
+            $this->showmessage('国家货币不能为空！');
+        }
         $out_trade_no = I('request.out_trade_no', '', 'string,strip_tags,htmlspecialchars');
         if (!$out_trade_no) {
             $this->showmessage("缺少订单号");
@@ -272,6 +288,7 @@ class TradeController extends CreateDFController
             }
         }
         $request = [
+            'currency'=>$currency,
             'mchid' => $this->memberid,
             'out_trade_no' => $out_trade_no,
             'datetime' => $datetime
@@ -296,6 +313,7 @@ class TradeController extends CreateDFController
             $this->showmessage('签名验证失败', $result);
         }
         $where = [
+            'currency'=>$currency,
             'userid' => $user_id,
             'out_trade_no' => $out_trade_no,
             'sqdatetime'=>['between',[date('Y-m-d H:i:s',strtotime($datetime . ' 00:00:00')),date('Y-m-d H:i:s',strtotime($datetime . ' 23:59:59'))]],
@@ -304,6 +322,7 @@ class TradeController extends CreateDFController
         $order = $Wttklist->table($Wttklist->getRealTableName($datetime))->where($where)->find();
         if(!$order || empty($order)){
             $where = [
+                'currency'=>$currency,
                 'userid' => $user_id,
                 'out_trade_no' => $out_trade_no,
                 'sqdatetime'=>['between',[date('Y-m-d H:i:s',strtotime($datetime . ' 00:00:00')),date('Y-m-d H:i:s',strtotime($datetime . ' 23:59:59') + 86400)]],
@@ -333,7 +352,7 @@ class TradeController extends CreateDFController
                     'transaction_id' => $order['orderid'],
                     'refCode' => '1',
                     'refMsg' => '代付成功',
-                    'voucherUrl' => 'https://' . C('DOMAIN') . '/Payment_Index_voucher.html?casOrdNo=' . $order['orderid'],
+                    'voucherUrl' => 'https://' . C('DOMAIN') . '/Payment_Index_voucher.html?casOrdNo=' . $order['orderid'] . '&currency=' . $currency,
                 ];
             }else{
                 $return = [

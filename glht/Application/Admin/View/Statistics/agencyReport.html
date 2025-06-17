@@ -57,11 +57,11 @@
                             <th lay-data="{field:'uid',width:80,style:'text-align:center;',fixed: true}">用户ID</th>
                             <th lay-data="{field:'username',width:110,style:'text-align:center;',fixed: true}">用户名</th>
                             <volist name="channel" id="cho">
-                                <th lay-data="{field:'pay_amount<{$cho.id}>',style:'text-align:center;',width:160}"><{$cho.title}>--总金额</th>
-                                <th lay-data="{field:'countSuccess<{$cho.id}>',style:'text-align:center;',width:160}"><{$cho.title}>--成功笔数</th>
-                                <th lay-data="{field:'countFail<{$cho.id}>',style:'text-align:center;',width:160}"><{$cho.title}>--失败笔数</th>
-                                <th lay-data="{field:'successRate<{$cho.id}>',style:'text-align:center;',width:160}"><{$cho.title}>--成功率</th>
-                                <th lay-data="{field:'successAverage<{$cho.id}>',style:'text-align:center;',width:160}"><{$cho.title}>--总均单</th>
+                                <th lay-data="{field:'pay_amount<{$cho.id}>',style:'text-align:center;',width:180}"><{$cho.title}>--总金额</th>
+                                <th lay-data="{field:'countSuccess<{$cho.id}>',style:'text-align:center;background-color:#b8c7eb;',width:180}"><{$cho.title}>--成功笔数</th>
+                                <th lay-data="{field:'countFail<{$cho.id}>',style:'text-align:center;',width:180}"><{$cho.title}>--失败笔数</th>
+                                <th lay-data="{field:'successRate<{$cho.id}>',style:'text-align:center;background-color:#b8c7eb;',width:180}"><{$cho.title}>--成功率</th>
+                                <th lay-data="{field:'successAverage<{$cho.id}>',style:'text-align:center;',width:180}"><{$cho.title}>--总均单</th>
                             </volist>
                         </tr>
                         </thead>

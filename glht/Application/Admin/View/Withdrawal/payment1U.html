@@ -36,13 +36,7 @@
                     <input type="hidden" name="a" value="payment">
                     <input type="hidden" name="p" value="1">
                     <input type="hidden" name="rows" id="rows" value="<{$rows}>">
-                    
-                    <div class="layui-form-item layui-inline">
-                        <label class="layui-form-label">商户编号</label>
-                        <div class="layui-input-inline">
-                            <input type="text" name="memberid" value="<if condition="$memberid gt 0"><{$memberid}></if>" placeholder="请输入商户号" class="layui-input">
-                        </div>
-                    </div>
+
                     <div class="layui-form-item layui-inline">
                         <label class="layui-form-label">所属国家：</label>
                         <div class="layui-input-inline">
@@ -52,6 +46,12 @@
                                     <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
                                 </volist>
                             </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item layui-inline">
+                        <label class="layui-form-label">商户编号</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="memberid" value="<if condition="$memberid gt 0"><{$memberid}></if>" placeholder="请输入商户号" class="layui-input">
                         </div>
                     </div>
                     <br>

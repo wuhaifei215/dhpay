@@ -44,12 +44,6 @@
                             </select>
                         </div>
                     </div>
-                    <div class="layui-form-item layui-inline">
-                        <label class="layui-form-label">商户编号</label>
-                        <div class="layui-input-inline">
-                            <input type="text" name="memberid" value="<if condition="$memberid gt 0"><{$memberid}></if>" placeholder="请输入商户号" class="layui-input">
-                        </div>
-                    </div>
                     <neq name="type" value="2">
                     <div class="layui-form-item layui-inline">
                         <label class="layui-form-label">代付通道</label>
@@ -72,6 +66,12 @@
                     <!--               placeholder="申请起始时间" value="<{$createtime}>" autocomplete="off">-->
                     <!--    </div>-->
                     <!--</div>-->
+                    <div class="layui-form-item layui-inline">
+                        <label class="layui-form-label">商户编号</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="memberid" value="<if condition="$memberid gt 0"><{$memberid}></if>" placeholder="请输入商户号" class="layui-input">
+                        </div>
+                    </div>
                     <div class="layui-form-item layui-inline">
                         <label class="layui-form-label">成功时间</label>
                         <div class="layui-input-inline" style="width:270px;">

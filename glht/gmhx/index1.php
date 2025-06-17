@@ -15,20 +15,19 @@ $pay_callbackurl = $http_type . "glht.dhpay.vip/gmtest/page.php";  //页面跳�
 $Md5key = "1ni0s1x77i94vusp4m0ssq0dsk3rrlu2";   //密钥
 
 $apidomain = $http_type . "api.dhpay.vip";
-if (in_array($pay_bankcode, [910, 911, 912])) {
+if (in_array($pay_bankcode, [7710, 7711, 7712])) {
     $pay_currency = 'BRL';
     $tjurl = $apidomain . "/Pay_Create_payinBRL.html";   //巴西
-} elseif ($pay_bankcode == 913) {
+} elseif ($pay_bankcode == 7713) {
     $pay_currency = 'PKR';
     $tjurl = $apidomain . "/Pay_Create_payinPAK.html";   //巴基斯坦
-} elseif ($pay_bankcode == 914) {
+}elseif (in_array($pay_bankcode, [7714, 7715, 7716,7717])) {
     $pay_currency = 'PHP';
     $tjurl = $apidomain . "/Pay_Create_payinPHP.html";   //菲律宾
-} else {
-    $pay_currency = 'PHP';
-    $tjurl = $apidomain . "/Pay_Create_payinPHP.html";   //默认
+} elseif ($pay_bankcode == 7718) {
+    $pay_currency = 'VND';
+    $tjurl = $apidomain . "/Pay_Create_payinVND.html";   //越南
 }
-
 
 //扫码
 $native = array(

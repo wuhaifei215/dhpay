@@ -48,26 +48,6 @@
 					<label>备注</label>
 					<input type="text" name="extends" value="" />
 				</li>
-				<!--<li>
-					<label>身份证号</label>
-					<input type="text" name="idnumber" value="" />
-				</li>
-				<li>
-					<label>手机号</label>
-					<input type="text" name="phone" value="" />
-				</li>
-				<li>
-					<label>省</label>
-					<input type="text" name="province" value=""  />
-				</li>
-				<li>
-					<label>市</label>
-					<input type="text" name="city" value=""  />
-				</li>-->
-				<!--<li>-->
-				<!--	<label>联行号</label>-->
-				<!--	<input type="text" name="extends[bankAgentId]" value=""  />-->
-				<!--</li>-->
 				<li>
 					<label>回调地址</label>
 					<input type="text" name="notifyurl" value="https://glht.dhpay.vip/dhfpay/notify.php"  />

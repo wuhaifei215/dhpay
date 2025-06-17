@@ -170,61 +170,59 @@ $product_name = "Vip基础服务";
             <ul>
                 <label for="BRLH5">
                     <li class="pay_li active" data_power_id="3000000001" data_product_id="3000000001">
-                        <input value="910" checked="checked" name="channel" id="BRLH5" type="radio">
-<!--                        <i class="i1"></i>-->
+                        <input value="7710" checked="checked" name="channel" id="BRLH5" type="radio">
                         <span>巴西H5</span>
                     </li>
                 </label>
                 <label for="BRLQR">
                     <li class="pay_li" data_power_id="3000000002" data_product_id="3000000002">
-                        <input value="911" name="channel" id="BRLQR" type="radio">
-<!--                        <i class="i1"></i>-->
+                        <input value="7711" name="channel" id="BRLQR" type="radio">
                         <span>巴西QR</span>
                     </li>
                 </label>
                 <label for="BRLH5CPF">
                     <li class="pay_li" data_power_id="3000000003" data_product_id="3000000003">
-                        <input value="912" name="channel" id="BRLH5CPF" type="radio">
-<!--                        <i class="i1"></i>-->
+                        <input value="7712" name="channel" id="BRLH5CPF" type="radio">
                         <span>巴西H5--CPF</span>
                     </li>
                 </label>
                 <label for="PKR">
                     <li class="pay_li" data_power_id="3000000004" data_product_id="3000000004">
-                        <input value="913" name="channel" id="PKR" type="radio">
-<!--                        <i class="i1"></i>-->
+                        <input value="7713" name="channel" id="PKR" type="radio">
                         <span>巴基斯坦PK</span>
                     </li>
                 </label>
+                <label for="GcashWap2">
+                    <li class="pay_li" data_power_id="3000000005" data_product_id="3000000005">
+                        <input value="7714" name="channel" id="GcashWap2" type="radio">
+                        <span>Gcash伪原生</span>
+                    </li>
+                </label>
+                <label for="GcashScan">
+                    <li class="pay_li" data_power_id="3000000006" data_product_id="3000000006">
+                        <input value="7715" name="channel" id="GcashScan" type="radio">
+                        <span>Gcash(QRPH)</span>
+                    </li>
+                </label>
+                <label for="Maya">
+                    <li class="pay_li" data_power_id="3000000007" data_product_id="3000000007">
+                        <input value="7716" name="channel" id="Maya" type="radio">
+                        <span>Maya</span>
+                    </li>
+                </label>
+                <label for="GcashWap">
+                    <li class="pay_li" data_power_id="3000000008" data_product_id="3000000008">
+                        <input value="7717" name="channel" id="GcashWap" type="radio">
+                        <span>Gcash原生</span>
+                    </li>
+                </label>
+                <label for="VietQR">
+                    <li class="pay_li" data_power_id="3000000009" data_product_id="3000000009">
+                        <input value="7718" name="channel" id="VietQR" type="radio">
+                        <span>越南QR</span>
+                    </li>
+                </label>
 
-                <!--<label for="gcashzl">-->
-                <!--    <li class="pay_li active" data_power_id="3000000001" data_product_id="3000000001">-->
-                <!--        <input value="906" checked="checked" name="channel" id="gcashzl" type="radio">-->
-                <!--        <i class="i1"></i>-->
-                <!--        <span>GCash</span>-->
-                <!--    </li>-->
-                <!--</label>-->
-                <!--<label for="gcashsm">-->
-                <!--    <li class="pay_li" data_power_id="3000000002" data_product_id="3000000002">-->
-                <!--        <input value="907" name="channel" id="gcashsm" type="radio">-->
-                <!--        <i class="i1"></i>-->
-                <!--        <span>GCash扫码</span>-->
-                <!--    </li>-->
-                <!--</label>-->
-                <!--<label for="maya">-->
-                <!--    <li class="pay_li" data_power_id="3000000003" data_product_id="3000000003">-->
-                <!--        <input value="908" name="channel" id="maya" type="radio">-->
-                <!--        <i class="i1"></i>-->
-                <!--        <span>Maya</span>-->
-                <!--    </li>-->
-                <!--</label>-->
-                <!--<label for="vietQR">-->
-                <!--    <li class="pay_li" data_power_id="3000000004" data_product_id="3000000004">-->
-                <!--        <input value="909" name="channel" id="vietQR" type="radio">-->
-                <!--        <i class="i1"></i>-->
-                <!--        <span>VietQR</span>-->
-                <!--    </li>-->
-                <!--</label>-->
             </ul>
         </div>
     </div>

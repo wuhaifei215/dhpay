@@ -41,6 +41,17 @@
       <div class="ibox-content">
         <form class="layui-form layui-form-pane form-search" action="" method="get" autocomplete="off" id="orderform">
           <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">所属国家：</label>
+            <div class="layui-input-inline">
+              <select name="currency">
+                <option value="">全部国家</option>
+                <volist name="country" id="co">
+                  <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                </volist>
+              </select>
+            </div>
+          </div>
+          <div class="layui-form-item layui-inline">
             <label class="layui-form-label">商户编号</label>
             <div class="layui-input-inline">
               <input type="text" name="memberid" id="memberid" value="<if condition="$memberid gt 0"><{$memberid|htmlspecialchars}></if>" placeholder="请输入商户号" class="layui-input">
@@ -73,17 +84,6 @@
             <div class="layui-input-inline" style="width:270px;">
               <input type="text" class="layui-input" name="successtime" id="successtime"
                      placeholder="成功时间范围" value="<{$successtime|htmlspecialchars}>" autocomplete="off">
-            </div>
-          </div>
-          <div class="layui-form-item layui-inline">
-            <label class="layui-form-label">所属国家：</label>
-            <div class="layui-input-inline">
-              <select name="currency">
-                <option value="">全部国家</option>
-                <volist name="country" id="co">
-                  <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
-                </volist>
-              </select>
             </div>
           </div>
           <div class="layui-form-item layui-inline">

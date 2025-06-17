@@ -41,7 +41,7 @@ class CreateController extends PayController
         
         $this->doNext();
     }
-    //越南代收接口
+    //巴基斯坦代收接口
     public function payinPAK(){
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 

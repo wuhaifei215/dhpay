@@ -11,8 +11,9 @@ return [
         ['id'=>'7','currency'=>'PHP','name'=>'Gcash原生扫码'],
         ['id'=>'8','currency'=>'PHP','name'=>'Gcash伪原生'],
         ['id'=>'9','currency'=>'PHP','name'=>'Gcash伪原生扫码'],
-//        ['id'=>'10','currency'=>'IND','name'=>'印度UPI'],
-//        ['id'=>'11','currency'=>'IND','name'=>'印度原生'],
-//        ['id'=>'12','currency'=>'IND','name'=>'印度唤醒'],
+        ['id'=>'10','currency'=>'PHP','name'=>'Maya'],
+//        ['id'=>'11','currency'=>'IND','name'=>'印度UPI'],
+//        ['id'=>'12','currency'=>'IND','name'=>'印度原生'],
+//        ['id'=>'13','currency'=>'IND','name'=>'印度唤醒'],
     ],
 ];

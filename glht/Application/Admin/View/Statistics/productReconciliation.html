@@ -65,13 +65,13 @@
                             <th lay-data="{field:'date',width:110,style:'text-align:center;',fixed: true}">日期</th>
                             <volist name="channel" id="cho">
                                 <th lay-data="{field:'order_success_amount<{$cho.id}>',style:'text-align:center;color:#060;',width:180}"><{$cho.title}>--成功总金额</th>
-                                <th lay-data="{field:'order_success_count<{$cho.id}>',style:'text-align:center;background-color:#7498e938;',width:180}"><{$cho.title}>--成功笔数</th>
+                                <th lay-data="{field:'order_success_count<{$cho.id}>',style:'text-align:center;background-color:#b8c7eb;',width:180}"><{$cho.title}>--成功笔数</th>
                                 <th lay-data="{field:'order_success_rate<{$cho.id}>',style:'text-align:center;color:#003b88;',width:180}"><{$cho.title}>--成功率</th>
-                                <th lay-data="{field:'order_success_average<{$cho.id}>',style:'text-align:center;background-color:#7498e938;',width:180}"><{$cho.title}>--总均单</th>
+                                <th lay-data="{field:'order_success_average<{$cho.id}>',style:'text-align:center;background-color:#b8c7eb;',width:180}"><{$cho.title}>--总均单</th>
                             </volist>
                             <volist name="payChannel" id="payo">
                                 <th lay-data="{field:'wttklist_success_amount<{$payo.id}>',style:'text-align:center;color:#C00;',width:180}"><{$payo.title}>--成功总金额</th>
-                                <th lay-data="{field:'wttklist_success_count<{$payo.id}>',style:'text-align:center;background-color:#7498e938;',width:180}"><{$payo.title}>--成功笔数</th>
+                                <th lay-data="{field:'wttklist_success_count<{$payo.id}>',style:'text-align:center;background-color:#b8c7eb;',width:180}"><{$payo.title}>--成功笔数</th>
                             </volist>
                         </tr>
                         </thead>

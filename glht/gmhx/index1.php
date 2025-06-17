@@ -17,13 +17,16 @@ $Md5key = "1ni0s1x77i94vusp4m0ssq0dsk3rrlu2";   //密钥
 $apidomain = $http_type . "api.dhpay.vip";
 if (in_array($pay_bankcode, [910, 911, 912])) {
     $pay_currency = 'BRL';
-    $tjurl = $apidomain . "/Pay_Create_payinBRL.html";   //提交地址
- } elseif ($pay_bankcode == 913) {
+    $tjurl = $apidomain . "/Pay_Create_payinBRL.html";   //巴西
+} elseif ($pay_bankcode == 913) {
     $pay_currency = 'PKR';
-    $tjurl = $apidomain . "/Pay_Create_payinPAK.html";   //提交地址
+    $tjurl = $apidomain . "/Pay_Create_payinPAK.html";   //巴基斯坦
+} elseif ($pay_bankcode == 914) {
+    $pay_currency = 'PHP';
+    $tjurl = $apidomain . "/Pay_Create_payinPHP.html";   //菲律宾
 } else {
     $pay_currency = 'PHP';
-    $tjurl = $apidomain . "/Pay_Create_payinPHP.html";   //提交地址
+    $tjurl = $apidomain . "/Pay_Create_payinPHP.html";   //默认
 }
 
 

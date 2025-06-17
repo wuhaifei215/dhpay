@@ -19,13 +19,16 @@ $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset(
 $apidomain = $http_type . "api.dhpay.vip";
 if (in_array($_POST["bankcode"], [910, 911, 912])) {
     $pay_currency = 'BRL';
-    $tjurl = $apidomain . "/Payment_CreateDF_payoutBRL.html";   //提交地址
+    $tjurl = $apidomain . "/Payment_CreateDF_payoutBRL.html";   //巴西
 } elseif ($_POST["bankcode"] == 913) {
     $pay_currency = 'PKR';
-    $tjurl = $apidomain . "/Payment_CreateDF_payoutPAK.html";   //提交地址
+    $tjurl = $apidomain . "/Payment_CreateDF_payoutPAK.html";   //巴基斯坦
+} elseif ($_POST["bankcode"] == 914) {
+    $pay_currency = 'PHP';
+    $tjurl = $apidomain . "/Payment_CreateDF_payoutPHP.html";   //菲律宾
 } else {
     $pay_currency = 'PHP';
-    $tjurl = $apidomain . "/Payment_CreateDF_payoutPHP.html";   //提交地址
+    $tjurl = $apidomain . "/Payment_CreateDF_payoutPHP.html";   //默认
 }
 $_POST['currency'] = $pay_currency;
 

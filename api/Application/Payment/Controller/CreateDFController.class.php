@@ -41,7 +41,7 @@ class CreateDFController extends Controller
     public function payoutBRL(){
         $this->doFirst();
 
-        if($this->currency !=='PHP'){
+        if($this->currency !=='BRL'){
             $this->showmessage("国家货币不对！");
         }
         $this->doNext();

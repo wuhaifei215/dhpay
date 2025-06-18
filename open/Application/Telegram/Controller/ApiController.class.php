@@ -11,11 +11,11 @@ use Think\Log;
  */
 class ApiController extends Controller
 {
-//    protected $code = 'Tel_Api';
-//    protected $bot_name = 'YunPay3_bot';
-//    protected $token = '7762675448:AAFxEt_qTnYnLv14BGiF76Y00BcdQ-oYxDs';
-//    protected $callback = '';
-//    protected $title='YUNpay小管家';
+    protected $code = 'Tel_Api';
+    protected $bot_name = 'DhPay_Intl_Bot';
+    protected $token = '7702121626:AAEj7ztvQttmxXM5BJDnTHQ39ULTZFw303k';
+    protected $callback = '';
+    protected $title='DhPay';
 
     public function __construct()
     {

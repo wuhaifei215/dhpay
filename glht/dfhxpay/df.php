@@ -26,7 +26,7 @@
 				</li>
 				<li>
 					<label>通道编码</label>
-					<input type="text" name="bankcode" value="910" />
+					<input type="text" name="bankcode" value="7710" />
 				</li>
 				<li>
 					<label>开户行</label>
@@ -50,7 +50,7 @@
 				</li>
 				<li>
 					<label>回调地址</label>
-					<input type="text" name="notifyurl" value="https://glht.dhpay.vip/dhfpay/notify.php"  />
+					<input type="text" name="notifyurl" value="https://glht.dhpay.vip/dfhxpay/notify.php"  />
 				</li>
 				<li style="margin-top: 50px">
 					<label></label>

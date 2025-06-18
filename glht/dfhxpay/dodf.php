@@ -17,19 +17,20 @@ if($_POST['extends']) {
 $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
 
 $apidomain = $http_type . "api.dhpay.vip";
-if (in_array($_POST["bankcode"], [910, 911, 912])) {
+if (in_array($pay_bankcode, [7710, 7711, 7712])) {
     $pay_currency = 'BRL';
     $tjurl = $apidomain . "/Payment_CreateDF_payoutBRL.html";   //巴西
-} elseif ($_POST["bankcode"] == 913) {
+} elseif ($pay_bankcode == 7713) {
     $pay_currency = 'PKR';
     $tjurl = $apidomain . "/Payment_CreateDF_payoutPAK.html";   //巴基斯坦
-} elseif ($_POST["bankcode"] == 914) {
+}elseif (in_array($pay_bankcode, [7714, 7715, 7716,7717])) {
     $pay_currency = 'PHP';
     $tjurl = $apidomain . "/Payment_CreateDF_payoutPHP.html";   //菲律宾
-} else {
-    $pay_currency = 'PHP';
-    $tjurl = $apidomain . "/Payment_CreateDF_payoutPHP.html";   //默认
+} elseif ($pay_bankcode == 7718) {
+    $pay_currency = 'VND';
+    $tjurl = $apidomain . "/Payment_CreateDF_payoutVND.html";   //越南
 }
+
 $_POST['currency'] = $pay_currency;
 
 ksort($_POST);

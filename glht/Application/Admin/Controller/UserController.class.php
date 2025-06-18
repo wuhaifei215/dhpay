@@ -58,8 +58,9 @@ class UserController extends BaseController
         } elseif (intval($username) - 10000 > 0) {
             $where['id'] = intval($username) - 10000;
         }
-
-        $where['currency'] = $currency;
+        if($currency) {
+            $where['currency'] = $currency;
+        }
         $this->assign('currency', $currency);
 
         if ($agency_id != '') {

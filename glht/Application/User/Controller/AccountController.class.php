@@ -75,7 +75,7 @@ class AccountController extends UserController
             }
             $toUsername = $p['toUsername'];
             if ($toUsername) {
-                $toUser = M('Member')->where(['username' => $toUsername])->field('`id` as uid,  `username`, `google_secret_key`, `google_auth`')->find();
+                $toUser = M('Member')->where(['username' => $toUsername,'currency' => $this->fans['currency']])->field('`id` as uid,  `username`, `google_secret_key`, `google_auth`')->find();
                 if (!$toUser) {
                     UserLogService::write(3, '商户内转', '原因：目标商户不存在');
                     $this->ajaxReturn(['status' => 0, 'msg' => "目标商户不存在"]);
@@ -200,7 +200,7 @@ class AccountController extends UserController
                 UserLogService::write(3, '商户内转', '原因：未填写转出商户');
                 $this->ajaxReturn(['status' => 0, 'msg' => "请填写转出商户"]);
             }
-            $fromUser = M('Member')->where(['username' => $fromUsername,'parentid' => $userid])->field('`id` as uid,  `username`, `google_secret_key`, `google_auth`')->find();
+            $fromUser = M('Member')->where(['username' => $fromUsername,'parentid' => $userid,'currency' => $this->fans['currency']])->field('`id` as uid,  `username`, `google_secret_key`, `google_auth`,`currency`')->find();
             if (!$fromUser) {
                 UserLogService::write(3, '商户内转', '原因：转出商户不存在');
                 $this->ajaxReturn(['status' => 0, 'msg' => "转出商户不存在"]);
@@ -231,7 +231,12 @@ class AccountController extends UserController
                 UserLogService::write(3, '商户内转', '原因：未填写目标商户');
                 $this->ajaxReturn(['status' => 0, 'msg' => "请填写目标商户"]);
             }
-            $toUser = M('Member')->where(['username' => $toUsername,'parentid' => $userid])->field('`id` as uid,  `username`, `google_secret_key`, `google_auth`')->find();
+            $toUser = M('Member')->where(['username' => $toUsername,'parentid' => $userid,'currency' => $this->fans['currency']])->field('`id` as uid,  `username`, `google_secret_key`, `google_auth`,`currency`')->find();
+            if($fromUser['currency'] !== $toUser['currency']){
+                UserLogService::write(3, '商户内转', '原因：两个商户不属于同一个国家');
+                $this->ajaxReturn(['status' => 0, 'msg' => "两个商户不属于同一个国家"]);
+            }
+
             if (!$toUser) {
                 UserLogService::write(3, '商户内转', '原因：目标商户不存在');
                 $this->ajaxReturn(['status' => 0, 'msg' => "目标商户不存在"]);
@@ -991,16 +996,7 @@ class AccountController extends UserController
     public function changeRecord()
     {
         UserLogService::write(1, '访问资金变动记录页面', '访问资金变动记录页面');
-
         $where   = array();
-        $currency = I("request.currency" ,'' , 'string,strip_tags,htmlspecialchars');
-        if($currency ==='PHP'){
-            $where['paytype'] = ['between', [1,3]];
-        }
-        if($currency ==='INR'){
-            $where['paytype'] = ['eq', 4];
-        }
-        $this->assign('currency', $currency);
         $orderid = I("get.orderid", '' , 'string,strip_tags,htmlspecialchars');
         if ($orderid) {
             $where['transid'] = array('eq', $orderid);
@@ -1027,14 +1023,6 @@ class AccountController extends UserController
             $createtime = $todayBegin . ' | ' . $todyEnd;
         }
         $this->assign('createtime', $createtime);
-        if (!$createtime && !$successtime && !$payOrderid && !$orderid) {
-            $todayBegin = date('Y-m-d') . ' 00:00:00';
-            $todyEnd = date('Y-m-d') . ' 23:59:59';
-            if (!$createtime && !$successtime) {
-                $where['datetime'] = ['between', [$todayBegin, $todyEnd]];
-            }
-            $createtime = $todayBegin . ' | ' . $todyEnd;
-        }
         if($this->fans['groupid'] == 5){
             $usersId='';
             $member_arr = M('Member')->where(['parentid' => (string)$this->fans['uid']])->select();
@@ -1049,6 +1037,7 @@ class AccountController extends UserController
         }else{
             $where['userid'] = $this->fans['uid'];
         }
+        $where['currency'] = $this->fans['currency'];
         $size            = 15;
         $rows            = I('get.rows', $size, 'intval');
         if (!$rows) {
@@ -1709,7 +1698,7 @@ class AccountController extends UserController
         // if ($memberid = I('get.memberid', '')) {
         //     $where['id'] = $memberid - 10000;
         // }
-        $this->assign('memberid', $memberid);
+//        $this->assign('memberid', $memberid);
         if($date>date('Y-m-d') || strtotime($date)<strtotime(date('Y-m-d',$this->fans['regdatetime']))) {
             $this->error('日期错误');
         }
@@ -1736,7 +1725,7 @@ class AccountController extends UserController
             }
             $begin = date('Y-m-d',$start_time).' 00:00:00';
             $end = date('Y-m-d H:i:s',strtotime(date('Y-m-d',$start_time))+86400-1);
-            $list[$i] = $this->getDayReconciliation($begin, $end);
+            $list[$i] = $this->getDayReconciliation($begin, $end, $this->fans['currency']);
         }
         // echo "<pre>";
         // var_dump($list);
@@ -1748,7 +1737,7 @@ class AccountController extends UserController
     }
 
     //获取某天对账单
-    private function getDayReconciliation($begin, $end) {
+    private function getDayReconciliation($begin, $end, $currency) {
 
         $date = date('Y-m-d', strtotime($begin));
         $data = M('reconciliation')->where(['userid'=>$this->fans['uid'],'date'=>$date])->find();

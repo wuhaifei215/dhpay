@@ -67,6 +67,16 @@ class CreateDFController extends Controller
         $this->doNext();
     }
 
+    //越南代付接口
+    public function payoutVND(){
+        $this->doFirst();
+
+        if($this->currency !=='VND'){
+            $this->showmessage("国家货币不对！");
+        }
+        $this->doNext();
+    }
+
     //======================================辅助方法===================================
 
     /**

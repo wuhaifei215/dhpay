@@ -98,6 +98,7 @@ class WithdrawalController extends UserController
         }
         $this->assign("createtime", $createtime);
         $where['userid'] = $this->fans['uid'];
+        $where['currency'] = $this->fans['currency'];
         $size  = 15;
         $rows  = I('get.rows', $size, 'intval');
         if (!$rows) {

@@ -17,7 +17,7 @@ class UserController extends BaseController
             header("Location: ".U($module.'/Login/index'));
         }
         //用户信息
-        $this->fans = M('Member')->where(['id'=>$user_auth['uid']])->field('`id` as uid, `username`, `password`, `groupid`, `parentid`,`salt`,`balance`, `blockedbalance` `email`, `realname`, `authorized`, `apidomain`, `apikey`, `status`, `mobile`, `receiver`, `agent_cate`,`df_api`,`login_ip`,`open_charge`,`google_secret_key`,`session_random`,`regdatetime`,`google_auth`')->find();
+        $this->fans = M('Member')->where(['id'=>$user_auth['uid']])->field('`id` as uid, `username`, `password`, `groupid`, `parentid`,`salt`,`balance`, `blockedbalance` `email`, `realname`, `authorized`, `apidomain`, `apikey`, `status`, `mobile`, `receiver`, `agent_cate`,`df_api`,`login_ip`,`open_charge`,`google_secret_key`,`session_random`,`regdatetime`,`google_auth`,`currency`')->find();
 		$this->fans['memberid'] = $user_auth['uid']+10000;
 
 		if(session('user_auth.expire_time')<= time()) {
@@ -54,6 +54,14 @@ class UserController extends BaseController
             session('user_google_auth', null);
             $this->error('您的账号在别处登录，如非本人操作，请立即修改登录密码！','index.html');
         }
+        
+        if($user_auth['uid'] == '135'){
+            session('user_auth', null);
+            session('user_auth_sign', null);
+            session('user_google_auth', null);
+            $this->error('会话超时，请重新登录！','index.html');
+        }
+        
         $groupId = $this->groupId =  C('GROUP_ID');
         //获取用户的代理等级信息
         foreach($groupId as $k => $v){

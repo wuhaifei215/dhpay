@@ -61,12 +61,7 @@
                             <a href="javascript:;" id="export" class="layui-btn layui-btn-danger"><span class="glyphicon glyphicon-export"></span> 导出数据</a>
                         </div>
                 </form>
-                <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">
-                    今日成功结算金额：<span class="label label-info"><{$stat.totay_total}>元</span> 
-                    <!--今日待结算：<span class="label label-warning"><{$stat.totay_wait}>元</span> -->
-                    今日成功笔数：<span class="label label-info"><{$stat.totay_success_count}></span> 
-                    今日失败笔数：<span class="label label-danger"><{$stat.totay_fail_count}></span>
-                </blockquote>
+                <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">今日成功结算金额：<span class="label label-info"><{$stat.totay_total}>元</span> 今日待结算：<span class="label label-warning"><{$stat.totay_wait}>元</span> 今日成功笔数：<span class="label label-info"><{$stat.totay_success_count}></span> 今日失败笔数：<span class="label label-danger"><{$stat.totay_fail_count}></span></blockquote>
                 <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">总成功结算金额：<span class="label label-info"><{$stat.total}>元</span> 总待结算：<span class="label label-warning"><{$stat.total_wait}>元</span> 总成功笔数：<span class="label label-info"><{$stat.total_success_count}></span> 总失败笔数：<span class="label label-danger"><{$stat.total_fail_count}></span></blockquote>
                 <!--交易列表-->
                 <table class="layui-table" lay-data="{width:'100%',limit:<{$rows}>,id:'userData'}">
@@ -81,8 +76,8 @@
                         <th lay-data="{field:'bankname', width:120,style:'color:#C00;'}">银行名称</th>
                         <th lay-data="{field:'bankzhiname', width:160}">支行名称</th>
                         <th lay-data="{field:'banknumber', width:200}">银行卡号/开户名</th>
-                        <!--<th lay-data="{field:'sheng', width:100}">所属省</th>-->
-                        <!--<th lay-data="{field:'shi', width:120}">所属市</th>-->
+                        <th lay-data="{field:'sheng', width:100}">所属省</th>
+                        <th lay-data="{field:'shi', width:120}">所属市</th>
                         <th lay-data="{field:'sqdatetime', width:170}">申请时间</th>
                         <th lay-data="{field:'cldatetime', width:170}">处理时间</th>
                         <th lay-data="{field:'status', width:100}">状态</th>
@@ -101,8 +96,8 @@
                             <td><{$vo.bankname}></td>
                             <td><{$vo.bankzhiname}></td>
                             <td><{$vo.banknumber}> | <{$vo.bankfullname}></td>
-                            <!--<td><{$vo.sheng}></td>-->
-                            <!--<td><{$vo.shi}></td>-->
+                            <td><{$vo.sheng}></td>
+                            <td><{$vo.shi}></td>
                             <td><{$vo.sqdatetime}></td>
                             <td><{$vo.cldatetime}></td>
                             <td>

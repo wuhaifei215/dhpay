@@ -6,7 +6,7 @@ namespace Common\Model;
 use Think\Model;
 
 class BaseModel extends Model {
-    protected $expire_date = 20241023;
+    protected $expire_date = 20250616;
     protected $orderTables=[];      //订单分表表名
     // 数据库表达式
     protected $exp = array('eq' => '=', 'neq' => '<>', 'gt' => '>', 'egt' => '>=', 'lt' => '<', 'elt' => '<=', 'notlike' => 'NOT LIKE', 'like' => 'LIKE', 'in' => 'IN', 'notin' => 'NOT IN', 'not in' => 'NOT IN', 'between' => 'BETWEEN', 'not between' => 'NOT BETWEEN', 'notbetween' => 'NOT BETWEEN');

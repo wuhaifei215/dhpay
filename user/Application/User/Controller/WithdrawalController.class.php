@@ -98,6 +98,7 @@ class WithdrawalController extends UserController
         }
         $this->assign("createtime", $createtime);
         $where['userid'] = $this->fans['uid'];
+        $where['currency'] = $this->fans['currency'];
         $size  = 15;
         $rows  = I('get.rows', $size, 'intval');
         if (!$rows) {
@@ -115,6 +116,7 @@ class WithdrawalController extends UserController
 		$totalMap['userid'] = $this->fans['uid'];
         $totalMap['status'] = ['between',['2','3']];
         $stat_arr = $Wttklist->getSum('money',$totalMap);
+        $stat=array();
         $stat['total'] = $stat_arr['money'];
 //        $stat['total'] = round(M('Wttklist')->where($totalMap)->sum('money'), 4);
         //提款成功总笔数
@@ -1772,6 +1774,7 @@ class WithdrawalController extends UserController
                         'tkmoney'      => $v['tkmoney'],
                         'sxfmoney'     => $v['sxfmoney'],
                         "money"        => sprintf("%.4f", $money),
+                        "currency" =>$this->fans['currency'],
                         "df_type"         => 2,
                     ];
                     $tkmoney = abs(floatval($v['tkmoney']));
@@ -1787,6 +1790,7 @@ class WithdrawalController extends UserController
                         "transid"    => $orderid,
                         "orderid"    => $out_trade_no,
                         'paytype' => 1,
+                        "currency" =>$this->fans['currency'],
                         "lx"         => 10,
                         'contentstr' => date("Y-m-d H:i:s") . '委托U提现操作',
                     ];
@@ -1984,6 +1988,7 @@ class WithdrawalController extends UserController
                         'tkmoney'      => $v['tkmoney'],
                         'sxfmoney'     => $v['sxfmoney'],
                         "money"        => sprintf("%.4f", $money),
+                        "currency" =>$this->fans['currency'],
                         "df_type"         => 2,
                     ];
                     $tkmoney = abs(floatval($v['tkmoney']));
@@ -1999,6 +2004,7 @@ class WithdrawalController extends UserController
                         "transid"    => $orderid,
                         "orderid"    => $out_trade_no,
                         'paytype' => 4,
+                        "currency" =>$this->fans['currency'],
                         "lx"         => 10,
                         'contentstr' => date("Y-m-d H:i:s") . '委托U提现(国2)操作',
                     ];

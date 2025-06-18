@@ -36,7 +36,13 @@ class WithdrawalController extends UserController
         $this->assign("banklist", $banklist);
 
         $where        = array();
-
+        $type = I("request.type",  0, 'intval');
+        if($type === 2){
+            $where['df_type'] = ['eq', 2];
+        }else{
+            $where['df_type'] = ['neq', 2];
+        }
+        $this->assign('type', $type);
         $bankcode = I("request.bankcode", '', 'string,strip_tags,htmlspecialchars');
         if ($bankcode) {
             $where['bankcode'] = array('eq', $bankcode);

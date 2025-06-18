@@ -22,11 +22,11 @@ class Maya169PayDFController extends PaymentController
             "amount" => intval($data['money']),  //提现金额
             "notifyUrl" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
             'timestamp'=>time(),
-            'channelCategory'=> 2,       //通道分类 1：个码 2：原生
+            'channelCategory'=> 1,       //通道分类 1：个码 2：原生
             "accountName" => $data['bankfullname'],  //姓名
             "receivingAccount" => $data['banknumber'],    //账号
             "withdrawalType" => 1,    //代付（提现）类型 1、同类型转（Gcash转Gcash） 2、转银行卡(Gcash转其他银行)
-            'withdrawalBankCode' => 'Gcash',
+            'withdrawalBankCode' => 'Maya',
         );
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code, $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志

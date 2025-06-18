@@ -55,11 +55,11 @@ class Gcash169PayDFController extends PaymentController
             // var_dump($e);
         }
         // log_place_order($this->code, $data['orderid'] . "----状态：", $result['status']);    //日志
-        switch ($result['status']) {
-            case "success":
+        switch ($result['code']) {
+            case 0:
                 $return = ['status' => 1, 'msg' => '申请正常'];
                 break;
-            case "fail":
+            default:
                 $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
                 break;
         }

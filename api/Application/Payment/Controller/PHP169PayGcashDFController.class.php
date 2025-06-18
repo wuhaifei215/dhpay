@@ -59,7 +59,7 @@ class PHP169PayGcashDFController extends PaymentController
             case "success":
                 $return = ['status' => 1, 'msg' => '申请正常'];
                 break;
-            default:
+            case "fail":
                 $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
                 break;
         }

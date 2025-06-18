@@ -36,13 +36,7 @@ class WithdrawalController extends UserController
         $this->assign("banklist", $banklist);
 
         $where        = array();
-        $type = I("request.type",  0, 'intval');
-        if($type === 2){
-            $where['df_type'] = ['eq', 2];
-        }else{
-            $where['df_type'] = ['neq', 2];
-        }
-        $this->assign('type', $type);
+
         $bankcode = I("request.bankcode", '', 'string,strip_tags,htmlspecialchars');
         if ($bankcode) {
             $where['bankcode'] = array('eq', $bankcode);
@@ -1774,6 +1768,7 @@ class WithdrawalController extends UserController
                         'tkmoney'      => $v['tkmoney'],
                         'sxfmoney'     => $v['sxfmoney'],
                         "money"        => sprintf("%.4f", $money),
+                        "currency" =>$this->fans['currency'],
                         "df_type"         => 2,
                     ];
                     $tkmoney = abs(floatval($v['tkmoney']));
@@ -1789,6 +1784,7 @@ class WithdrawalController extends UserController
                         "transid"    => $orderid,
                         "orderid"    => $out_trade_no,
                         'paytype' => 1,
+                        "currency" =>$this->fans['currency'],
                         "lx"         => 10,
                         'contentstr' => date("Y-m-d H:i:s") . '委托U提现操作',
                     ];
@@ -1986,6 +1982,7 @@ class WithdrawalController extends UserController
                         'tkmoney'      => $v['tkmoney'],
                         'sxfmoney'     => $v['sxfmoney'],
                         "money"        => sprintf("%.4f", $money),
+                        "currency" =>$this->fans['currency'],
                         "df_type"         => 2,
                     ];
                     $tkmoney = abs(floatval($v['tkmoney']));
@@ -2001,6 +1998,7 @@ class WithdrawalController extends UserController
                         "transid"    => $orderid,
                         "orderid"    => $out_trade_no,
                         'paytype' => 4,
+                        "currency" =>$this->fans['currency'],
                         "lx"         => 10,
                         'contentstr' => date("Y-m-d H:i:s") . '委托U提现(国2)操作',
                     ];

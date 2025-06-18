@@ -10,9 +10,9 @@ $_POST['mchid'] = $mchid;
 if(empty($mchid)||empty($_POST['money']) || empty($_POST['accountname']) || empty($_POST['cardnumber']) ){
 		die("信息不完整！");
 }
-if($_POST['extends']) {
-	$_POST['extends'] = base64_encode(json_encode($_POST['extends']));
-}
+//if($_POST['extends']) {
+//	$_POST['extends'] = base64_encode(json_encode($_POST['extends']));
+//}
 
 $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
 

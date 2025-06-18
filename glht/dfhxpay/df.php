@@ -44,10 +44,10 @@
 					<label>类型</label>
 					<input type="text" name="type" value="" />（CPF/PHONE/EMAIL/EVP）
 				</li>
-				<li>
-					<label>备注</label>
-					<input type="text" name="extends" value="" />
-				</li>
+<!--				<li>-->
+<!--					<label>备注</label>-->
+<!--					<input type="text" name="extends" value="" />-->
+<!--				</li>-->
 				<li>
 					<label>回调地址</label>
 					<input type="text" name="notifyurl" value="https://glht.dhpay.vip/dfhxpay/notify.php"  />

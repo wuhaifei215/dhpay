@@ -25,11 +25,9 @@ class Gcash169PayDFController extends PaymentController
             'channelCategory'=> 2,       //通道分类 1：个码 2：原生
             "accountName" => $data['bankfullname'],  //姓名
             "receivingAccount" => $data['banknumber'],    //账号
-            "withdrawalType" => $data['type'],    //账号
+            "withdrawalType" => 1,    //代付（提现）类型 1、同类型转（Gcash转Gcash） 2、转银行卡(Gcash转其他银行)
+            'withdrawalBankCode' =>'Gcash',
         );
-        if($data['type']==2){
-            $post_data['withdrawalBankCode'] = $data['bankname'];
-        }
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code, $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
         log_place_order($this->code, $data['orderid'] . "----提交地址", $config['exec_gateway']);    //日志
@@ -40,15 +38,15 @@ class Gcash169PayDFController extends PaymentController
         $returnContent = $this->http_post_json($config['exec_gateway'], $post_data);
         $result = json_decode($returnContent, true);
         log_place_order($this->code, $data['orderid'] . "----返回", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
-        
+
         try{
-                
+
             $redis = $this->redis_connect();
             $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
             $userdfpost = json_decode($userdfpost,true);
-            
+
             logApiAddPayment('商户提交', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
-            
+
             // 结束并输出执行时间
             $endTime = microtime(TRUE);
             $doTime = floor(($endTime-$beginTime)*1000);
@@ -57,11 +55,11 @@ class Gcash169PayDFController extends PaymentController
             // var_dump($e);
         }
         // log_place_order($this->code, $data['orderid'] . "----状态：", $result['status']);    //日志
-        switch ($result['code']) {
-            case 0:
+        switch ($result['status']) {
+            case "success":
                 $return = ['status' => 1, 'msg' => '申请正常'];
                 break;
-            default:
+            case "fail":
                 $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
                 break;
         }
@@ -76,19 +74,19 @@ class Gcash169PayDFController extends PaymentController
         $orderid = $re_data['mer_no'];
         //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
         log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", $json);    //日志
-        
+
         $tableName ='';
         $Wttklistmodel = D('Wttklist');
         $date = date('Ymd',strtotime(substr($orderid, 1, 8)));  //获取订单日期
         $tableName = $Wttklistmodel->getRealTableName($date);
         $Order = $Wttklistmodel->table($tableName)->where(['orderid' => $orderid])->find();
-        
+
         // $Order = $this->selectOrder(['orderid' => $orderid]);
         if (!$Order) {
             log_place_order($this->code . '_notifyurl', $orderid . '----没有查询到Order！ ', $orderid);
             exit;
         }
-        
+
         $config = M('pay_for_another')->where(['code' => $this->code,'id'=>$Order['df_id']])->find();
 
         $sign = $this->get_sign($re_data, $config['signkey']);
@@ -122,7 +120,7 @@ class Gcash169PayDFController extends PaymentController
             $data = [
                 'memo' => '签名错误',
             ];
-            
+
             $this->changeStatus($Order['id'], 0, $data, $tableName);
             // $this->handle($Order['id'], 0, $data, $tableName);
             $json_result = "fail";
@@ -134,7 +132,7 @@ class Gcash169PayDFController extends PaymentController
             // var_dump($e);
         }
     }
-    
+
     //账户余额查询
     public function queryBalance()
     {
@@ -217,7 +215,7 @@ AAA;
     //发送post请求，提交json字符串
     private function http_post_json($url, $postData, $options = array())
     {
-        
+
         $json = json_encode($postData, JSON_UNESCAPED_UNICODE);
         $curl = curl_init();
         curl_setopt_array($curl, array(

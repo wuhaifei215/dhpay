@@ -2,7 +2,7 @@
 
 namespace Payment\Controller;
 
-class PHP169PayGcashScanDFController extends PaymentController
+class Gcash169PayDFController extends PaymentController
 {
     private $code = '';
 
@@ -17,25 +17,24 @@ class PHP169PayGcashScanDFController extends PaymentController
     public function PaymentExec($data, $config)
     {
         $post_data = array(
-            "mer_id" => $config['mch_id'], //商户号
-            "mer_no" => $data['orderid']?$data['orderid']:$data['out_trade_no'], //订单号
+            "merId" => $config['mch_id'], //商户号
+            "merNo" => $data['orderid']?$data['orderid']:$data['out_trade_no'], //订单号
             "amount" => intval($data['money']),  //提现金额
-            "bankname" => 'Gcash',       //银行卡名称 可选值（区分大小写）：Gcash Maya
-            "accountname" => $data['bankfullname'],  //姓名
-            "cardnumber" => $data['banknumber'],    //账号
-            "notifyurl" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
+            "notifyUrl" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
             'timestamp'=>time(),
+            'channelCategory'=> 2,       //通道分类 1：个码 2：原生
+            "accountName" => $data['bankfullname'],  //姓名
+            "receivingAccount" => $data['banknumber'],    //账号
+            "withdrawalType" => 1,    //代付（提现）类型 1、同类型转（Gcash转Gcash） 2、转银行卡(Gcash转其他银行)
+            'withdrawalBankCode' => 'Maya',
         );
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
-        $post_data["channelNo"] = 'PCN00018';
-        if($data['type']==2){
-            $post_data['withdrawalType'] = $data['type'];
-            $post_data['withdrawalBankCode'] = $data['bankname'];
-        }
         log_place_order($this->code, $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
         log_place_order($this->code, $data['orderid'] . "----提交地址", $config['exec_gateway']);    //日志
+
         // 记录初始执行时间
         $beginTime = microtime(TRUE);
+
         $returnContent = $this->http_post_json($config['exec_gateway'], $post_data);
         $result = json_decode($returnContent, true);
         log_place_order($this->code, $data['orderid'] . "----返回", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
@@ -55,13 +54,12 @@ class PHP169PayGcashScanDFController extends PaymentController
         }catch (\Exception $e) {
             // var_dump($e);
         }
-
         // log_place_order($this->code, $data['orderid'] . "----状态：", $result['status']);    //日志
         switch ($result['status']) {
             case "success":
                 $return = ['status' => 1, 'msg' => '申请正常'];
                 break;
-            default:
+            case "fail":
                 $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
                 break;
         }
@@ -142,7 +140,7 @@ class PHP169PayGcashScanDFController extends PaymentController
             $config = M('pay_for_another')->where(['code' => $this->code])->find();
             $post_data = array(
                 "custId" => $config['mch_id'], //商户号
-                "payCode" => 'Gcash',
+                "payCode" => 'Gcash',       //支付方式 示例值：巴西传：PIX，菲律宾传：Gcash或者Maya，越南传：VN
             );
             $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
             log_place_order($this->code . '_queryBalance', "提交", json_encode($post_data));    //日志
@@ -257,7 +255,7 @@ AAA;
             }
         }
         $sign =strtoupper(md5(rtrim($signPars,'&')));
-        // log_place_order($this->code, $orderid . "----签名", rtrim($signPars,'&'));    //日志
+        log_place_order($this->code, $orderid . "----签名", rtrim($signPars,'&'));    //日志
         return $sign; //最终的签名
 
     }

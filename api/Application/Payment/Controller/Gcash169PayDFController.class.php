@@ -25,11 +25,9 @@ class Gcash169PayDFController extends PaymentController
             'channelCategory'=> 2,       //通道分类 1：个码 2：原生
             "accountName" => $data['bankfullname'],  //姓名
             "receivingAccount" => $data['banknumber'],    //账号
-            "withdrawalType" => $data['type'],    //账号
+            "withdrawalType" => 1,    //代付（提现）类型 1、同类型转（Gcash转Gcash） 2、转银行卡(Gcash转其他银行)
+            'withdrawalBankCode' =>'Gcash',
         );
-        if($data['type']==2){
-            $post_data['withdrawalBankCode'] = $data['bankname'];
-        }
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code, $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
         log_place_order($this->code, $data['orderid'] . "----提交地址", $config['exec_gateway']);    //日志
@@ -57,11 +55,11 @@ class Gcash169PayDFController extends PaymentController
             // var_dump($e);
         }
         // log_place_order($this->code, $data['orderid'] . "----状态：", $result['status']);    //日志
-        switch ($result['code']) {
-            case 0:
+        switch ($result['status']) {
+            case "success":
                 $return = ['status' => 1, 'msg' => '申请正常'];
                 break;
-            default:
+            case "fail":
                 $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
                 break;
         }

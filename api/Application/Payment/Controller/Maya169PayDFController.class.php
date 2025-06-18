@@ -140,7 +140,7 @@ class Maya169PayDFController extends PaymentController
             $config = M('pay_for_another')->where(['code' => $this->code])->find();
             $post_data = array(
                 "custId" => $config['mch_id'], //商户号
-                "payCode" => 'Gcash',       //支付方式 示例值：巴西传：PIX，菲律宾传：Gcash或者Maya，越南传：VN
+                "payCode" => 'Maya',       //支付方式 示例值：巴西传：PIX，菲律宾传：Gcash或者Maya，越南传：VN
             );
             $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
             log_place_order($this->code . '_queryBalance', "提交", json_encode($post_data));    //日志
@@ -174,7 +174,7 @@ AAA;
         $post_data = [
             'custId' => $config['mch_id'],
             'merchantOrderId' => $data['orderid'],
-            'payCode' => 'Gcash',
+            'payCode' => 'Maya',
         ];
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code . '_PaymentQuery', $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志

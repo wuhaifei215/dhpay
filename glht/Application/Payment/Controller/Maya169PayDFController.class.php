@@ -2,7 +2,7 @@
 
 namespace Payment\Controller;
 
-class Gcash169PayDFController extends PaymentController
+class Maya169PayDFController extends PaymentController
 {
     private $code = '';
 

@@ -27,8 +27,10 @@ class ChannelController extends BaseController
     public function index()
     {
         $where = array();
-        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
-        $where['currency'] = ['eq', $currency];
+        $currency = I("request.currency", '', 'trim,string,strip_tags,htmlspecialchars');
+        if($currency) {
+            $where['currency'] = ['eq', $currency];
+        }
         $this->assign('currency', $currency);
 
         $count = M('Channel')->where($where)->count();

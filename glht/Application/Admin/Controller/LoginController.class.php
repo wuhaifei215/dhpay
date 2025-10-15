@@ -153,7 +153,7 @@ class LoginController extends Controller
                     $this->ajaxReturn(['errorno' => 0, 'msg' => '登录成功!', 'url' => U('Index/index')]);
                 }
             } else {
-                $this->ajaxReturn(['errorno' => 1, 'msg' => '你的帐号或密码不正确！', 'url' => '']);
+                $this->ajaxReturn(['errorno' => 1, 'msg' => '你的帐号或密码不正确2！', 'url' => '']);
             }
 
         }

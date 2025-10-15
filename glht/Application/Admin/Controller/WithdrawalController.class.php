@@ -343,8 +343,13 @@ class WithdrawalController extends BaseController
             $rate = I('post.rate');
             $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
             if($rate>0){
-                $res = M('URate')->where(['currency' => $currency])->save(['rate'=>$rate]);
-                if($res){
+                $re = M('URate')->where(['currency' => $currency])->find();
+                if($re) {
+                    $up_res = M('URate')->where(['currency' => $currency])->save(['rate' => $rate]);
+                }else{
+                    $up_res = M('URate')->add(['currency' => $currency,'rate' => $rate]);
+                }
+                if($up_res){
                     UserLogService::HTwrite(3, '保存U汇率', '保存U汇率：' . $rate . ' ，成功');
                     $this->ajaxReturn(['status' => 1,'msg' => '设置U汇率成功!']);
                 }

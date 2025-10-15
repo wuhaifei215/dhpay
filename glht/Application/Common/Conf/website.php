@@ -5,7 +5,7 @@
 		'MODULE_ALLOW_LIST'   => array('Home','User','hxadmin','hxadminpak','Install', 'Weixin','Pay','Cashier','Agent','Payment','Cli'),
 		'URL_MODULE_MAP'  => array('i8admin'=>'admin', 'agent'=>'user', 'user'=>'user'),
 		'LOGINNAME' => 'user',
-		'HOUTAINAME' => 'hxadmin',
+		'HOUTAINAME' => 'i8admin',
 		'API_DOMAIN' => 'papi.i8pay.com',
         'NOTIFY_DOMAIN' => 'pnapi.i8pay.com',
         'LOG_API_URL' => 'http://plog.i8pay.com',

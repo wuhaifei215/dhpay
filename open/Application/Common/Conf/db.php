@@ -3,10 +3,10 @@
 return array(
     'DB_TYPE'   => 'mysql',       // 数据库类型
     'DB_HOST'   => '172.31.8.172,127.0.0.1',       // 服务器地址
-    'DB_NAME'   => 'i8payPHPmarsdb',       // 数据库名
-    'DB_USER'   => 'i8payPHPmarsdb',       // 用户名
+    'DB_NAME'   => 'i8payphpmarsdb',       // 数据库名
+    'DB_USER'   => 'i8payphpmarsdb',       // 用户名
     'DB_PWD'    => 'dM3kiE2cHcEeReXc',        // 密码
-    'DB_PORT'   => '3306',       // 端口
+    'DB_PORT'   => '30109',       // 端口
     'DB_PREFIX' => 'pay_',     // 数据库表前缀
 
     'DB_DEPLOY_TYPE'        =>  1, // 数据库部署方式:0 集中式(单一服务器),1 分布式(主从服务器)

@@ -1242,10 +1242,12 @@ class UserController extends BaseController
     //编辑用户费率
     public function userRateEdit()
     {
+
+        $currency = I('get.currency');
         $userid = I('get.uid', 0, 'intval');
         //系统产品列表
         $products = M('Product')
-            ->where(['status' => 1, 'isdisplay' => 1])
+            ->where(['status' => 1, 'isdisplay' => 1,'currency'=>$currency])
             ->field('id,name')
             ->select();
         //用户产品列表
@@ -1268,6 +1270,7 @@ class UserController extends BaseController
         $this->assign('products', $products);
         $this->display();
     }
+
 
     //保存费率
     public function saveUserRate()
@@ -1351,9 +1354,10 @@ class UserController extends BaseController
     //批量编辑用户费率
     public function userAllRateEdit()
     {
+        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         //系统产品列表
         $products = M('Product')
-            ->where(['status' => 1, 'isdisplay' => 1])
+            ->where(['status' => 1, 'isdisplay' => 1,'currency'=>$currency])
             ->field('id,name')
             ->select();
         // //用户产品列表
@@ -1373,6 +1377,7 @@ class UserController extends BaseController
         $this->assign('products', $products);
         $this->display();
     }
+
 
     //批量保存费率
     public function saveAllUserRate()

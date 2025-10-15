@@ -2,10 +2,10 @@
 // 数据库配置
 return array(
     'DB_TYPE'   => 'mysql',       // 数据库类型
-    'DB_HOST'   => 'rm-gs58l1308m210ndk9.mysql.singapore.rds.aliyuncs.com,rr-gs5f6h5yua3pq44qw.mysql.singapore.rds.aliyuncs.com',       // 服务器地址
-    'DB_NAME'   => 'marsdb',       // 数据库名
-    'DB_USER'   => 'marsdb',       // 用户名
-    'DB_PWD'    => 'Xiaomi!x@y#zhx7796',        // 密码
+    'DB_HOST'   => '172.31.8.172,127.0.0.1',       // 服务器地址
+    'DB_NAME'   => 'i8payPHPmarsdb',       // 数据库名
+    'DB_USER'   => 'i8payPHPmarsdb',       // 用户名
+    'DB_PWD'    => 'dM3kiE2cHcEeReXc',        // 密码
     'DB_PORT'   => '3306',       // 端口
     'DB_PREFIX' => 'pay_',     // 数据库表前缀
 
@@ -15,9 +15,9 @@ return array(
     'DB_SLAVE_NO'           =>  1, // 指定从服务器序号
 
 
-    'REDIS_HOST'   => '172.17.241.129',       // 服务器地址
+    'REDIS_HOST'   => '127.0.0.1',       // 服务器地址
     'REDIS_PORT'   => '52940',       // 端口
-    'REDIS_PWD'   => 'Yun!x@y#z99pay',       //密码
+    'REDIS_PWD'   => 'i8!x@y#z99pay2d',       //密码
     'REDIS_SELECT' => '0',
 );
 

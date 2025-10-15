@@ -1,10 +1,10 @@
 <?php 
 	return array(
-		'WEB_TITLE' => 'DH国际支付',
-		'DOMAIN' => 'user.dhpay.vip',
+		'WEB_TITLE' => 'i8国际支付',
+		'DOMAIN' => 'puser.i8pay.com',
 		'MODULE_ALLOW_LIST'   => array('Home','User','Agent','Payment'),
 		'URL_MODULE_MAP'  => array( 'agent'=>'user', 'user'=>'user'),
 		'LOGINNAME' => 'user',
-        'API_DOMAIN' => 'api.dhpay.vip'
+        'API_DOMAIN' => 'papi.i8pay.com'
 	);
 ?>

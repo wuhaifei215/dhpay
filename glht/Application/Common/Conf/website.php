@@ -2,8 +2,8 @@
 	return array(
 		'WEB_TITLE' => 'i8 国际支付',
 		'DOMAIN' => 'pglht.i8pay.com',
-		'MODULE_ALLOW_LIST'   => array('Home','User','hxadmin','hxadminpak','Install', 'Weixin','Pay','Cashier','Agent','Payment','Cli'),
-		'URL_MODULE_MAP'  => array('i8admin'=>'admin', 'agent'=>'user', 'user'=>'user'),
+        'MODULE_ALLOW_LIST'   => array('Home','User','i8admin','Install', 'Weixin','Pay','Cashier','Agent','Payment','Cli'),
+        'URL_MODULE_MAP'  => array('i8admin'=>'admin', 'agent'=>'user', 'user'=>'user'),
 		'LOGINNAME' => 'user',
 		'HOUTAINAME' => 'i8admin',
 		'API_DOMAIN' => 'papi.i8pay.com',

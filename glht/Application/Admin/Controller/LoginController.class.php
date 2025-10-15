@@ -60,7 +60,6 @@ class LoginController extends Controller
                 if (!$res['status']) {
                     $this->ajaxReturn(['errorno' => 1, 'msg' => $res['msg'], 'url' => '']);
                 }
-                var_dump(md5($loginpassword . C('DATA_AUTH_KEY')));
                 if ($info['password'] != md5($loginpassword . C('DATA_AUTH_KEY'))) {
                     log_auth_error($info['id'], 1);
                     $this->ajaxReturn(['errorno' => 1, 'msg' => '你的帐号或密码不正确！', 'url' => '']);
@@ -153,7 +152,7 @@ class LoginController extends Controller
                     $this->ajaxReturn(['errorno' => 0, 'msg' => '登录成功!', 'url' => U('Index/index')]);
                 }
             } else {
-                $this->ajaxReturn(['errorno' => 1, 'msg' => '你的帐号或密码不正确2！', 'url' => '']);
+                $this->ajaxReturn(['errorno' => 1, 'msg' => '你的帐号或密码不正确！', 'url' => '']);
             }
 
         }

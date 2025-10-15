@@ -337,7 +337,21 @@ class WithdrawalController extends BaseController
             $this->ajaxReturn(['status' => $res, 'tab' => $tab]);
         }
     }
-    
+
+    public function saveURate(){
+        if (IS_POST) {
+            $rate = I('post.rate');
+            if($rate>0){
+                $res = M('URate')->where(['id' => 1])->save(['rate'=>$rate]);
+                if($res){
+                    UserLogService::HTwrite(3, '保存U汇率', '保存U汇率：' . $rate . ' ，成功');
+                    $this->ajaxReturn(['status' => 1,'msg' => '设置U汇率成功!']);
+                }
+            }
+            UserLogService::HTwrite(3, '保存U汇率',  '保存U汇率：' . $rate . ' ，失败');
+            $this->ajaxReturn(['status' => 0,'msg' => '设置U汇率失败!']);
+        }
+    }
     
     /**
      * 代付记录
@@ -479,6 +493,8 @@ class WithdrawalController extends BaseController
         $this->assign("page", $page->show());
         C('TOKEN_ON', false);
         if($type === 2){
+            $uRate = M('URate')->where(['id' => 1])->getField('rate');
+            $this->assign("uRate", $uRate);
             $this->display('paymentU');
         }else{
             $this->display();

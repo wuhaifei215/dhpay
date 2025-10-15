@@ -299,6 +299,37 @@
             ,theme: 'molv'
             , range: '|'
         });
+        $('#changeURate').on('click', function(){
+            var loading = '';
+            var rate = $('#uRate').val();
+            layer.confirm('确认修改U汇率吗？',function(index) {
+                $.ajax({
+                    url: "<{:U('Admin/Withdrawal/saveURate')}>",
+                    type: 'post',
+                    data:{'rate':rate},
+                    beforeSend:function(){
+                        loading=layer.load();
+                    },
+                    success: function (res) {
+                        layer.close(loading);
+                        if (res.status) {
+                            layer.msg(res.msg, {icon: 1, time: 1000},function () {
+                                location.replace(location.href);
+                            });
+                        }else{
+                            layer.msg(res.msg, {icon: 2, time: 1000});
+                        }
+                    },
+                    complete: function(){
+                        layer.close(loading);
+                    },
+                    error:function(){
+                        layer.close(loading);
+                        layer.alert('连接错误');
+                    }
+                });
+            });
+        });
 
     });
     

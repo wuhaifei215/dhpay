@@ -107,8 +107,17 @@
                         </volist>
                         <if condition="$currency eq ''">请选择国家</if>
                     </blockquote>
+                    <!--<blockquote class="layui-elem-quote" style="height:48px;font-size:18px;padding:8px;">-->
+                        <!--<a href="javascript:;" class="layui-btn layui-btn-warm" onclick="queryRate('<{:U("Payment/P2pPayDF/queryRate")}>')">查询U汇率</a><span class="stat_success" id="rate_div" style="padding-left:15px;"></span></blockquote>-->
                     <blockquote class="layui-elem-quote" style="height:48px;font-size:18px;padding:8px;">
-                        <a href="javascript:;" class="layui-btn layui-btn-warm" onclick="queryRate('<{:U("Payment/P2pPayDF/queryRate")}>')">查询U汇率</a><span class="stat_success" id="rate_div" style="padding-left:15px;"></span></blockquote>
+                        <div class="layui-form-item layui-inline" style="color: red;">
+                            <label class="layui-form-label">当前U费率</label>
+                            <div class="layui-input-inline" style="">
+                                <input type="text" id="uRate" name="uRate" value="<{$uRate}>" placeholder="请输入U汇率" class="layui-input">
+                            </div>
+                            <a href="javascript:;" id="changeURate" class="layui-btn layui-btn-danger"> 修改U汇率 </a>
+                        </div>
+                    </blockquote>
                 </form>
                 <!--交易列表-->
                 <table class="layui-table" lay-skin="line" lay-size="sm" lay-data="{width:'100%',limit:<{$rows}>,id:'userData'}" id="tab">

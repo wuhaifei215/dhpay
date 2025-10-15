@@ -306,7 +306,7 @@
                 $.ajax({
                     url: "<{:U('Admin/Withdrawal/saveURate')}>",
                     type: 'post',
-                    data:{'rate':rate},
+                    data:{'rate':rate,'currency':"<{$currency}>"},
                     beforeSend:function(){
                         loading=layer.load();
                     },

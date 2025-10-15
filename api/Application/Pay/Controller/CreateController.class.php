@@ -33,6 +33,8 @@ class CreateController extends PayController
 
         $this->judgeRepeatOrder(); //验证是否可以提交重复订单
 
+        $this->checkIP();
+
         $this->userRiskcontrol(); //用户风控检测
 
         $this->productUserIsSet();
@@ -52,6 +54,8 @@ class CreateController extends PayController
         $this->productIsOpen(); //判断通道是否开启
 
         $this->judgeRepeatOrder(); //验证是否可以提交重复订单
+
+        $this->checkIP();
 
         $this->userRiskcontrol(); //用户风控检测
 
@@ -73,6 +77,8 @@ class CreateController extends PayController
 
         $this->judgeRepeatOrder(); //验证是否可以提交重复订单
 
+        $this->checkIP();
+
         $this->userRiskcontrol(); //用户风控检测
 
         $this->productUserIsSet();
@@ -93,6 +99,8 @@ class CreateController extends PayController
         $this->productIsOpen(); //判断通道是否开启
 
         $this->judgeRepeatOrder(); //验证是否可以提交重复订单
+
+        $this->checkIP();
 
         $this->userRiskcontrol(); //用户风控检测
 
@@ -181,6 +189,26 @@ class CreateController extends PayController
         $this->currency= I('post.pay_currency', '', 'string,strip_tags,htmlspecialchars');
         if (!$this->currency) {
             $this->showmessage('国家货币不能为空！');
+        }
+    }
+
+    protected function checkIP(){
+//        log_place_order('SERVER',"_SERVER", json_encode($_SERVER, JSON_UNESCAPED_UNICODE));    //日志
+        $memberid = I("request.pay_memberid", 0, 'intval') - 10000;
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        } else {
+            $ip = get_client_ip();
+        }
+        $df_ip = M('Member')->where(['id' => $memberid])->getField('df_ip');
+        if ($df_ip == '') {
+            $this->showmessage('The submitted IP address has not been reported!');
+        } elseif ($df_ip != '') {
+            if (!checkDfIp($ip, $df_ip)) {
+                $this->showmessage('The submitted IP address has not been reported!');
+            }
         }
     }
 

@@ -53,6 +53,7 @@ class MoneychangeModel extends Model {
                   `channel_id` int(10) unsigned DEFAULT '0' COMMENT '渠道id',
                   `paytype` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '渠道类型: 1 Gcash直连 2 Gcash扫码 3 Maya 4 VietQR',
                   `lx` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '类型',
+                  `t` tinyint(2) NOT NULL DEFAULT '1' COMMENT '结算周期（计算费率）',
                   `tcuserid` int(11) DEFAULT NULL,
                   `tcdengji` int(11) DEFAULT NULL,
                   `orderid` varchar(50) DEFAULT NULL COMMENT '订单号',
@@ -159,7 +160,7 @@ class MoneychangeModel extends Model {
         if($limit){
             $limit = ' LIMIT ' . $limit;
         }
-        
+
         $where = '';
         $optionstr = $this->new_parseOptions($options);
         if($optionstr){
@@ -219,8 +220,8 @@ class MoneychangeModel extends Model {
                     $unionSql .= $where;
                 }
                 if($groupby){
-                        $unionSql .= $groupby;
-                    }
+                    $unionSql .= $groupby;
+                }
                 if($orderby){
                     $unionSql .= $orderby;
                 }

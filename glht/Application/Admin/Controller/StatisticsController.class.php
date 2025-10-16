@@ -702,6 +702,8 @@ class StatisticsController extends BaseController
         //结束时间戳
         $end = mktime(0, 0, 0, date('m',$timestamp), date('d',$timestamp) + 1, date('Y',$timestamp)) - 1;
 
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
         $where['groupid'] = 4;
         $where['id'] = ['gt',3];
 //        $where['statistics'] = 1;       //是否开启统计
@@ -726,7 +728,7 @@ class StatisticsController extends BaseController
             ->order('id asc')
             ->select();
         //入金通道费率
-        $channel = M('Channel')->field('id,title')->where(['status' => 1,'id' =>['NOT BETWEEN',['311','312']]])->select();
+        $channel = M('Channel')->field('id,title')->where(['status' => 1])->select();
         if ($members) {
             $OrderModel = D('Order');
             $data=[];
@@ -747,6 +749,7 @@ class StatisticsController extends BaseController
                 }
             }
         }
+        $this->assign('currency', $currency);
         $this->assign('channel', $channel);
         $this->assign('rows', $rows);
         $this->assign('page', $show);

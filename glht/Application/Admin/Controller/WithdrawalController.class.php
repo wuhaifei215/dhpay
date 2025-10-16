@@ -1477,4 +1477,472 @@ class WithdrawalController extends BaseController
         }
     }
 
+    /**
+     * 提现记录
+     */
+    public function dfapplylist()
+    {
+        //通道
+        $banklist = M("Product")->field('id,name,code')->select();
+        $this->assign("banklist", $banklist);
+
+        $where    = array();
+        $where['bankcode'] = 900;
+        $currency = I("request.currency", '', 'string,strip_tags,htmlspecialchars');
+        if($currency ==='PHP'){
+            $where['paytype'] = ['between', [1,3]];
+        }
+        if($currency ==='INR'){
+            $where['paytype'] = ['eq', 4];
+        }
+        $this->assign('currency', $currency);
+
+        $type = I("request.type",  0, 'intval');
+        if($type === 2){
+            $where['df_type'] = ['eq', 2];
+        }else{
+            $where['df_type'] = ['neq', 2];
+        }
+        $this->assign('type', $type);
+        $money = I("request.money", '', 'string,strip_tags,htmlspecialchars');
+        if ($money) {
+            $where['money'] = array('eq', $money);
+        }
+        $this->assign("money", $money);
+        $memo = I("request.memo", '', 'string,strip_tags,htmlspecialchars');
+        if ($memo) {
+            $where['memo'] = ['like', "%" . $memo . "%"];
+        }
+        $this->assign("memo", $memo);
+
+        $memberid = I("get.memberid", 0, 'intval');
+        if ((intval($memberid) - 10000) > 0) {
+            $where['userid'] = array('eq', $memberid - 10000);
+        }
+        $this->assign("memberid", $memberid);
+        $orderid = I("request.orderid", '', 'string,strip_tags,htmlspecialchars');
+        if ($orderid) {
+            $where['orderid'] = array('eq', $orderid);
+        }
+        $this->assign("orderid", $orderid);
+        $out_trade_no = I("request.outtradeno", '', 'string,strip_tags,htmlspecialchars');
+        if ($out_trade_no) {
+            $where['out_trade_no'] = array('eq', $out_trade_no);
+        }
+        $this->assign("out_trade_no", $out_trade_no);
+        $bankfullname = I("request.bankfullname", '', 'string,strip_tags,htmlspecialchars');
+        if ($bankfullname) {
+            $where['bankfullname'] = array('eq', $bankfullname);
+        }
+        $this->assign("bankfullname", $bankfullname);
+        $tongdao = I("request.tongdao", '', 'string,strip_tags,htmlspecialchars');
+        if ($tongdao) {
+            $where['payapiid'] = array('eq', $tongdao);
+        }
+        $this->assign("tongdao", $tongdao);
+        // $T = I("request.T", '', 'string,strip_tags,htmlspecialchars');
+        // if ($T != "") {
+        //     $where['t'] = array('eq', $T);
+        // }
+        // $this->assign("T", $T);
+
+        $status = I("request.status", '', 'trim,string,strip_tags,htmlspecialchars');
+        if ($status != "") {
+            if ($status == '2or3') {
+                $where['status'] = array('between', array('2', '3'));
+            } elseif ($status == '4or5') {
+                $where['status'] = array('between', array('4', '5'));
+            } else  {
+                $where['status'] = array('eq', $status);
+            }
+        }
+        $this->assign('status', $status);
+
+        $bankcode = I("request.bankcode");
+        if ($bankcode) {
+            $where['bankcode'] = array('eq', $bankcode);
+        }
+        $this->assign("bankcode", $bankcode);
+
+        $dfid = I("get.dfid", '', 'string,strip_tags,htmlspecialchars');
+        if ($dfid != '') {
+            $where['df_id'] = array('eq', $dfid);
+        }
+        $this->assign("dfid", $dfid);
+        $createtime = urldecode(I("request.createtime", '', 'string,strip_tags,htmlspecialchars'));
+        if ($createtime) {
+            list($cstime, $cetime) = explode('|', $createtime);
+            $where['sqdatetime']   = ['between', [$cstime, $cetime ? $cetime : date('Y-m-d')]];
+        }
+        $this->assign("createtime", $createtime);
+        $successtime = urldecode(I("request.successtime", '', 'string,strip_tags,htmlspecialchars'));
+        if ($successtime) {
+            list($sstime, $setime) = explode('|', $successtime);
+            $where['cldatetime']   = ['between', [$sstime, $setime ? $setime : date('Y-m-d')]];
+        }
+        $this->assign("successtime", $successtime);
+        //没有搜索条件，默认显示当前
+        if (!$createtime && !$successtime && !$out_trade_no && !$orderid) {
+            $todayBegin = date('Y-m-d') . ' 00:00:00';
+            $todyEnd = date('Y-m-d') . ' 23:59:59';
+            if (!$createtime && !$successtime) {
+                $where['sqdatetime'] = ['between', [$todayBegin, $todyEnd]];
+            }
+            $createtime = $todayBegin . ' | ' . $todyEnd;
+        }
+        $this->assign("createtime", $createtime);
+
+        $size  = 50;
+        $rows  = I('get.rows', $size, 'intval');
+        if (!$rows) {
+            $rows = $size;
+        }
+
+        $field = '*';
+        $Wttklist = D('Wttklist');
+        $count = $Wttklist->getCount($where);
+        $page = new Page($count, $rows);
+        $list = $Wttklist->getOrderByDateRange($field, $where, $page->firstRow . ',' . $page->listRows, 'id desc');
+        // echo $Wttklist->getLastSql();
+        foreach ($list as $k => $v){
+            $list[$k]['username'] = M('Admin')->where(['id' => $v['userid']])->getField('username');
+            foreach ($banklist as $kk => $vv){
+                if($v['bankcode'] === $vv['id']){
+                    $list[$k]['bankcode'] = $vv['name'];
+                }
+            }
+        }
+
+        $pfa_lists = M('PayForAnother')->where(['status' => 1])->select();
+        $df_list = M('PayForAnother')->select();
+
+        $this->assign('uid', session("admin_auth.uid"));
+        $this->assign('rows', $rows);
+        $this->assign("pfa_lists", $pfa_lists);
+        $this->assign("df_list", $df_list);
+        $this->assign("list", $list);
+        $this->assign("page", $page->show());
+        C('TOKEN_ON', false);
+        if($type === 2){
+            $this->display('paymentU');
+        }else{
+            $this->display();
+        }
+    }
+
+    /**
+     * 代付统计
+     */
+    public function dfapplylist1()
+    {
+        $df_list = M('PayForAnother')->select();
+
+        $where    = array();
+        $where['bankcode'] = ['eq',900];
+        $currency = I("request.currency");
+        if($currency ==='PHP'){
+            $where['paytype'] = ['between', [1,3]];
+            $all_balance = M('member')->sum('balance_php');
+        }
+        if($currency ==='INR'){
+            $where['paytype'] = ['eq', 4];
+            $all_balance = M('member')->sum('balance_inr');
+        }
+        $this->assign('currency', $currency);
+
+        $memberid = I("request.memberid", '', 'string,strip_tags,htmlspecialchars');
+        if ($memberid) {
+            $where['userid'] = array('eq', $memberid-10000);
+        }
+        $this->assign("memberid", $memberid);
+
+        //U下发
+        $type = I("request.type",  0, 'intval');
+        if($type === 2){
+            $where['df_type'] = ['eq', 2];
+        }else{
+            $where['df_type'] = ['neq', 2];
+        }
+        $this->assign('type', $type);
+
+        $dfid = I("get.dfid", '', 'string,strip_tags,htmlspecialchars');
+        if ($dfid != '') {
+            $where['df_id'] = array('eq', $dfid);
+        }
+        $this->assign("dfid", $dfid);
+
+        $successtime = urldecode(I("request.successtime", '', 'string,strip_tags,htmlspecialchars'));
+        if ($successtime) {
+            list($sstime, $setime) = explode('|', $successtime);
+        }else{
+            //没有搜索条件，默认显示当前
+            $sstime = date('Y-m-d') . ' 00:00:00';
+            $setime = date('Y-m-d') . ' 23:59:59';
+            $successtime = $sstime . ' | ' . $setime;
+        }
+        $this->assign("successtime", $successtime);
+
+
+        $cstime =  date('Y-m-d 00:00:00' ,strtotime($sstime)- 3600 * 24 * 7);
+        $cetime = $setime;
+        $where['sqdatetime']   = ['between', [$cstime, $cetime]];
+        $where['cldatetime']   = ['between', [$sstime, $setime]];
+        $Wttklist = D('Wttklist');
+
+        //统计总结算信息
+        $totalMap           = $where;
+        $totalMap['status']   = array('between', ['2','3']);
+        //结算金额
+        $stat_total = $Wttklist->getSum('tkmoney',$totalMap);
+        $stat['total'] = round($stat_total['tkmoney'], 2);
+        //完成笔数
+        $totalMap['status']   = array('between', ['2','3']);
+        $stat['total_success_count'] = $Wttklist->getCount($totalMap);
+        //平台手续费利润
+        // $totalMap['status']   = array('between', ['2','3']);
+        // $stat_total_profit = $Wttklist->getSum('sxfmoney,cost',$totalMap);
+        // $stat['total_profit'] = round($stat_total_profit['sxfmoney'] - $stat_total_profit['cost'], 2);
+
+        foreach ($stat as $k => $v) {
+            $stat[$k] += 0;
+        }
+
+        $this->assign('stat', $stat);
+        $this->assign("df_list", $df_list);
+        $this->assign("all_balance", $all_balance);
+        C('TOKEN_ON', false);
+        $this->assign('uid', session("admin_auth.uid"));
+        $this->display();
+    }
+
+
+    /**
+     *  提现申请RF
+     */
+    public function dfapply()
+    {
+        UserLogService::HTwrite(1, '访问提现申请页面', '表单提交方式');
+
+        $uid = session('admin_auth')['uid'];
+        $verifysms = 0; //是否可以短信验证
+        $sms_is_open = smsStatus();
+        if ($sms_is_open) {
+            $adminMobileBind = adminMobileBind($uid);
+            if ($adminMobileBind) {
+                $verifysms = 1;
+            }
+        }
+        //是否可以谷歌安全码验证
+        $verifyGoogle = 0;
+        $googleAuth   = M('Websiteconfig')->getField('google_auth');
+        if ($googleAuth) {
+            $verifyGoogle = adminGoogleBind($uid);
+        }
+        //当前可用提现渠道
+        $channel = M('pay_for_another')->where(['status' => 1])->select();
+
+        $this->assign('channel', $channel);
+        $this->assign('verifysms', $verifysms);
+        $this->assign('verifyGoogle', $verifyGoogle);
+        $this->assign('auth_type', $verifyGoogle ? 1 : 0);
+        $this->display();
+    }
+
+    public function dfsave()
+    {
+        UserLogService::HTwrite(1, '提现申请提交', '表单提交方式');
+        $uid   = session('admin_auth')['uid'];
+        $verifysms = 0; //是否可以短信验证
+        $sms_is_open = smsStatus();
+        if ($sms_is_open) {
+            $adminMobileBind = adminMobileBind($uid);
+            if ($adminMobileBind) {
+                $verifysms = 1;
+            }
+        }
+        //是否可以谷歌安全码验证
+        $verifyGoogle = 0;
+        $googleAuth   = M('Websiteconfig')->getField('google_auth');
+        if ($googleAuth) {
+            $verifyGoogle = adminGoogleBind($uid);
+        }
+        if (IS_POST) {
+            $auth_type = I('request.auth_type', 0, 'intval');
+
+            if($verifyGoogle && $verifysms) {
+                if(!in_array($auth_type,[0,1])) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            } elseif($verifyGoogle && !$verifysms) {
+                if($auth_type != 1) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            } elseif(!$verifyGoogle && $verifysms) {
+                if($auth_type != 0) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            }
+            if ($verifyGoogle && $auth_type == 1) {
+                $res = check_auth_error($uid, 5);
+                if(!$res['status']) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => $res['msg']]);
+                }
+                //谷歌安全码验证
+                $google_code = I('request.google_code');
+                if (!$google_code) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "谷歌安全码不能为空！"]);
+                } else {
+                    $ga                = new \Org\Util\GoogleAuthenticator();
+                    $google_secret_key = M('Admin')->where(['id' => $uid])->getField('google_secret_key');
+                    if (!$google_secret_key) {
+                        $this->ajaxReturn(['status' => 0, 'msg' => "您未绑定谷歌身份验证器！"]);
+                    }
+                    if(false === $ga->verifyCode($google_secret_key, $google_code, C('google_discrepancy'))) {
+                        log_auth_error($uid,5);
+                        $this->ajaxReturn(['status' => 0, 'msg' => "谷歌安全码错误！"]);
+                    } else {
+                        clear_auth_error($uid,5);
+                    }
+                }
+            } elseif ($verifysms && $auth_type == 0) {
+                $res = check_auth_error($uid, 3);
+                if(!$res['status']) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => $res['msg']]);
+                }
+                //短信验证码
+                $code = I('request.code');
+                if (!$code) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "短信验证码不能为空！"]);
+                } else {
+                    if (session('send.submitDfSend') != $code || !$this->checkSessionTime('submitDfSend', $code)) {
+                        log_auth_error($uid,3);
+                        $this->ajaxReturn(['status' => 0, 'msg' => '短信验证码错误']);
+                    } else {
+                        clear_auth_error($uid,3);
+                        session('send', null);
+                    }
+                }
+            }
+
+            $channelId = I('post.channelId');
+            if (!$channelId) {
+                UserLogService::HTwrite(2, '提现申请提交失败', '表单提交方式，错误原因：未选择请选择代付通道');
+                $this->error('请选择代付通道');
+            }
+            $channel = M('pay_for_another')->where(['id' => $channelId])->find();
+
+            $data = I('post.item');
+            if (empty($data)) {
+                UserLogService::HTwrite(2, '提现申请提交失败', '表单提交方式，错误原因：提现申请数据为空');
+                $this->error('提现申请数据不能为空！');
+            }
+
+            //提现时间
+            $time = date("Y-m-d H:i:s");
+            //获取数据表名称
+            $Wttklist = D('Wttklist');
+            $table = $Wttklist->getRealTableName($time);
+            $success = $fail = 0;
+            foreach ($data as $k => $v) {
+                //获取订单号
+                $orderid = $this->getOrderId();
+
+                //提现记录
+                $wttkData = [
+                    'orderid'      => $orderid,
+                    'out_trade_no' => $orderid,
+                    "userid" => $uid,
+                    "bankname"     => trim($v["bankname"]),
+                    "bankzhiname"  => trim($v["subbranch"]),
+                    "banknumber"   => trim($v["cardnumber"]),
+                    "bankfullname" => trim($v['accountname']),
+                    "phone"        => $v['phone'],
+                    "idnumber"     => $v['idnumber'],
+                    "userid"       => $uid,
+                    "sqdatetime"   => $time,
+                    "status"       => 0,
+                    'tkmoney'      => $v['tkmoney'],
+                    'df_id' => $channel['id'],
+                    'code' => $channel['code'],
+                    'df_name' => $channel['title'],
+                    'channel_mch_id' => $channel['mch_id'],
+                    "bankcode" =>900,
+                ];
+                $id = $Wttklist->table($table)->add($wttkData);
+
+                $lock_res = $Wttklist->table($table)->where(['id'=>$id, 'df_lock'=>0])->save(['df_lock' => 1, 'lock_time' => time()]);
+                if(!$lock_res) {
+                    //                return ['status' => 0, 'msg' => '系统出错，请您联系管理员处理!'];
+                    $fail++;
+                    continue;
+                }else{
+                    try {
+                        $wttkData['money'] = round($wttkData['tkmoney'],2);
+                        $wttkData['type'] = $wttkData["bankname"];
+                        $result = R('Payment/' . $channel['code'] . '/PaymentExec', [$wttkData, $channel]);
+                        if (FALSE === $result) {
+                            $Wttklist->table($table)->where(['id' => $id])->save(['last_submit_time' => time(), 'auto_submit_try' => ['exp', 'auto_submit_try+1'], 'df_lock' => 0]);
+                            $fail++;
+                        } else {
+                            if (is_array($result)) {
+                                $change_data=[];
+                                switch($result['status']){
+                                    case 1:
+                                        //提交提现成功
+                                        $change_data['status'] = 1;
+                                        $change_data['memo']  = '申请成功！';
+                                        break;
+                                    case 2:
+                                        //支付成功
+                                        $change_data['status'] = 2;
+                                        $change_data['cldatetime'] = date('Y-m-d H:i:s', time());
+                                        $change_data['memo']  = '提现成功！';
+                                        break;
+                                    case 3:
+                                        $change_data['status'] = 4;
+                                        $change_data['cldatetime'] = date('Y-m-d H:i:s', time());
+                                        $change_data['memo']  = '提现失败！ - '. $result['msg'];
+                                        break;
+                                    default:
+                                        //订单状态不改变
+                                        $sta = $Wttklist->table($table)->where(['id' => $id])->getField('status');
+                                        $change_data['status'] = $sta;
+                                        $change_data['memo']  = 'Status does not change！ - '. $result['msg'];
+                                        break;
+                                }
+                                $ad = $Wttklist->table($table)->where(['id' => $id])->save($change_data);
+//                                $Wttklist->table($table)->where(['id' => $id])->save(['is_auto' => 1, 'last_submit_time' => time(), 'auto_submit_try' => ['exp', 'auto_submit_try+1'], 'df_lock' => 0]);
+                            }
+                            $success++;
+                        }
+                    } catch (\Exception $e) {
+                        $Wttklist->table($table)->where(['id' => $id])->setField('df_lock', 0);
+                        $fail++;
+                    }
+                }
+            }
+            if ($success > 0 && $fail == 0) {
+                UserLogService::HTwrite(2, '提现申请提交成功', '提交成功');
+                $this->ajaxReturn(['status' => 1, 'msg' => '提交成功！']);
+            } elseif ($success > 0 && $fail > 0) {
+                UserLogService::HTwrite(2, '提现申请提交成功', '成功:' . $success . '条，失败：' . $fail . '条');
+                $this->ajaxReturn(['status' => 1, 'msg' => '部分成功，成功:' . $success . '条，失败：' . $fail . '条']);
+            } else {
+                UserLogService::HTwrite(2, '提现申请提交失败', '提交失败');
+                $this->ajaxReturn(['status' => 0, 'msg' => '提交失败！']);
+            }
+        }
+    }
+    /**
+     * 获得订单号
+     *
+     * @return string
+     */
+    public function getOrderId()
+    {
+        $year_code = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z');
+        $i = intval(date('Y')) - 2010 + 2;
+
+        return $year_code[$i] . date('YmdHis') . substr(time(), -5) . str_pad(mt_rand(1, 99), 2, '0', STR_PAD_LEFT) . rand(1000,9999);
+    }
 }

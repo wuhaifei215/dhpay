@@ -1614,7 +1614,8 @@ class UserController extends BaseController
             ->field('id,name,status,paytype')
             ->select();
         $agency = M('Agency')->where(['currency' => $currency])->select();
-        
+
+        $this->assign('currency', $currency);
         $this->assign('product', $product);
         $this->assign('agency', $agency);
         $this->display();
@@ -1630,7 +1631,8 @@ class UserController extends BaseController
             ->field('id,name,status,paytype')
             ->select();
         $userList = M('Member')->where(['status' => 1,'currency' => $currency])->order('id desc')->select();
-        
+
+        $this->assign('currency', $currency);
         $this->assign('product', $product);
         $this->assign('userList', $userList);
         $this->display();
@@ -1704,7 +1706,8 @@ class UserController extends BaseController
             ->field('id,name,status,paytype')
             ->select();
         $agency = M('Agency')->where(['currency'=>$currency])->select();
-        
+
+        $this->assign('currency', $currency);
         $this->assign('product', $product);
         $this->assign('agency', $agency);
         $this->display();
@@ -1720,7 +1723,8 @@ class UserController extends BaseController
             ->field('id,name,status,paytype')
             ->select();
         $userList = M('Member')->where(['status' => 1,'currency'=>$currency])->order('id desc')->select();
-        
+
+        $this->assign('currency', $currency);
         $this->assign('product', $product);
         $this->assign('userList', $userList);
         $this->display();

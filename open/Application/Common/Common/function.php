@@ -1581,6 +1581,7 @@ function Reject($Reject,$return=array(), $tableName='',$notifyurl=1) {
             "orderid"    => $withdraw['out_trade_no'],
             "lx"         => 18,
             'contentstr' => $contentstr.': '.$withdraw['orderid'],
+            "currency" =>$withdraw['currency'],
         );
         $Moneychange = D("Moneychange");
         $tablename = $Moneychange -> getRealTableName($arrayField['datetime']);

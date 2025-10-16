@@ -29,20 +29,35 @@
                 <!--条件查询-->
                 <div class="ibox-content">
                     <form class="layui-form" action="" method="get" autocomplete="off" id="dataform">
-                        <div class="layui-form-item">
+                        <div class="layui-form-item layui-inline">
+                            <label class="layui-form-label">所属国家：</label>
+                            <div class="layui-input-inline">
+                                <select name="currency">
+                                    <option value="">全部国家</option>
+                                    <volist name="country" id="co">
+                                        <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                                    </volist>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline">
                             <label class="layui-form-label">包网：</label>
                             <div class="layui-input-inline">
-                              <select name="agency_id">
-                                <option value="">全部包网</option>
-                                <volist name="agency" id="vo">
-                                  <option <if condition="$agency_id eq $vo['id']">selected</if> value="<{$vo.id}>"><{$vo.username}></option>
-                                </volist>
-                              </select>
+                                <select name="agency_id">
+                                    <option value="">全部包网</option>
+                                    <volist name="agency" id="vo">
+                                        <option <if condition="$agency_id eq $vo['id']">selected</if> value="<{$vo.id}>"><{$vo.username}></option>
+                                    </volist>
+                                </select>
                             </div>
+                        </div>
+                        <div class="layui-form-item layui-inline">
                             <label class="layui-form-label">日期：</label>
                             <div class="layui-input-inline" style="width:300px;">
                                 <input type="text" class="layui-input" name="date" id="date" placeholder="日期"  value="<{$date}>">
                             </div>
+                        </div>
+                        <div class="layui-form-item layui-inline">
                             <div class="layui-inline">
                                 <button type="submit" class="layui-btn"><span
                                         class="glyphicon glyphicon-search"></span> 搜索

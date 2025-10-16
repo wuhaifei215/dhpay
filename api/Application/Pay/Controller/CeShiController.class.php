@@ -38,28 +38,29 @@ class CeShiController extends PayController
         $return = $this->orderadd($parameter);
         //如果生成错误，自动跳转错误页面
         $return["status"] == "error" && $this->showmessage($return["errorcontent"]);
-        
+
         $return_arr = [
             'status' => 'success',
             'H5_url' => $this->_site . '/Pay_CeShi_Success.html',
+            'QRcode' => '00020101021226880014br.gov.bcb.pix2566qrcode.microcashif.com.br%2Fpix%2F58b3b57a-80e3-4996-bf3f-76ac50602dfd5204',
             'pay_orderid' => $orderid,
             'out_trade_id' => $return['orderid'],
             'amount' => $return['amount'],
         ];
         echo json_encode($return_arr);
         // if($array['userid'] == 2){
-            $return['gateway'] = $this->_site . '/Pay_CeShi_Success.html';
-            try{
-                
-                logApiAddReceipt('下游商户提交YunPay', $array['userid'], __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $return, $return_arr);
-            }catch (\Exception $e) {
-                var_dump($e);
-            }
+        $return['gateway'] = $this->_site . '/Pay_CeShi_Success.html';
+        try{
+
+            logApiAddReceipt('下游商户提交YunPay', $array['userid'], __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $return, $return_arr);
+        }catch (\Exception $e) {
+            var_dump($e);
+        }
         // }
     }
-    
+
     public function Success(){
-        
-        echo '对接成功！请联系运营切换正式通道';
+
+        echo 'The connection was successful! Please contact the operator to switch to the official channel';
     }
 }

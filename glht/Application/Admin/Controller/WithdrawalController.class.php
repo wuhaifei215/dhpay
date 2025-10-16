@@ -1017,12 +1017,12 @@ class WithdrawalController extends BaseController
                     if($Rejsct){
                         M()->commit();
                         Automatic_Notify($withdraw['orderid']);
-                        $this->ajaxReturn(['status' => 1,'msg' => '订单状态设置失败3!']);
+                        $this->ajaxReturn(['status' => 1,'msg' => '订单状态设置失败，成功!']);
                         break;
                     }else{
                         M()->rollback();
                     }
-                    $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败4!']);
+                    $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败3!']);
                     break;
                 case '6':
                     //手动设置驳回
@@ -1031,11 +1031,11 @@ class WithdrawalController extends BaseController
                     if($Rejsct){
                         M()->commit();
                         Automatic_Notify($withdraw['orderid']);
-                        $this->ajaxReturn(['status' => 1,'msg' => '订单状态设置驳回成功!']);
+                        $this->ajaxReturn(['status' => 1,'msg' => '订单状态设置驳回，成功!']);
                     }else{
                         M()->rollback();
                     }
-                    $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败5!']);
+                    $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败4!']);
                     break;
                 default:
                     # code...
@@ -1866,7 +1866,6 @@ class WithdrawalController extends BaseController
                     'code' => $channel['code'],
                     'df_name' => $channel['title'],
                     'channel_mch_id' => $channel['mch_id'],
-                    "currency" =>$channel['currency'],
                     "bankcode" =>900,
                 ];
                 $id = $Wttklist->table($table)->add($wttkData);

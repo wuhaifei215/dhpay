@@ -1616,16 +1616,18 @@ class WithdrawalController extends UserController
 
         //可用余额
         $info = M('Member')->where(['id' => $this->fans['uid']])->find();
+        $uRate = M('URate')->where(['currency' => $currency])->getField('rate');
 
         $this->assign('info', $info);
         $this->assign('currency', $currency);
+        $this->assign('uRate', $uRate);
         $this->display();
     }
 
         /**
      *  保存U代付申请
      */
-    public function dfsaveUphp()
+    public function dfsaveU()
     {
         if (IS_POST) {
             $userid   = session('user_auth.uid');
@@ -1831,220 +1833,6 @@ class WithdrawalController extends UserController
                 $this->error('委托结算提交失败！');
             } else {
                 UserLogService::write(2, 'U代付申请提交失败', '表单提交方式，错误原因：'.$errorTxt);
-                $this->error($errorTxt);
-            }
-        }
-    }
-
-       /**
-     *  保存U代付申请(国2)
-     */
-    public function dfsaveUinr()
-    {
-        if (IS_POST) {
-            $userid   = session('user_auth.uid');
-            //查询是否开启短信验证
-            $sms_is_open = smsStatus();
-            $verifysms = 0;
-            if ($sms_is_open) {
-                $verifysms = 1;
-            }
-            //查询是否开通谷歌验证
-            $verifyGoogle = 0;
-            if($this->fans['google_secret_key'] && $this->fans['google_auth']) {
-                $verifyGoogle = 1;
-            }
-            $auth_type = I('post.auth_type', 0, 'intval');
-            if($verifyGoogle && $verifysms) {
-                if(!in_array($auth_type,[0,1])) {
-                    UserLogService::write(2, 'U代付申请(国2)失败', '表单提交方式，错误原因：参数错误');
-                    $this->error("参数错误！");
-                }
-            } elseif($verifyGoogle && !$verifysms) {
-                if($auth_type != 1) {
-                    UserLogService::write(2, 'U代付申请(国2)失败', '表单提交方式，错误原因：参数错误');
-                    $this->error("参数错误！");
-                }
-            } elseif(!$verifyGoogle && $verifysms) {
-                if($auth_type != 0) {
-                    UserLogService::write(2, 'U代付申请(国2)交失败', '表单提交方式，错误原因：参数错误');
-                    $this->error("参数错误！");
-                }
-            }
-            if ($verifyGoogle && $auth_type == 1) {//谷歌安全码验证
-                $res = check_auth_error($userid, 4);
-                if(!$res['status']) {
-                    UserLogService::write(2, 'U代付申请(国2)提交失败', '表单提交方式，错误原因：谷歌安全码输入错误次数超限');
-                    $this->error($res['msg']);
-                }
-                $google_code   = I('post.google_code', '', 'string,strip_tags,htmlspecialchars');
-                if(!$google_code) {
-                    UserLogService::write(2, 'U代付申请(国2)提交失败', '表单提交方式，错误原因：谷歌安全码不能为空');
-                    $this->error("谷歌安全码不能为空！");
-                } else {
-                    $ga = new \Org\Util\GoogleAuthenticator();
-                    if(false === $ga->verifyCode($this->fans['google_secret_key'], $google_code, C('google_discrepancy'))) {
-                        log_auth_error($userid,4);
-                        UserLogService::write(2, 'U代付申请(国2)提交失败', '表单提交方式，错误原因：谷歌安全码错误');
-                        $this->error("谷歌安全码错误！");
-                    } else {
-                        clear_auth_error($userid,4);
-                    }
-                }
-            } elseif($verifysms && $auth_type == 0){//短信验证码
-                $res = check_auth_error($userid, 2);
-                if(!$res['status']) {
-                    UserLogService::write(2, 'U代付申请(国2)提交失败', '表单提交方式，错误原因：短信验证码输入错误次数超限');
-                    $this->error($res['msg']);
-                }
-                $code   = I('post.code', '', 'string,strip_tags,htmlspecialchars');
-                if(!$code) {
-                    UserLogService::write(2, 'U代付申请(国2)提交失败', '表单提交方式，错误原因：短信验证码不能为空');
-                    $this->error("短信验证码不能为空！");
-                } else {
-                    if (session('send.entrusted') != $code || !$this->checkSessionTime('entrusted', $code)) {
-                        log_auth_error($userid,2);
-                        UserLogService::write(2, 'U代付申请(国2)请提交失败', '表单提交方式，错误原因：短信验证码错误');
-                        $this->error('短信验证码错误');
-                    } else {
-                        clear_auth_error($userid,2);
-                        session('send', null);
-                    }
-                }
-            }
-            $password = I('post.password', '', 'string,strip_tags,htmlspecialchars');
-
-            if (!$password) {
-                UserLogService::write(2, 'U代付申请(国2)提交失败', '表单提交方式，错误原因：支付密码不能为空');
-                $this->error('支付密码不能为空！');
-            }
-
-            $data = I('post.item');
-            if (empty($data)) {
-                UserLogService::write(2, 'U代付申请(国2)提交失败', '表单提交方式，错误原因：代付申请数据不能为空');
-                $this->error('代付申请数据不能为空！');
-            }
-            M()->startTrans();
-            //查询用户数据
-            $Member = M('Member');
-            $info   = $Member->where(['id' => $userid])->lock(true)->find();
-            //支付密码
-            $res = check_auth_error($userid, 6);
-            if(!$res['status']) {
-                UserLogService::write(2, 'U代付申请(国2)提交失败', '表单提交方式，错误原因：支付密码输入错误次数超限');
-                $this->error($res['msg']);
-            }
-            if(md5($password) != $info['paypassword']) {
-                log_auth_error($userid,6);
-                M()->commit();
-                UserLogService::write(2, 'U代付申请(国2)提交失败', '表单提交方式，错误原因：支付密码错误');
-                $this->error('支付密码有误!');
-            } else {
-                clear_auth_error($userid,6);
-            }
-
-            $balance    = $info['balance_inr'];
-            $tkmoneysum = 0;
-            foreach ($data as $k => $v) {
-                if (!isset($errorTxt)) {
-                    $v['tkmoney'] = trim($v['tkmoney']);
-                    if(!is_numeric($v['tkmoney'])) {
-                        $errorTxt = "金额错误！";
-                        break;
-                    }
-                    //个人信息
-                    if ($balance < $v['tkmoney']) {
-                        $errorTxt = '金额错误，可用余额不足!';
-                        break;
-                    }
-                    
-                    $tkmoneysum += $v['tkmoney'];
-                    //实际提现的金额
-                    $money = $v['tkmoney']/$v['sxfmoney'];
-                    //获取订单号
-                    $orderid = $this->getOrderId();
-                    $out_trade_no = $v['out_trade_no']?trim($v['out_trade_no']):'';
-
-                    //提现时间
-                    $time = date("Y-m-d H:i:s");
-
-                    //扩展字段
-                    $extends = '';
-                    if (isset($v['extend'])) {
-                        $extends = json_encode($v['extend']);
-                    }
-                    //提现记录
-                    $wttkData[] = [
-                        'orderid'      => $orderid,
-                        "bankname"     => 'USDT',
-                        "bankfullname" => 'USDT',
-                        "memo" => 'USDT(国2)',
-                        "banknumber"   => trim($v["cardnumber"]),
-                        "bankcode" =>'909',
-                        'paytype' => 4,
-                        "userid"       => $userid,
-                        "sqdatetime"   => $time,
-                        "status"       => 1,
-                        'tkmoney'      => $v['tkmoney'],
-                        'sxfmoney'     => $v['sxfmoney'],
-                        "money"        => sprintf("%.4f", $money),
-                        "currency" =>$this->fans['currency'],
-                        "df_type"         => 2,
-                    ];
-                    $tkmoney = abs(floatval($v['tkmoney']));
-                    $ymoney  = $balance;
-                    $balance = bcsub($balance, $tkmoney, 4);
-
-                    $mcData[] = [
-                        "userid"     => $userid,
-                        'ymoney'     => $ymoney,
-                        "money"      => $v['tkmoney'],
-                        'gmoney'     => $balance,
-                        "datetime"   => $time,
-                        "transid"    => $orderid,
-                        "orderid"    => $out_trade_no,
-                        'paytype' => 4,
-                        "currency" =>$this->fans['currency'],
-                        "lx"         => 10,
-                        'contentstr' => date("Y-m-d H:i:s") . '委托U提现(国2)操作',
-                    ];
-                } else {
-                    break;
-                }
-            }
-
-            if (!isset($errorTxt)) {
-                $res1 = $Member->where(['id' => $userid])->save(['balance_inr' => $balance]);
-                $MoneychangeModel = D('Moneychange');
-                $Moneychangetable = $MoneychangeModel->getRealTableName($time);
-                $res2 = $MoneychangeModel->table($Moneychangetable)->addAll($mcData);
-
-                if ($res1 && $res2) {
-                    $Wttklistmodel = D('Wttklist');
-                    $table = $Wttklistmodel->getRealTableName($time);
-                    $result = $Wttklistmodel->table($table)->addAll($wttkData);
-                    if ($result) {
-                        UserLogService::write(2, 'U代付申请(国2)提交成功', '表单提交方式');
-                        M()->commit();
-                        
-                        $message = '';
-                        $message .= "\r\n \*【账户USDT下发提交】\*\r\n\r\n";
-                        $message .= "\*商户名称\*：" . $info['username'] . "\r\n";
-                        $message .= "\*下发金额\*：`" . sprintf("%.4f", $v['tkmoney']) . "`\r\n";
-                        $message .= "\*下发汇率\*：`" . sprintf("%.4f", $v['sxfmoney']) . "`\r\n";
-                        $message .= "\*USDT数额\*：`" . sprintf("%.4f", $money) . "`\r\n";
-                        $message .= "\*钱包地址\*：`" . trim($v["cardnumber"]) . "`\r\n";
-                        $message .= "\*【请商户提交人员确认订单信息】\*\r\n";
-                        $result1 = R('Telegram/Api/send', [$info['telegram_id'], $message, '', 'Markdown']);
-                        
-                        $this->success('委托结算提交成功！');
-                    }
-                }
-                M()->rollback();
-                UserLogService::write(2, 'U代付申请(国2)提交失败', '表单提交方式');
-                $this->error('委托结算提交失败！');
-            } else {
-                UserLogService::write(2, 'U代付申请(国2)提交失败', '表单提交方式，错误原因：'.$errorTxt);
                 $this->error($errorTxt);
             }
         }

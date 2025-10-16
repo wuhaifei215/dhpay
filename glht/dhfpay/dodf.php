@@ -16,7 +16,7 @@ if(empty($mchid)||empty($_POST['money']) || empty($_POST['accountname']) || empt
 
 $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
 
-$apidomain = $http_type . "api.dhpay.vip";
+$apidomain = $http_type . "papi.i8pay.com";
 if (in_array($_POST['bankcode'], [7710, 7711, 7712])) {
     $pay_currency = 'BRL';
     $tjurl = $apidomain . "/Payment_CreateDF_payoutBRL.html";   //巴西

@@ -10,11 +10,11 @@ if (empty($pay_memberid) || empty($pay_amount) || empty($pay_bankcode)) {
 }
 $pay_applydate = date("Y-m-d H:i:s");  //订单时间
 $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
-$pay_notifyurl = $http_type . "glht.dhpay.vip/gmhx/server.php";   //服务端返回地址
-$pay_callbackurl = $http_type . "glht.dhpay.vip/gmhx/page.php";  //页面跳转返回地址
+$pay_notifyurl = $http_type . "pglht.i8pay.com/gmhx/server.php";   //服务端返回地址
+$pay_callbackurl = $http_type . "pglht.i8pay.com/gmhx/page.php";  //页面跳转返回地址
 $Md5key = "1ni0s1x77i94vusp4m0ssq0dsk3rrlu2";   //密钥
 
-$apidomain = $http_type . "api.dhpay.vip";
+$apidomain = $http_type . "papi.i8pay.com";
 if (in_array($pay_bankcode, [7710, 7711, 7712])) {
     $pay_currency = 'BRL';
     $tjurl = $apidomain . "/Pay_Create_payinBRL.html";   //巴西

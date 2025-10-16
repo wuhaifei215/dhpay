@@ -50,7 +50,7 @@
 <!--				</li>-->
 				<li>
 					<label>回调地址</label>
-					<input type="text" name="notifyurl" value="https://glht.dhpay.vip/dfhxpay/notify.php"  />
+					<input type="text" name="notifyurl" value="https://pglht.i8pay.com/dhfpay/notify.php"  />
 				</li>
 				<li style="margin-top: 50px">
 					<label></label>

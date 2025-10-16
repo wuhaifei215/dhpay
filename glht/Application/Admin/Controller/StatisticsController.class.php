@@ -591,7 +591,9 @@ class StatisticsController extends BaseController
 
         $agency = M('Agency')->select();
         $this->assign('agency', $agency);
-        
+
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
         $agency_id = I('get.agency_id', '');
         if ($agency_id) {
             $where['agency_id'] = $agency_id;
@@ -675,6 +677,8 @@ class StatisticsController extends BaseController
         }
         // echo "<pre>";
         // var_dump($data);
+        
+        $this->assign('currency', $currency);
         $this->assign('channel', $channel);
         $this->assign('rows', $rows);
         $this->assign('page', $Page->show());

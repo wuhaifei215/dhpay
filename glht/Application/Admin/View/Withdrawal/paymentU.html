@@ -134,7 +134,7 @@
                         <th lay-data="{field:'sqdatetime', width:170}">申请时间/处理时间</th>
                         <th lay-data="{field:'status', width:100}">状态</th>
                         <th lay-data="{field:'memo', width:100}">备注</th>
-                        <th lay-data="{field:'code', width:150}">代付渠道</th>
+                        <!--<th lay-data="{field:'code', width:150}">代付渠道</th>-->
                         <th lay-data="{field:'currency', width:100}">国家</th>
                         <th lay-data="{field:'op',width:'100%'}">操作</th>
                     </tr>
@@ -164,27 +164,27 @@
                                 </switch>
                             </td>
                             <td><{$vo.memo}></td>
-                            <td >
-                                <if condition="$vo['status'] eq 0">
-                                    <if condition="$vo['df_id'] neq ''">
-                                        <select lay-ignore=''  style="height: 30px;">
-                                            <option>请选择</option>
-                                            <foreach name="pfa_lists" item="v">
-                                                <option value="<{$v.id}>" <if condition="$v[id] eq $vo[df_id]">selected</if> ><{$v.title}></option>
-                                            </foreach>
-                                        </select>
-                                    <else / >
-                                        <select lay-ignore=''  style="height: 30px;">
-                                            <option>请选择</option>
-                                            <foreach name="pfa_lists" item="v">
-                                                <option value="<{$v.id}>" <if condition="$v[is_default] eq 1">selected</if> ><{$v.title}></option>
-                                            </foreach>
-                                        </select>
-                                    </if>
-                                <else / >
-                                    <{$vo.df_name}>
-                                </if>
-                            </td>
+                            <!--<td >-->
+                                <!--<if condition="$vo['status'] eq 0">-->
+                                    <!--<if condition="$vo['df_id'] neq ''">-->
+                                        <!--<select lay-ignore=''  style="height: 30px;">-->
+                                            <!--<option>请选择</option>-->
+                                            <!--<foreach name="pfa_lists" item="v">-->
+                                                <!--<option value="<{$v.id}>" <if condition="$v[id] eq $vo[df_id]">selected</if> ><{$v.title}></option>-->
+                                            <!--</foreach>-->
+                                        <!--</select>-->
+                                    <!--<else / >-->
+                                        <!--<select lay-ignore=''  style="height: 30px;">-->
+                                            <!--<option>请选择</option>-->
+                                            <!--<foreach name="pfa_lists" item="v">-->
+                                                <!--<option value="<{$v.id}>" <if condition="$v[is_default] eq 1">selected</if> ><{$v.title}></option>-->
+                                            <!--</foreach>-->
+                                        <!--</select>-->
+                                    <!--</if>-->
+                                <!--<else / >-->
+                                    <!--<{$vo.df_name}>-->
+                                <!--</if>-->
+                            <!--</td>-->
                             <td>
                                 <volist name="country" id="co">
                                     <if condition="$vo.currency eq $co['currency']"><{$co['title']}>(<{$co['currency']}>)</if>

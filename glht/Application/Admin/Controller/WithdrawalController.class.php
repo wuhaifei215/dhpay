@@ -438,7 +438,7 @@ class WithdrawalController extends BaseController
         if ($bankcode) {
             $where['bankcode'] = array('eq', $bankcode);
         }else{
-            $where['bankcode'] = array('gt', 1000);
+            $where['bankcode'] = array('neq', 900);
         }
         $this->assign("bankcode", $bankcode);
         

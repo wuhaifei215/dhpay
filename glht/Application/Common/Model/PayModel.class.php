@@ -40,7 +40,7 @@ class PayModel
             //更新订单状态 1 已成功未返回 2 已成功已返回
             $res = $m_Order->where(['pay_orderid' => $trans_id, 'pay_status' => 0])
                 ->save(['pay_status' => 1, 'pay_successdate' => $time]);
-            $m_Order->getLastSql();
+            echo $m_Order->getLastSql();
             if(!$res) {
                 M()->rollback();
                 echo 11111;

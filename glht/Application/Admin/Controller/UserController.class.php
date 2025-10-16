@@ -1374,6 +1374,7 @@ class UserController extends BaseController
         //         $products[$key]['feilv'] = $_tmpData[$item['id']]['feilv'] ? $_tmpData[$item['id']]['feilv'] * 100 : '0.0000';
         //     }
         // }
+        $this->assign('currency', $currency);
         $this->assign('products', $products);
         $this->display();
     }

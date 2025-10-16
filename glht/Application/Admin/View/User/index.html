@@ -94,19 +94,21 @@
                                         class="glyphicon glyphicon-search"></span> 搜索
                                 </button>
                                 <!--<a href="javascript:;" id="export" class="layui-btn layui-btn-danger"><span  class="glyphicon glyphicon-export"></span> 导出数据</a>-->
-                                <button  class="layui-btn layui-btn-danger" onclick="member_edit('批量设置代付通道','<{:U('User/editAllUserWithdrawal',['currency'=> $currency])}>',640,680);return false;">
-                                    <span class="glyphicon glyphicon-edit"></span> 批量设置代付通道
-                                </button>
-                                <button  class="layui-btn" onclick="member_edit('编辑','<{:U('User/editUser')}>',800,600);return false;"><span
-                                        class="glyphicon glyphicon-user"></span> 添加用户
-                                </button>
-                                <button  class="layui-btn layui-btn-danger" onclick="member_edit('批量设置收款通道','<{:U('User/editAllUserProduct',['currency'=> $currency])}>',640,680);return false;">
-                                    <span class="glyphicon glyphicon-edit"></span> 批量设置收款通道
-                                </button>
-                                <button  class="layui-btn layui-btn-danger" onclick="member_rate('批量编辑收款费率','<{:U('User/userAllRateEdit',['currency'=> $currency])}>',640,680);return false;"><span
-                                        class="glyphicon glyphicon-user"></span> 批量编辑收款费率
-                                </button>
                             </div>
+                        <div class="layui-form-item layui-inline">
+                            <button  class="layui-btn layui-btn-danger" onclick="member_edit('批量设置代付通道','<{:U('User/editAllUserWithdrawal',['currency'=> $currency])}>',640,680);return false;">
+                                <span class="glyphicon glyphicon-edit"></span> 批量设置代付通道
+                            </button>
+                            <button  class="layui-btn" onclick="member_edit('编辑','<{:U('User/editUser')}>',800,600);return false;"><span
+                                    class="glyphicon glyphicon-user"></span> 添加用户
+                            </button>
+                            <button  class="layui-btn layui-btn-danger" onclick="member_edit('批量设置收款通道','<{:U('User/editAllUserProduct',['currency'=> $currency])}>',640,680);return false;">
+                                <span class="glyphicon glyphicon-edit"></span> 批量设置收款通道
+                            </button>
+                            <button  class="layui-btn layui-btn-danger" onclick="member_rate('批量编辑收款费率','<{:U('User/userAllRateEdit',['currency'=> $currency])}>',640,680);return false;"><span
+                                    class="glyphicon glyphicon-user"></span> 批量编辑收款费率
+                            </button>
+                        </div>
                         </div>
                     </form>
                     <!--用户列表-->

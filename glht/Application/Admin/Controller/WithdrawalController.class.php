@@ -518,7 +518,6 @@ class WithdrawalController extends BaseController
         $where    = array();
         $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $where['currency'] = ['eq', $currency];
-        $where['bankcode'] = array('gt', 900);
         $this->assign('currency', $currency);
 
         $df_list = M('PayForAnother')->where($where)->select();
@@ -530,6 +529,7 @@ class WithdrawalController extends BaseController
         }
         $this->assign("memberid", $memberid);
 
+        $where['bankcode'] = array('gt', 900);
         //U下发
         $type = I("request.type",  0, 'intval');
         if($type === 2){

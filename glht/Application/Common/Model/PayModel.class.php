@@ -24,9 +24,10 @@ class PayModel
         $redis->set('EditMoney' . $trans_id,'1',120);
 
 
-        $m_Order    = D("Order");
         $date = date('Ymd',strtotime(substr($trans_id, 0, 8)));  //获取订单日期
-        $order_info = $m_Order->table($m_Order->getRealTableName($date))->where(['pay_orderid' => $trans_id])->find(); //获取订单信息
+        $m_Order    = D("Order");
+        $tableName = $m_Order->getRealTableName($date);
+        $order_info = $m_Order->table($tableName)->where(['pay_orderid' => $trans_id])->find(); //获取订单信息
         $userid     = intval($order_info["pay_memberid"] - 10000); // 商户ID
         $time       = time(); //当前时间
 
@@ -38,9 +39,9 @@ class PayModel
             $m_Member    = M('Member');
             $member_info = $m_Member->where(['id' => $userid])->lock(true)->find();
             //更新订单状态 1 已成功未返回 2 已成功已返回
-            $res = $m_Order->where(['pay_orderid' => $trans_id, 'pay_status' => 0])
+            $res = $m_Order->table($tableName)->where(['pay_orderid' => $trans_id, 'pay_status' => 0])
                 ->save(['pay_status' => 1, 'pay_successdate' => $time]);
-            echo $m_Order->getLastSql();
+            echo $m_Order->table($tableName)->getLastSql();
             if(!$res) {
                 M()->rollback();
                 echo 11111;
@@ -263,7 +264,7 @@ class PayModel
                 //         'id'          => $order_info['id'],
                 //         'pay_orderid' => $order_info["pay_orderid"],
                 //     ];
-                //     $order_result = $m_Order->where($order_where)->setField("pay_status", 2);
+                //     $order_result = $m_Order->table($tableName)->where($order_where)->setField("pay_status", 2);
                 // } else {
                 //     // $this->jiankong($order_info['pay_orderid']);
                 // }

@@ -6,7 +6,7 @@ namespace Common\Model;
 use Think\Model;
 
 class OrderModel extends Model {
-    protected $expire_date = 20250616;
+    protected $expire_date = 20251016;
     protected $tablePrefix = 'pay_'; // 分表前缀
     protected $tableName = 'order'; // 默认表名
     protected $orderTables=[];      //订单分表表名

@@ -31,7 +31,7 @@
     				<input type="hidden" name="userid" value="<{$_GET['uid']|htmlspecialchars}>">
     				<div class="layui-tab">
 					    <ul class="layui-tab-title">
-						    <li><a href="<{:U("User/editAllUserProduct")}>">按商户</a></li>
+						    <li><a href="<{:U("User/editAllUserProduct",['currency'=> $currency])}>">按商户</a></li>
 						    <li class="layui-this"><a href="javascript:;">按包网</a></li>
 					    </ul>
 				    </div>

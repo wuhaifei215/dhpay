@@ -68,7 +68,6 @@ class WttklistModel extends Model {
                   `channel_mch_id` varchar(50) NOT NULL DEFAULT '' COMMENT '通道商户号',
                   `cost` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '成本',
                   `cost_rate` decimal(10,4) unsigned NOT NULL DEFAULT '0.0000' COMMENT '成本费率',
-                  `cost_rate` decimal(10,4) unsigned NOT NULL DEFAULT '0.0000' COMMENT '成本费率',
                   `rate_type` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '费率类型：按单笔收费0，按比例收费：1，按单笔+比例收费：2',
                   `extends` text COMMENT '扩展数据',
                   `auto_submit_try` int(10) NOT NULL DEFAULT '0' COMMENT '自动代付尝试提交次数',

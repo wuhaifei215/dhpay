@@ -990,7 +990,7 @@ class WithdrawalController extends BaseController
                 $this->ajaxReturn(['status' => 0,'msg' => '订单当前状态不允许修改!']);
             }
             if($status == $wtStatus){
-                $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败!']);
+                $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败1!']);
             }
             
             //设置redis标签，防止重复执行
@@ -1009,7 +1009,7 @@ class WithdrawalController extends BaseController
                     break;
                 case '4':
                     if($wtStatus ==4 || $wtStatus ==5){
-                        $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败!']);
+                        $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败2!']);
                     }
                     //手动设置失败
                     $memo = I('post.memo') . ' - ' . date('Y-m-d H:i:s') . ';' . $withdraw['memo'];
@@ -1017,12 +1017,12 @@ class WithdrawalController extends BaseController
                     if($Rejsct){
                         M()->commit();
                         Automatic_Notify($withdraw['orderid']);
-                        $this->ajaxReturn(['status' => 1,'msg' => '订单状态设置失败成功!']);
+                        $this->ajaxReturn(['status' => 1,'msg' => '订单状态设置失败3!']);
                         break;
                     }else{
                         M()->rollback();
                     }
-                    $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败!']);
+                    $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败4!']);
                     break;
                 case '6':
                     //手动设置驳回
@@ -1035,7 +1035,7 @@ class WithdrawalController extends BaseController
                     }else{
                         M()->rollback();
                     }
-                    $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败!']);
+                    $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败5!']);
                     break;
                 default:
                     # code...

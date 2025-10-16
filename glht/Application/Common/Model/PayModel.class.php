@@ -18,9 +18,9 @@ class PayModel
     {
         //设置redis标签，防止重复执行
         $redis = $this->redis_connect();
-//        if($redis->get('EditMoney' . $trans_id)){
-//            return false;
-//        }
+        if($redis->get('EditMoney' . $trans_id)){
+            return false;
+        }
         $redis->set('EditMoney' . $trans_id,'1',120);
 
 

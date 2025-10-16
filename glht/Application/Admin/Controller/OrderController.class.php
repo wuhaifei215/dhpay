@@ -1009,9 +1009,9 @@ class OrderController extends BaseController
         if (IS_POST) {
             //设置redis标签，防止重复执行
             $redis = $this->redis_connect();
-            // if($redis->get('setOrderPaid' . $orderid)){
-            //     $this->ajaxReturn(['status' => 0, 'msg' => '重复操作']);
-            // }
+             if($redis->get('setOrderPaid' . $orderid)){
+                 $this->ajaxReturn(['status' => 0, 'msg' => '重复操作']);
+             }
             $redis->set('setOrderPaid' . $orderid,'1',120);
 
             UserLogService::HTwrite(3, '设置订单为已支付', '设置订单为已支付');

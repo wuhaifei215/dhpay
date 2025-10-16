@@ -42,6 +42,7 @@ class PayModel
                 ->save(['pay_status' => 1, 'pay_successdate' => $time]);
             if(!$res) {
                 M()->rollback();
+                echo 11111;
                 return false;
             }
             //-----------------------------------------修改用户数据 商户余额、冻结余额start-----------------------------------
@@ -91,6 +92,7 @@ class PayModel
                     $blockedlog_result = M('Blockedlog')->add($blockedlog_data);
                     if (!$blockedlog_result) {
                         M()->rollback();
+                        echo 222222;
                         return false;
                     }
                     $ymoney                        = $member_info['blockedbalance']; //原冻结资金
@@ -106,6 +108,7 @@ class PayModel
             $member_result = $m_Member->where(['id' => $userid])->save($member_data);
             if ($member_result != 1) {
                 M()->rollback();
+                echo 3333;
                 return false;
             }
 
@@ -127,6 +130,7 @@ class PayModel
             $moneychange_result = $this->MoenyChange($moneychange_data); // 资金变动记录
 
             if ($moneychange_result == false) {
+                echo 4444;
                 M()->rollback();
                 return false;
             }

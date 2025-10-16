@@ -20,6 +20,12 @@
 	<div class="row">
 		<div class="col-sm-12">
 			<p class="text-danger" style="padding: 15px; font-size:20px">注：费率为百分位，例如：百分之一则填 1</p>
+			<blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
+				<volist name="country" id="co">
+					<if condition="$currency eq $co['currency']"><span style="color:#333;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)</if>
+				</volist>
+				<if condition="$currency eq ''">请选择国家</if>
+			</blockquote>
 			<form class="layui-form" action="" id="rate">
 				<!--产品列表-->
 				<table class="layui-table" lay-even="" lay-skin="line">

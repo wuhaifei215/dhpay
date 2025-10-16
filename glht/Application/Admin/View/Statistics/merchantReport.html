@@ -29,6 +29,17 @@
                 <!--条件查询-->
                 <div class="ibox-content">
                     <form class="layui-form" action="" method="get" autocomplete="off" id="dataform">
+                        <div class="layui-form-item layui-inline">
+                            <label class="layui-form-label">所属国家：</label>
+                            <div class="layui-input-inline">
+                                <select name="currency">
+                                    <option value="">全部国家</option>
+                                    <volist name="country" id="co">
+                                        <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                                    </volist>
+                                </select>
+                            </div>
+                        </div>
                         <div class="layui-form-item">
                             <label class="layui-form-label">包网：</label>
                             <div class="layui-input-inline">

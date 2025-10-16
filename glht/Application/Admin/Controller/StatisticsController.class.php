@@ -677,7 +677,7 @@ class StatisticsController extends BaseController
         }
         // echo "<pre>";
         // var_dump($data);
-        
+
         $this->assign('currency', $currency);
         $this->assign('channel', $channel);
         $this->assign('rows', $rows);

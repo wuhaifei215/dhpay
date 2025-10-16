@@ -20,6 +20,12 @@
     <div class="wrapper wrapper-content animated">
         <div class="row">
             <div class="col-sm-12">
+				<blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
+					<volist name="country" id="co">
+						<if condition="$currency eq $co['currency']"><span style="color:#333;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)</if>
+					</volist>
+					<if condition="$currency eq ''">请选择国家</if>
+				</blockquote>
                 <span style="font-size:35px;color:red;">代付</span>
     			<form class="layui-form" action="" id="userProduct">
     				<input type="hidden" name="userid" value="<{$_GET['uid']|htmlspecialchars}>">

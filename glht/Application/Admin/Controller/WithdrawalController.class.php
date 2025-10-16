@@ -521,7 +521,7 @@ class WithdrawalController extends BaseController
         $this->assign('currency', $currency);
 
         $df_list = M('PayForAnother')->where($where)->select();
-        $all_balance = M('member')->sum('balance');
+        $all_balance = M('member')->where($where)->sum('balance');
         
         $memberid = I("request.memberid", '', 'string,strip_tags,htmlspecialchars');
         if ($memberid) {

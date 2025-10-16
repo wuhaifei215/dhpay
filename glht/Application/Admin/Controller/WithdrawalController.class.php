@@ -1491,13 +1491,8 @@ class WithdrawalController extends BaseController
 
         $where    = array();
         $where['bankcode'] = 900;
-        $currency = I("request.currency", '', 'string,strip_tags,htmlspecialchars');
-        if($currency ==='PHP'){
-            $where['paytype'] = ['between', [1,3]];
-        }
-        if($currency ==='INR'){
-            $where['paytype'] = ['eq', 4];
-        }
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
         $this->assign('currency', $currency);
 
         $type = I("request.type",  0, 'intval');
@@ -1642,15 +1637,8 @@ class WithdrawalController extends BaseController
 
         $where    = array();
         $where['bankcode'] = ['eq',900];
-        $currency = I("request.currency");
-        if($currency ==='PHP'){
-            $where['paytype'] = ['between', [1,3]];
-            $all_balance = M('member')->sum('balance_php');
-        }
-        if($currency ==='INR'){
-            $where['paytype'] = ['eq', 4];
-            $all_balance = M('member')->sum('balance_inr');
-        }
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
         $this->assign('currency', $currency);
 
         $memberid = I("request.memberid", '', 'string,strip_tags,htmlspecialchars');

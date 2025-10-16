@@ -1596,7 +1596,7 @@ class WithdrawalController extends UserController
      */
     public function dfapplyU()
     {
-        $currency = I('request.currency');
+        $currency = $this->fans['currency'];
         UserLogService::write(1, '访问代付申请页面' . $currency, '表单提交方式');
         $verifysms = 0;
         //查询是否开启短信验证

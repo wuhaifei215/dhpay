@@ -41,7 +41,6 @@ class PayModel
             //更新订单状态 1 已成功未返回 2 已成功已返回
             $res = $m_Order->table($tableName)->where(['pay_orderid' => $trans_id, 'pay_status' => 0])
                 ->save(['pay_status' => 1, 'pay_successdate' => $time]);
-            echo $m_Order->table($tableName)->getLastSql();
             if(!$res) {
                 M()->rollback();
                 echo 11111;
@@ -94,7 +93,6 @@ class PayModel
                     $blockedlog_result = M('Blockedlog')->add($blockedlog_data);
                     if (!$blockedlog_result) {
                         M()->rollback();
-                        echo 222222;
                         return false;
                     }
                     $ymoney                        = $member_info['blockedbalance']; //原冻结资金
@@ -110,7 +108,6 @@ class PayModel
             $member_result = $m_Member->where(['id' => $userid])->save($member_data);
             if ($member_result != 1) {
                 M()->rollback();
-                echo 3333;
                 return false;
             }
 
@@ -126,13 +123,13 @@ class PayModel
                 'orderid'    => $order_info['out_trade_id'],
                 'contentstr' => $order_info['out_trade_id'] . '订单充值,结算方式：t+' . $order_info['t'],
                 'lx'         => 1,
-                't'          => $order_info['t']
+                't'          => $order_info['t'],
+                'currency'   => $order_info['currency'],
             ];
 
             $moneychange_result = $this->MoenyChange($moneychange_data); // 资金变动记录
 
             if ($moneychange_result == false) {
-                echo 4444;
                 M()->rollback();
                 return false;
             }

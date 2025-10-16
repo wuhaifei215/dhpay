@@ -18,10 +18,10 @@ class PayModel
     {
         //设置redis标签，防止重复执行
         $redis = $this->redis_connect();
-        if($redis->get('EditMoney' . $trans_id)){
-            return false;
-        }
-//        $redis->set('EditMoney' . $trans_id,'1',120);
+//        if($redis->get('EditMoney' . $trans_id)){
+//            return false;
+//        }
+        $redis->set('EditMoney' . $trans_id,'1',120);
 
 
         $m_Order    = D("Order");
@@ -168,7 +168,7 @@ class PayModel
             // ];
             // $this->tongdao_ticheng($tongdao_ticheng_data);  //提成处理
 
-            M()->commit();
+            M()->commit();echo 111;
 
             //-----------------------------------------修改用户数据 商户余额、冻结余额end-----------------------------------
 

@@ -1933,6 +1933,142 @@ class WithdrawalController extends BaseController
             }
         }
     }
+
+
+    /**
+     *  提现 手动修改订单状态
+     */
+    public function editStatus()
+    {
+        $uid = session('admin_auth')['uid'];
+        $id = I("request.id", 0, 'intval');
+        if (!$id) {
+            $this->ajaxReturn(['status' => 0, 'msg' => '操作失败']);
+        }
+        $verifysms = 0;//是否可以短信验证
+        $sms_is_open = smsStatus();
+        if($sms_is_open) {
+            $adminMobileBind = adminMobileBind($uid);
+            if($adminMobileBind) {
+                $verifysms = 1;
+            }
+        }
+        //是否可以谷歌安全码验证
+        $verifyGoogle = adminGoogleBind($uid);
+
+        if (IS_POST) {
+            UserLogService::HTwrite(3, '保存后台提现', '保存后台提现');
+
+            $auth_type = I('request.auth_type', 0, 'intval');
+
+            if($verifyGoogle && $verifysms) {
+                if(!in_array($auth_type,[0,1])) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            } elseif($verifyGoogle && !$verifysms) {
+                if($auth_type != 1) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            } elseif(!$verifyGoogle && $verifysms) {
+                if($auth_type != 0) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            }
+            if ($verifyGoogle && $auth_type == 1) {
+                $res = check_auth_error($uid, 5);
+                if(!$res['status']) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => $res['msg']]);
+                }
+                //谷歌安全码验证
+                $google_code = I('request.google_code');
+                if (!$google_code) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "谷歌安全码不能为空！"]);
+                } else {
+                    $ga                = new \Org\Util\GoogleAuthenticator();
+                    $google_secret_key = M('Admin')->where(['id' => $uid])->getField('google_secret_key');
+                    if (!$google_secret_key) {
+                        $this->ajaxReturn(['status' => 0, 'msg' => "您未绑定谷歌身份验证器！"]);
+                    }
+                    if(false === $ga->verifyCode($google_secret_key, $google_code, C('google_discrepancy'))) {
+                        log_auth_error($uid,5);
+                        $this->ajaxReturn(['status' => 0, 'msg' => "谷歌安全码错误！"]);
+                    } else {
+                        clear_auth_error($uid,5);
+                    }
+                }
+            } elseif ($verifysms && $auth_type == 0) {
+                $res = check_auth_error($uid, 3);
+                if(!$res['status']) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => $res['msg']]);
+                }
+                //短信验证码
+                $code = I('request.code');
+                if (!$code) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "短信验证码不能为空！"]);
+                } else {
+                    if (session('send.submitDfSend') != $code || !$this->checkSessionTime('submitDfSend', $code)) {
+                        log_auth_error($uid,3);
+                        $this->ajaxReturn(['status' => 0, 'msg' => '短信验证码错误']);
+                    } else {
+                        clear_auth_error($uid,3);
+                        session('send', null);
+                    }
+                }
+            }
+            $status = I("post.status", 0, 'intval');
+            $map['id'] = $id;
+            $tableName = 'Wttklist';
+            $Wttklist = D('Wttklist');
+            $tables = $Wttklist->getTables();
+            foreach ($tables as $v){
+                $withdraw = $Wttklist->table($v)->where('id='.$id)->find();
+                if(!empty($withdraw)){
+                    $tableName = $v;
+                    break;
+                }
+            }
+            if (empty($withdraw)) {
+                $this->ajaxReturn(['status' => 0, 'msg' => '提款申请不存在']);
+            }
+            if ($withdraw['status'] > 1) {
+                $this->ajaxReturn(['status' => 0,'msg' => '订单当前状态不允许修改!']);
+            }
+            if($status == $withdraw['status']){
+                $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败1!']);
+            }
+
+            $data           = [];
+            $data["status"] = $status;
+            if(I('post.memo')) {
+                $data["memo"] = I('post.memo') . ' - ' . date('Y-m-d H:i:s') . ';' . $withdraw['memo'];
+            }
+            $data["cldatetime"] = date("Y-m-d H:i:s");
+            $res = $Wttklist->table($tableName)->where($map)->save($data);
+
+            if ($res) {
+                UserLogService::HTwrite(3, '保存后台提现成功', $uid.'保存后台提现：（' . $id . '）成功');
+                $this->ajaxReturn(['status' => $res]);
+            }
+            $this->ajaxReturn(['status' => 0,'msg' => '订单状态，失败']);
+        } else {
+            $Wttklist = D('Wttklist');
+            $tables = $Wttklist->getTables();
+            foreach ($tables as $v){
+                $withdraw = $Wttklist->table($v)->where(['id' => $id])->find();
+                if(!empty($withdraw)){
+                    break;
+                }
+            }
+
+            $this->assign('verifysms', $verifysms);
+            $this->assign('verifyGoogle', $verifyGoogle);
+            $this->assign('auth_type', $verifyGoogle ? 1 : 0);
+
+            $this->assign('info', $withdraw);
+            $this->display();
+        }
+    }
+
     /**
      * 获得订单号
      *

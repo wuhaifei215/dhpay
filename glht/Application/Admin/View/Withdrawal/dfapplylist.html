@@ -203,7 +203,7 @@
                             <td class="layui-input-inline">
                                 <button class="layui-btn layui-btn-small" onclick="set_wtop('系统订单号:<{$vo.orderid}>','<{:U('Admin/Withdrawal/showLog',['orderid'=>$vo[orderid]])}>',1000,600)">日志</button>
                                 <if condition="$vo['status'] eq 0 or 1">
-                                    <a class="layui-btn layui-btn-warm layui-btn-small" onclick="set_wtop('修改订单状态:<{$vo.orderid}>','<{:U('Admin/Withdrawal/editwtStatus',['id'=>$vo[id]])}>',510,360)">设置</a>
+                                    <a class="layui-btn layui-btn-warm layui-btn-small" onclick="set_wtop('修改订单状态:<{$vo.orderid}>','<{:U('Admin/Withdrawal/editStatus',['id'=>$vo[id]])}>',510,360)">设置</a>
                                 </if>
                                 <if condition="$vo['status'] eq 0">
                                     <a class="layui-btn layui-btn-warm layui-btn-small" onclick="submitPayment(this, '<{$vo[id]}>','exec')" >提交代付</a>

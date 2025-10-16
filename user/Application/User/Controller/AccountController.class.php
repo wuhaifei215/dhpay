@@ -1048,14 +1048,6 @@ class AccountController extends UserController
         $count = $MoneychangeModel->getCount($where);
         $page = new Page($count, $rows);
         $list = $MoneychangeModel->getOrderByDateRange('*', $where, $page->firstRow . ',' . $page->listRows, 'id desc');
-        foreach($list as $k => $v){
-            if($v['paytype']==1 || $v['paytype']== 2 || $v['paytype']==3){
-                $list[$k]['counttry'] = '菲律宾';
-            }
-            if($v['paytype']==4){
-                $list[$k]['counttry'] = '越南';
-            }
-        }
         
         $this->assign('uid', 10000+session("user_auth.uid"));
         $this->assign('rows', $rows);

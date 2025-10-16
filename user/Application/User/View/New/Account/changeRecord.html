@@ -9,11 +9,6 @@
                     </div>
                     <div class="table-responsive m-t-10">
                         <form class="layui-form layui-form-pane" action="" method="get" autocomplete="off" id="orderform">
-                            <!--<input type="hidden" name="m" value="User">-->
-                            <!--<input type="hidden" name="c" value="Account">-->
-                            <!--<input type="hidden" name="a" value="changeRecord">-->
-                            <!--<input type="hidden" name="p" value="1">-->
-                            <!--<input type="hidden" name="rows" id="rows" value="<{$rows}>">-->
                             <div class="layui-form-item layui-inline">
                                 <label class="layui-form-label">订单号</label>
                                 <div class="layui-input-inline">
@@ -78,7 +73,7 @@
                             <tr>
                                 <th lay-data="{field:'key',width:100}"></th>
                                 <th lay-data="{field:'transid', width:240}">订单号/外部订单号</th>
-                                <!--<th lay-data="{field:'counttry', width:100}">币种</th>-->
+                                <th lay-data="{field:'counttry', width:100}">币种</th>
                                 <th lay-data="{field:'ymoney', width:150}">原金额</th>
                                 <th lay-data="{field:'money', width:150}">变动金额</th>
                                 <th lay-data="{field:'gmoney', width:150}">变动后金额</th>
@@ -93,7 +88,7 @@
                                 <tr>
                                     <td><{$vo.id}></td>
                                     <td style="text-align:center;"><{$vo.transid}><br/><{$vo.orderid}></td>
-                                    <!--<td style="text-align:center;"><{$vo["counttry"]}></td>-->
+                                    <td style="text-align:center;"><{$vo["currency"]}></td>
                                     <td style="text-align:center;"><{$vo.ymoney}></td>
                                     <td>
                                         <if condition="$vo[ymoney] gt $vo[gmoney]">

@@ -387,19 +387,7 @@ class UserController extends BaseController
     /**
      * 用户资金操作（菲律宾）
      */
-    public function usermoneyPHP()
-    {
-        UserLogService::HTwrite(1, '查看用户资金操作', '查看用户资金操作');
-        $userid = I("get.userid", 0, 'intval');
-        $info = M("Member")->where(["id" => $userid])->find();
-        $this->assign('info', $info);
-        $this->display();
-    }
-
-    /**
-     * 用户资金操作（越南）
-     */
-    public function usermoneyINR()
+    public function usermoney()
     {
         UserLogService::HTwrite(1, '查看用户资金操作', '查看用户资金操作');
         $userid = I("get.userid", 0, 'intval');
@@ -520,7 +508,7 @@ class UserController extends BaseController
 
             $where['id'] = $userid;
             $res1 = M('Member')->where($where)->save($data);
-            $orderid = 'SD' . date("Y-m-d H:i:s");
+            $orderid = 'SD' . date("YmdHis") . rand(1000,9999);
             $arrayField = array(
                 "userid" => $userid,
                 'ymoney' => $ymoney,

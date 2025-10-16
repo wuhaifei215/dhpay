@@ -438,7 +438,7 @@ class WithdrawalController extends BaseController
         if ($bankcode) {
             $where['bankcode'] = array('eq', $bankcode);
         }else{
-            $where['bankcode'] = array('neq', 900);
+            $where['bankcode'] = array('gt', 900);
         }
         $this->assign("bankcode", $bankcode);
         
@@ -518,6 +518,7 @@ class WithdrawalController extends BaseController
         $where    = array();
         $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $where['currency'] = ['eq', $currency];
+        $where['bankcode'] = array('gt', 900);
         $this->assign('currency', $currency);
 
         $df_list = M('PayForAnother')->where($where)->select();

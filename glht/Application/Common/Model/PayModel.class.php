@@ -171,7 +171,7 @@ class PayModel
             // ];
             // $this->tongdao_ticheng($tongdao_ticheng_data);  //提成处理
 
-            M()->commit();echo 111;
+            M()->commit();
 
             //-----------------------------------------修改用户数据 商户余额、冻结余额end-----------------------------------
 

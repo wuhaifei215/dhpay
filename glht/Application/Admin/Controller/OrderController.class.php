@@ -1074,7 +1074,6 @@ class OrderController extends BaseController
                 }
             }
             $res = $payModel->completeOrder($order['pay_orderid'], '', 0);
-            var_dump($res);
             if ($res) {
                 UserLogService::HTwrite(3, '设置订单为已支付成功', '设置订单（' . $order['pay_orderid'] . '）为已支付成功');
                 $this->ajaxReturn(['status' => 1, 'msg' => "设置成功！"]);

@@ -12,10 +12,10 @@ use Think\Log;
 class ApiController extends Controller
 {
     protected $code = 'Tel_Api';
-    protected $bot_name = 'DhPay_Intl_Bot';
-    protected $token = '7702121626:AAEj7ztvQttmxXM5BJDnTHQ39ULTZFw303k';
+    protected $bot_name = 'I8Pay_PHP_Bot';
+    protected $token = '8257411210:AAHCedRvktdRdubtp8UjwgTYiwOTVfXBxsI';
     protected $callback = '';
-    protected $title='DhPay';
+    protected $title='I8Pay';
 
     public function __construct()
     {

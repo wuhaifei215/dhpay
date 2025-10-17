@@ -22,11 +22,9 @@ class H88PayDFController extends PaymentController
             $bank_code = 'MAYA';
         } elseif ($data['type'] == 'Bank'){
             if($data['bankname'] === 'gotyme'){
-                $type = 'GTB';
-            }elseif($data['bankname'] === 'bdo'){
-                $type = 'BNORP';
+                $bank_code = 'gotymebank';
             }else {
-                $return = ['status' => 3, 'msg' => '支付类型错误'];
+                $return = ['status' => 3, 'msg' => '支付银行类型错误'];
                 return $return;
             }
         } else {

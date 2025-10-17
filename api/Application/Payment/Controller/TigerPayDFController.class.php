@@ -20,8 +20,15 @@ class TigerPayDFController extends PaymentController
             $type = 'gcash';
         } elseif ($data['type']=='Maya'){
             $type = 'maya';
+        } elseif ($data['type'] == 'Bank'){
+            if($data['bankname'] === 'gotyme'){
+                $type = 'PH_GOT';
+            }else {
+                $return = ['status' => 3, 'msg' => '支付银行类型错误'];
+                return $return;
+            }
         } else {
-            $return = ['status' => 0, 'msg' => '支付类型错误'];
+            $return = ['status' => 3, 'msg' => '支付类型错误'];
             return $return;
         }
         $post_data = array(

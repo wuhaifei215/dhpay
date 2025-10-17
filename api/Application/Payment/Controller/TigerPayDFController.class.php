@@ -52,12 +52,12 @@ class TigerPayDFController extends PaymentController
                 $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
                 $userdfpost = json_decode($userdfpost,true);
                 
-                logApiAddPayment('商户提交YunPay', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
+                logApiAddPayment('下游商户提交', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
                 
                 // 结束并输出执行时间
                 $endTime = microtime(TRUE);
                 $doTime = floor(($endTime-$beginTime)*1000);
-                logApiAddPayment('订单提交三方TigerPay', __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '1');
+                logApiAddPayment('订单提交三方' . $this->code, __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '1');
             }catch (\Exception $e) {
                 // var_dump($e);
             }
@@ -105,9 +105,11 @@ class TigerPayDFController extends PaymentController
         }
         
         $config = M('pay_for_another')->where(['code' => $this->code,'id'=>$Order['df_id']])->find();
-        
+
         //验证IP白名单
-        if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
             $ip = $_SERVER['REMOTE_ADDR'];
         } else {
             $ip = getRealIp();
@@ -117,7 +119,7 @@ class TigerPayDFController extends PaymentController
             log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $ip.'==='.$config['notifyip']);    //日志
             $json_result = "IP异常:" . $ip.'==='.$config['notifyip'];
             try{
-                logApiAddNotify($orderid, 1, $re_data, $json_result);
+                logApiAddNotify($orderid, 1, $_REQUEST, $json_result);
             }catch (\Exception $e) {
                 // var_dump($e);
             }

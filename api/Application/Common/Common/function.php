@@ -997,6 +997,57 @@ function checkDfDomain($referer, $domain_recorded)
     return false;
 }
 
+
+/**
+ * 获取服务端IP
+ */
+function getRealIp() {
+    $ip = $_SERVER['REMOTE_ADDR'];
+
+    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $ip = trim($ips[0]);
+    } elseif (isset($_SERVER['HTTP_CLIENT_IP'])) {
+        $ip = $_SERVER['HTTP_CLIENT_IP'];
+    } elseif (isset($_SERVER['HTTP_X_REAL_IP'])) {
+        $ip = $_SERVER['HTTP_X_REAL_IP'];
+    }
+
+    // 验证 IP 地址的有效性
+    if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+        $ip = $_SERVER['REMOTE_ADDR'];
+    }
+
+    return $ip;
+}
+
+
+/**
+ * 检查代付回调IP是被已报备
+ * @param string $referer 来源IP
+ * @param string $domain_recorded 已报备域名
+ * @return boolean
+ */
+function checkNotifyurlIp($ip, $ip_recorded) {
+    if(!$ip) {
+        $ip = get_client_ip();
+    }
+    $ip_arr = explode(",", $ip_recorded);
+    if(empty($ip_arr)) {
+        return false;
+    }
+
+    foreach ($ip_arr as $k => $v) {
+        if($v) {
+            $ip_arr[$k] = trim($v);
+        }
+    }
+    if(in_array(trim($ip), $ip_arr)) {
+        return true;
+    }
+    return false;
+}
+
 /**
  * 检查代付提交IP是被已报备
  * @param string $referer 来源IP

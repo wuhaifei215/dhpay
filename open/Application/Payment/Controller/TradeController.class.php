@@ -13,25 +13,36 @@ class TradeController extends CreateDFController
     {
         parent::__construct();
     }
-    
+
     //代付查询
     public function query()
     {
+        $currency= I('post.currency', '', 'string,strip_tags,htmlspecialchars');
+        if (!$currency) {
+            $this->showmessage('国家货币不能为空！');
+        }
         $out_trade_no = I('request.out_trade_no', '', 'string,strip_tags,htmlspecialchars');
         if (!$out_trade_no) {
             $this->showmessage("缺少订单号");
         }
         $datetime = I('request.datetime', '', 'string,strip_tags,htmlspecialchars');
         if (!$datetime) {
-            $this->showmessage("缺少订单交易时间");
+            $this->showmessage("订单提交日期不能为空！");
         }
         $sign = I('request.pay_md5sign', '', 'string');
         if (!$sign) {
             $this->showmessage("缺少签名参数");
         }
-        $user_id = $this->memberid - 10000;
+
+        $memberid= I('post.mchid', 0, 'intval');
+        if ($memberid == 0) {
+            $this->showmessage('不存在的商户编号!');
+        }else{
+            $user_id = $memberid - 10000;
+        }
+
         //用户信息
-        $this->merchants = D('Member')->where(array('id' => $user_id))->find();
+        $this->merchants = D('Member')->where(array('id' => $user_id,'currency'=>$currency))->find();
         if (empty($this->merchants)) {
             $this->showmessage('商户不存在！');
         }
@@ -60,7 +71,8 @@ class TradeController extends CreateDFController
             }
         }
         $request = [
-            'mchid' => $this->memberid,
+            'currency' =>$currency,
+            'mchid' => $memberid,
             'out_trade_no' => $out_trade_no,
             'datetime' => $datetime
         ];
@@ -84,12 +96,28 @@ class TradeController extends CreateDFController
             $this->showmessage('签名验证失败', $result);
         }
         $where = [
+            'currency' =>$currency,
             'userid' => $user_id,
             'out_trade_no' => $out_trade_no,
             'sqdatetime'=>['between',[date('Y-m-d H:i:s',strtotime($datetime . ' 00:00:00')),date('Y-m-d H:i:s',strtotime($datetime . ' 23:59:59'))]],
         ];
         $Wttklist = D('Wttklist');
         $order = $Wttklist->table($Wttklist->getRealTableName($datetime))->where($where)->find();
+        if(!$order || empty($order)){
+            $where = [
+                'currency' =>$currency,
+                'userid' => $user_id,
+                'out_trade_no' => $out_trade_no,
+                'sqdatetime'=>['between',[date('Y-m-d H:i:s',strtotime($datetime . ' 00:00:00')),date('Y-m-d H:i:s',strtotime($datetime . ' 23:59:59') + 86400)]],
+            ];
+            $t_date = date('Y-m-d',strtotime($datetime . ' 23:59:59') + 86400);
+            $Wttklist = D('Wttklist');
+            try {
+                $order = $Wttklist->table($Wttklist->getRealTableName($t_date))->where($where)->find();
+            } catch (\Exception $e) {
+
+            }
+        }
         // echo $Wttklist->table($Wttklist->getRealTableName($datetime))->getLastSql();
         // var_dump($order);
         if (!$order) {
@@ -123,7 +151,7 @@ class TradeController extends CreateDFController
                 'status' => 'success',
                 'msg' => '请求成功',
                 'orderType' => 'df',
-                'mchid' => $this->memberid,
+                'mchid' => $memberid,
                 'out_trade_no' => $order['out_trade_no'],
                 'amount' => $order['money'],
                 'transaction_id' => $order['orderid'],
@@ -142,13 +170,24 @@ class TradeController extends CreateDFController
     //余额查询
     public function balance()
     {
+        $currency= I('post.currency', '', 'string,strip_tags,htmlspecialchars');
+        if (!$currency) {
+            $this->showmessage('国家货币不能为空！');
+        }
         $sign = I('request.pay_md5sign', '', 'string');
         if (!$sign) {
-            $this->showmessage("缺少签名参数");
+            $this->showmessage("签名参数不能为空！");
         }
-        $user_id = $this->memberid - 10000;
+
+        $memberid= I('post.mchid', 0, 'intval');
+        if ($memberid == 0) {
+            $this->showmessage('不存在的商户编号!');
+        }else{
+            $user_id = $memberid - 10000;
+        }
+
         //用户信息
-        $this->merchants = D('Member')->where(array('id' => $user_id))->find();
+        $this->merchants = D('Member')->where(array('id' => $user_id,'currency'=>$currency))->find();
         if (empty($this->merchants)) {
             $this->showmessage('商户不存在！');
         }
@@ -178,7 +217,8 @@ class TradeController extends CreateDFController
         }
 
         $request = [
-            'mchid' => $this->memberid
+            'mchid' => $memberid,
+            'currency'=>$currency
         ];
 
         $signature = $this->createSign($this->merchants['apikey'], $request);
@@ -202,23 +242,151 @@ class TradeController extends CreateDFController
         $return = [
             'status' => 'success',
             'msg' => '请求成功',
-            'mchid' => $this->memberid,
+            'mchid' => $memberid,
             'data' => [
-                [
-                    'currency' => 'BRL',
-                    'balance' => $this->merchants['balance_php'],//菲律宾可提现余额
-                    'blockedbalance' => $this->merchants['blockedbalance_php'],//菲律宾冻结余额
-                ],
-                // [
-                //     'currency' => 'INR',
-                //     'balanceINR' => $this->merchants['balance_inr'],//越南可提现余额
-                //     'blockedbalanceINR' => $this->merchants['blockedbalance_inr'],//越南冻结余额
-                // ],
+                'currency' => $this->merchants['currency'],
+                'balance' => $this->merchants['balance'],//菲律宾可提现余额
+                'blockedbalance' => $this->merchants['blockedbalance'],//菲律宾冻结余额
             ],
         ];
         $return['sign'] = $this->createSign($this->merchants['apikey'], $return);
         echo json_encode($return);
     }
 
+    //获取凭证
+    public function voucher(){
+        $currency= I('post.currency', '', 'string,strip_tags,htmlspecialchars');
+        if (!$currency) {
+            $this->showmessage('国家货币不能为空！');
+        }
+        $out_trade_no = I('request.out_trade_no', '', 'string,strip_tags,htmlspecialchars');
+        if (!$out_trade_no) {
+            $this->showmessage("缺少订单号");
+        }
+        $datetime = I('request.datetime', '', 'string,strip_tags,htmlspecialchars');
+        if (!$datetime) {
+            $this->showmessage("订单提交日期不能为空！");
+        }
+        $sign = I('request.pay_md5sign', '', 'string');
+        if (!$sign) {
+            $this->showmessage("缺少签名参数");
+        }
+
+        $memberid= I('post.mchid', 0, 'intval');
+        if ($memberid == 0) {
+            $this->showmessage('不存在的商户编号!');
+        }else{
+            $user_id = $memberid - 10000;
+        }
+
+        //用户信息
+        $this->merchants = D('Member')->where(array('id' => $user_id))->find();
+        if (empty($this->merchants)) {
+            $this->showmessage('商户不存在！');
+        }
+        if (!$this->merchants['df_api']) {
+            $this->showmessage('商户未开启此功能！');
+        }
+        if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        } else {
+            $ip = get_client_ip();
+        }
+        $referer = getHttpReferer();
+        if ($this->merchants['df_domain'] != '') {
+            if (!checkDfDomain($referer, $this->merchants['df_domain'])) {
+                $this->showmessage('请求来源域名与报备域名不一致！');
+            }
+        }
+        if ($this->merchants['df_ip'] != '') {
+            if (!checkDfIp($ip, $this->merchants['df_ip'])) {
+                $this->showmessage('IP地址与报备IP不一致！');
+            }
+            $hostname = getHost($referer);//请求来源域名
+            $domainIp = gethostbyname($hostname);//域名IP
+            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
+                $this->showmessage('来源域名IP地址与报备IP不一致！');
+            }
+        }
+        $request = [
+            'currency'=>$currency,
+            'mchid' => $memberid,
+            'out_trade_no' => $out_trade_no,
+            'datetime' => $datetime
+        ];
+
+        $signature = $this->createSign($this->merchants['apikey'], $request);
+        if ($signature != $sign) {
+            ksort($_POST);
+            $md5str = "";
+            foreach ($_POST as $key => $val) {
+                if (!empty($val) && $key != 'pay_md5sign') {
+                    $md5str = $md5str . $key . "=" . $val . "&";
+                }
+            }
+            // $sign = strtoupper(md5($md5str . "key=" . $this->merchants['apikey']));
+            $result = [
+                '提醒' => '请比对拼接顺序及签名',
+                'POST数据' => $_POST,
+                '拼接顺序' => substr($md5str, 0, strlen($md5str) - 1),
+                // '签名' => $sign,
+            ];
+            $this->showmessage('签名验证失败', $result);
+        }
+        $where = [
+            'currency'=>$currency,
+            'userid' => $user_id,
+            'out_trade_no' => $out_trade_no,
+            'sqdatetime'=>['between',[date('Y-m-d H:i:s',strtotime($datetime . ' 00:00:00')),date('Y-m-d H:i:s',strtotime($datetime . ' 23:59:59'))]],
+        ];
+        $Wttklist = D('Wttklist');
+        $order = $Wttklist->table($Wttklist->getRealTableName($datetime))->where($where)->find();
+        if(!$order || empty($order)){
+            $where = [
+                'currency'=>$currency,
+                'userid' => $user_id,
+                'out_trade_no' => $out_trade_no,
+                'sqdatetime'=>['between',[date('Y-m-d H:i:s',strtotime($datetime . ' 00:00:00')),date('Y-m-d H:i:s',strtotime($datetime . ' 23:59:59') + 86400)]],
+            ];
+            $t_date = date('Y-m-d',strtotime($datetime . ' 23:59:59') + 86400);
+            $Wttklist = D('Wttklist');
+            try {
+                $order = $Wttklist->table($Wttklist->getRealTableName($t_date))->where($where)->find();
+            } catch (\Exception $e) {
+
+            }
+        }
+        if (!$order) {
+            $return = [
+                'status' => 'error',
+                'msg' => '请求成功',
+                'refCode' => '7',
+                'refMsg' => '交易不存在',
+            ];
+        }else {
+            if ($order['status'] == 2 || $order['status'] == 3) {
+                $return = [
+                    'status' => 'success',
+                    'msg' => '请求成功',
+                    'mchid' => $memberid,
+                    'out_trade_no' => $order['out_trade_no'],
+                    'transaction_id' => $order['orderid'],
+                    'refCode' => '1',
+                    'refMsg' => '代付成功',
+                    'voucherUrl' => 'https://' . C('DOMAIN') . '/Payment_Index_voucher.html?casOrdNo=' . $order['orderid'] . '&currency=' . $currency,
+                ];
+            }else{
+                $return = [
+                    'status' => 'error',
+                    'msg' => '请求成功',
+                    'refCode' => '8',
+                    'refMsg' => '交易订单状态异常，请查询订单',
+                ];
+            }
+            $return['sign'] = $this->createSign($this->merchants['apikey'], $return);
+        }
+        echo json_encode($return);
+        exit;
+    }
 
 }

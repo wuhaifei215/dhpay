@@ -2,7 +2,7 @@
 
 namespace Pay\Controller;
 
-class H88PayController extends PayController
+class H88PayGcashController extends PayController
 {
     private $code = '';
     private $query_url='https://pay.h88pay.com/pay/order/trade';
@@ -23,7 +23,7 @@ class H88PayController extends PayController
         $pay_callbackurl = I('request.pay_callbackurl', '');
         $parameter = [
             'code' => $this->code,
-            'title' => 'H88Pay',
+            'title' => 'Gcash-H88Pay',
             'exchange' => 1, // 金额比例
             'gateway' => "",
             'orderid' => '',
@@ -42,7 +42,7 @@ class H88PayController extends PayController
         $native = array(
             'merchant_id' => $return['mch_id'],
             'order_no' => $return['orderid'],
-            'pay_type' => 101,
+            'pay_type' => 113,
             'amount' => sprintf('%.2f', $return['amount']), 
             'notify_url' => $return["notifyurl"],
             'return_type' => "json",        //返回类型，默认为表单提交，传值json,接口返回pay_url,传info,系统将返回支付信息，商户需自行处理(如需使用info请联系平台管理员)  
@@ -58,28 +58,26 @@ class H88PayController extends PayController
         log_place_order($this->code, $return['orderid'] . "----返回", $returnContent);    //日志
         $ans = json_decode($returnContent, true);
         if($ans['status'] === 1){
-            $payurl = $site . 'PayPage.html?sid=' . $return['orderid'] . '&amount=' . $return['amount']. '&qrcode=' .$ans['data']['pay_url']['qrcode'];
+            if($array['userid'] == 2){
+                echo '<script type="text/javascript">window.location.href="' . $ans['data']['pay_url'] . '"</script>';
+            }else{
                 $return_arr = [
                     'status' => 'success',
-                    'H5_url' => $payurl,
-                    'QRcode' => $ans['data']['pay_url']['qrcode'],
+                    'H5_url' => $ans['data']['pay_url'],
                     'pay_orderid' => $orderid,
                     'out_trade_id' => $return['orderid'],
                     'amount' => sprintf('%.2f', $return['amount']),
                     'datetime' => date('Y-m-d')
                 ];
+            }
         }else{
             $return_arr = [
                 'status' => 'error',
                 'msg' => $ans['info'], 
             ];
         }
-        if($array['userid'] == 2){
-            echo '<script type="text/javascript">window.location.href="' . $payurl . '"</script>';
-        }else{
-            echo json_encode($return_arr);
+        echo json_encode($return_arr);
         
-        }
         // if($array['userid'] == 2){
             try{
                 $redis = $this->redis_connect();
@@ -120,25 +118,13 @@ class H88PayController extends PayController
         if (!$orderList) return;
 
         //验证IP白名单
-        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+        if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
             $ip = $_SERVER['REMOTE_ADDR'];
         } else {
             $ip = getRealIp();
         }
-        
         $check_re = check_IP($orderList['channel_id'], $ip, $orderid);
-        if ($check_re !== true) {
-            log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $ip);    //日志
-            $json_result = "IP异常:" . $ip;
-            try{
-                logApiAddNotify($orderid, 1, $result, $json_result);
-            }catch (\Exception $e) {
-                // var_dump($e);
-            }
-            return;
-        }
+        if ($check_re !== true) return;
 
         $sign = $this->sign($result, $orderList['key']);
         if ($sign == $result["sign"]) {

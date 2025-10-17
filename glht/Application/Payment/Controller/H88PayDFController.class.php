@@ -16,10 +16,27 @@ class H88PayDFController extends PaymentController
     //代付提交
     public function PaymentExec($data, $config)
     {
+        if($data['type']=='Gcash'){
+            $bank_code = 'GCASH';
+        } elseif ($data['type']=='Maya'){
+            $bank_code = 'MAYA';
+        } elseif ($data['type'] == 'Bank'){
+            if($data['bankname'] === 'gotyme'){
+                $type = 'GTB';
+            }elseif($data['bankname'] === 'bdo'){
+                $type = 'BNORP';
+            }else {
+                $return = ['status' => 3, 'msg' => '支付类型错误'];
+                return $return;
+            }
+        } else {
+            $return = ['status' => 3, 'msg' => '支付类型错误'];
+            return $return;
+        }
         $post_data = array(
             "merchant_id" => $config['mch_id'], //商户号
             "order_no" => $data['orderid'], //订单号
-            'bank_code' =>$data['type'],
+            'bank_code' =>$bank_code,
             "bank_number" => $data['banknumber'],    //账号
             "amount" => $data['money'],  //提现金额
             "notify_url" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
@@ -93,9 +110,7 @@ class H88PayDFController extends PaymentController
         
         $config = M('pay_for_another')->where(['code' => $this->code,'id'=>$Order['df_id']])->find();
         //验证IP白名单
-        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+        if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
             $ip = $_SERVER['REMOTE_ADDR'];
         } else {
             $ip = getRealIp();
@@ -122,7 +137,7 @@ class H88PayDFController extends PaymentController
                 $this->changeStatus($Order['id'], 2, $data, $tableName);
                 // $this->handle($Order['id'], 2, $data, $tableName);
                 log_place_order($this->code . '_notifyurl', $orderid, "----代付成功");    //日志
-                $json_result = "OK";
+                $json_result = "success";
             } elseif ($re_data['state'] == "-2" || $re_data['state'] == "-3") {
                 //代付失败
                 $data = [

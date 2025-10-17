@@ -1,7 +1,7 @@
 <?php
 namespace Pay\Controller;
 
-class YunPayController extends PayController
+class YunPayGcashController extends PayController
 {
     private $code = '';
 
@@ -22,7 +22,7 @@ class YunPayController extends PayController
         $pay_callbackurl = I('request.pay_callbackurl', '');
         $parameter = [
             'code' => $this->code,
-            'title' => 'YunPay',
+            'title' => 'Gcash--YunPay',
             'exchange' => 1, // 金额比例
             'gateway' => "",
             'orderid' => '',

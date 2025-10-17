@@ -33,7 +33,14 @@ class TradeController extends CreateDFController
         if (!$sign) {
             $this->showmessage("缺少签名参数");
         }
-        $user_id = $this->memberid - 10000;
+        
+        $memberid= I('post.mchid', 0, 'intval');
+        if ($memberid == 0) {
+            $this->showmessage('不存在的商户编号!');
+        }else{
+            $user_id = $memberid - 10000;
+        }
+        
         //用户信息
         $this->merchants = D('Member')->where(array('id' => $user_id,'currency'=>$currency))->find();
         if (empty($this->merchants)) {
@@ -65,7 +72,7 @@ class TradeController extends CreateDFController
         }
         $request = [
             'currency' =>$currency,
-            'mchid' => $this->memberid,
+            'mchid' => $memberid,
             'out_trade_no' => $out_trade_no,
             'datetime' => $datetime
         ];
@@ -144,7 +151,7 @@ class TradeController extends CreateDFController
                 'status' => 'success',
                 'msg' => '请求成功',
                 'orderType' => 'df',
-                'mchid' => $this->memberid,
+                'mchid' => $memberid,
                 'out_trade_no' => $order['out_trade_no'],
                 'amount' => $order['money'],
                 'transaction_id' => $order['orderid'],
@@ -171,7 +178,14 @@ class TradeController extends CreateDFController
         if (!$sign) {
             $this->showmessage("签名参数不能为空！");
         }
-        $user_id = $this->memberid - 10000;
+
+        $memberid= I('post.mchid', 0, 'intval');
+        if ($memberid == 0) {
+            $this->showmessage('不存在的商户编号!');
+        }else{
+            $user_id = $memberid - 10000;
+        }
+        
         //用户信息
         $this->merchants = D('Member')->where(array('id' => $user_id,'currency'=>$currency))->find();
         if (empty($this->merchants)) {
@@ -203,7 +217,7 @@ class TradeController extends CreateDFController
         }
 
         $request = [
-            'mchid' => $this->memberid,
+            'mchid' => $memberid,
             'currency'=>$currency
         ];
 
@@ -228,7 +242,7 @@ class TradeController extends CreateDFController
         $return = [
             'status' => 'success',
             'msg' => '请求成功',
-            'mchid' => $this->memberid,
+            'mchid' => $memberid,
             'data' => [
                 'currency' => $this->merchants['currency'],
                 'balance' => $this->merchants['balance'],//菲律宾可提现余额
@@ -257,7 +271,14 @@ class TradeController extends CreateDFController
         if (!$sign) {
             $this->showmessage("缺少签名参数");
         }
-        $user_id = $this->memberid - 10000;
+
+        $memberid= I('post.mchid', 0, 'intval');
+        if ($memberid == 0) {
+            $this->showmessage('不存在的商户编号!');
+        }else{
+            $user_id = $memberid - 10000;
+        }
+        
         //用户信息
         $this->merchants = D('Member')->where(array('id' => $user_id))->find();
         if (empty($this->merchants)) {
@@ -289,7 +310,7 @@ class TradeController extends CreateDFController
         }
         $request = [
             'currency'=>$currency,
-            'mchid' => $this->memberid,
+            'mchid' => $memberid,
             'out_trade_no' => $out_trade_no,
             'datetime' => $datetime
         ];
@@ -347,7 +368,7 @@ class TradeController extends CreateDFController
                 $return = [
                     'status' => 'success',
                     'msg' => '请求成功',
-                    'mchid' => $this->memberid,
+                    'mchid' => $memberid,
                     'out_trade_no' => $order['out_trade_no'],
                     'transaction_id' => $order['orderid'],
                     'refCode' => '1',

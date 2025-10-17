@@ -16,12 +16,22 @@ class YunPayDFController extends PaymentController
     //代付提交
     public function PaymentExec($data, $config)
     {
+        if($data['type']=='Gcash'){
+            $bank_code = 'GCASH';
+        } elseif ($data['type']=='Maya'){
+            $bank_code = 'MAYA';
+        } elseif ($data['type'] == 'Bank'){
+            $bank_code = $data['bankname'];
+        } else {
+            $return = ['status' => 3, 'msg' => '支付类型错误'];
+            return $return;
+        }
         $post_data = array(
             "mchid" => $config['mch_id'], //商户号
             "out_trade_no" => $data['orderid'], //订单号
             "money" => sprintf("%.2f", $data['money']),  //提现金额（单位分）
             "bankcode" => 910,
-            "accountname" => $data['bankfullname'],  //户名
+            "accountname" => $bank_code,  //户名
             "cardnumber" => $data['banknumber'],    //账号
             "notifyurl" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
             "type" => $data['type'],
@@ -146,6 +156,7 @@ class YunPayDFController extends PaymentController
     //账户余额查询
     public function queryBalance()
     {
+        log_place_order($this->code . '_queryBalance', "提交", '1111');    //日志
         if (IS_AJAX) {
             $id = I('post.id', 1);
             $config = M('pay_for_another')->where(['id' => $id])->find();

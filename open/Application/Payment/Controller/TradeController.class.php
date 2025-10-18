@@ -49,7 +49,9 @@ class TradeController extends CreateDFController
         if (!$this->merchants['df_api']) {
             $this->showmessage('商户未开启此功能！');
         }
-        if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
             $ip = $_SERVER['REMOTE_ADDR'];
         } else {
             $ip = get_client_ip();
@@ -64,11 +66,11 @@ class TradeController extends CreateDFController
             if (!checkDfIp($ip, $this->merchants['df_ip'])) {
                 $this->showmessage('IP地址与报备IP不一致！');
             }
-            $hostname = getHost($referer);//请求来源域名
-            $domainIp = gethostbyname($hostname);//域名IP
-            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
-                $this->showmessage('来源域名IP地址与报备IP不一致！');
-            }
+//            $hostname = getHost($referer);//请求来源域名
+//            $domainIp = gethostbyname($hostname);//域名IP
+//            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
+//                $this->showmessage('来源域名IP地址与报备IP不一致！');
+//            }
         }
         $request = [
             'currency' =>$currency,
@@ -194,7 +196,9 @@ class TradeController extends CreateDFController
         if (!$this->merchants['df_api']) {
             $this->showmessage('商户未开启此功能！');
         }
-        if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
             $ip = $_SERVER['REMOTE_ADDR'];
         } else {
             $ip = get_client_ip();
@@ -209,11 +213,11 @@ class TradeController extends CreateDFController
             if (!checkDfIp($ip, $this->merchants['df_ip'])) {
                 $this->showmessage('IP地址与报备IP不一致！');
             }
-            $hostname = getHost($referer);//请求来源域名
-            $domainIp = gethostbyname($hostname);//域名IP
-            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
-                $this->showmessage('来源域名IP地址与报备IP不一致！');
-            }
+//            $hostname = getHost($referer);//请求来源域名
+//            $domainIp = gethostbyname($hostname);//域名IP
+//            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
+//                $this->showmessage('来源域名IP地址与报备IP不一致！');
+//            }
         }
 
         $request = [
@@ -287,7 +291,9 @@ class TradeController extends CreateDFController
         if (!$this->merchants['df_api']) {
             $this->showmessage('商户未开启此功能！');
         }
-        if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
             $ip = $_SERVER['REMOTE_ADDR'];
         } else {
             $ip = get_client_ip();
@@ -302,11 +308,11 @@ class TradeController extends CreateDFController
             if (!checkDfIp($ip, $this->merchants['df_ip'])) {
                 $this->showmessage('IP地址与报备IP不一致！');
             }
-            $hostname = getHost($referer);//请求来源域名
-            $domainIp = gethostbyname($hostname);//域名IP
-            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
-                $this->showmessage('来源域名IP地址与报备IP不一致！');
-            }
+//            $hostname = getHost($referer);//请求来源域名
+//            $domainIp = gethostbyname($hostname);//域名IP
+//            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
+//                $this->showmessage('来源域名IP地址与报备IP不一致！');
+//            }
         }
         $request = [
             'currency'=>$currency,

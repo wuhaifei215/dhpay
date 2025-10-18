@@ -73,7 +73,7 @@ class DfpayController extends Controller
             $this->showmessage('提交IP地址未报备！');
         } elseif ($this->merchants['df_ip'] != '') {
             if (!checkDfIp($ip, $this->merchants['df_ip'])) {
-                
+
             // PaymentLogs( 'DFpay_add_server', $user_id.':'.$ip.'=='. $this->merchants['df_ip']);
                 $this->showmessage('IP地址与报备IP不一致！');
             }
@@ -88,7 +88,7 @@ class DfpayController extends Controller
                 }
             }
         }
-        
+
         $bankname = I("post.bankname", '', 'string,strip_tags,htmlspecialchars');
         if (!$bankname) {
             $this->showmessage('银行名称不能为空！');
@@ -97,7 +97,7 @@ class DfpayController extends Controller
         if (!$ifsc) {
             $this->showmessage('银行IFSC不能为空！');
         }
-        
+
         //结算方式：
         //结算方式：
         $Tikuanconfig = M('Tikuanconfig');
@@ -108,10 +108,10 @@ class DfpayController extends Controller
         if (!$defaultConfig) {
             return ['status' => 0, 'msg' => '提款已关闭！'];
         }
-        
+
         $channel = M('pay_for_another')->alias('as A')->field('A.*')->join('LEFT JOIN `pay_user_pay_for_another` AS B ON A.id = B.channel')->where(['B.userid' => $user_id])->find();
         $channelConfig = $Tikuanconfig->where(['channel'=> $channel['id'] , 'userid' => 1 , 'tkzt' => 1])->find();       //通道规则
-        
+
         //判断是否设置个人规则
         if ($tkConfig && $tkConfig['tkzt'] == 1 && $tkConfig['systemxz'] == 1) {
             //个人规则，但是提现时间规则要按照系统规则
@@ -165,12 +165,12 @@ class DfpayController extends Controller
             'out_trade_no' => $out_trade_no,
             'sqdatetime'=>['between',[date('Y-m-d',time()-86399) . ' 00:00:00', date('Y-m-d',time()) . ' 23:59:59']],
         ];
-        
+
         // $count = $Wttklist->getCount($where);
         // if($count && !empty($count)){
         //     $this->showmessage('重复订单号！');
         // }
-        
+
         $where['sqdatetime'] = ['between', [date('Y-m-d') . ' 00:00:00', date('Y-m-d') . ' 23:59:59']];
         //判断是否超过当天次数
         $wttkNum = $Wttklist->getCount($where);
@@ -197,7 +197,7 @@ class DfpayController extends Controller
         //计算手续费
 //       $sxfmoney = $tkConfig['tktype'] ? $tkConfig['sxffixed'] : bcdiv(bcmul($data['money'], $tkConfig['sxfrate'], 4), 100, 4);
 
-        
+
         if ($tkConfig['tktype'] == 1) { //按比例计算
             $sxfmoney = $tkConfig['sxffixed'];
         } elseif ($tkConfig['tktype'] == 2) {   //按单笔加比例计算
@@ -298,7 +298,7 @@ class DfpayController extends Controller
             }
             $res1 = $Member->where(['id' => $user_id])->save(['balance' => $balance]);
             //获取数据表名称
-            
+
 
             $table = $Wttklist->getRealTableName($wttkData['sqdatetime']);
             // var_dump($table);die;
@@ -420,11 +420,11 @@ class DfpayController extends Controller
             if (!checkDfIp($ip, $this->merchants['df_ip'])) {
                 $this->showmessage('IP地址与报备IP不一致！');
             }
-            $hostname = getHost($referer);//请求来源域名
-            $domainIp = gethostbyname($hostname);//域名IP
-            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
-                $this->showmessage('来源域名IP地址与报备IP不一致！');
-            }
+//            $hostname = getHost($referer);//请求来源域名
+//            $domainIp = gethostbyname($hostname);//域名IP
+//            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
+//                $this->showmessage('来源域名IP地址与报备IP不一致！');
+//            }
         }
 
         $request = [
@@ -527,11 +527,11 @@ class DfpayController extends Controller
             if (!checkDfIp($ip, $this->merchants['df_ip'])) {
                 $this->showmessage('IP地址与报备IP不一致！');
             }
-            $hostname = getHost($referer);//请求来源域名
-            $domainIp = gethostbyname($hostname);//域名IP
-            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
-                $this->showmessage('来源域名IP地址与报备IP不一致！');
-            }
+//            $hostname = getHost($referer);//请求来源域名
+//            $domainIp = gethostbyname($hostname);//域名IP
+//            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
+//                $this->showmessage('来源域名IP地址与报备IP不一致！');
+//            }
         }
 
         $request = [
@@ -615,7 +615,7 @@ class DfpayController extends Controller
         echo json_encode($data, 320);
         exit;
     }
-    
+
     protected function handle($id, $status = 1, $return,$table='Wttklist'){
 	    //处理成功返回的数据
         $Wttklist = D('Wttklist');

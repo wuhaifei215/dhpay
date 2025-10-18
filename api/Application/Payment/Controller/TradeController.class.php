@@ -66,11 +66,11 @@ class TradeController extends CreateDFController
             if (!checkDfIp($ip, $this->merchants['df_ip'])) {
                 $this->showmessage('IP地址与报备IP不一致！');
             }
-            $hostname = getHost($referer);//请求来源域名
-            $domainIp = gethostbyname($hostname);//域名IP
-            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
-                $this->showmessage('来源域名IP地址与报备IP不一致！');
-            }
+//            $hostname = getHost($referer);//请求来源域名
+//            $domainIp = gethostbyname($hostname);//域名IP
+//            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
+//                $this->showmessage('来源域名IP地址与报备IP不一致！');
+//            }
         }
         $request = [
             'currency' =>$currency,
@@ -213,11 +213,11 @@ class TradeController extends CreateDFController
             if (!checkDfIp($ip, $this->merchants['df_ip'])) {
                 $this->showmessage('IP地址与报备IP不一致！');
             }
-            $hostname = getHost($referer);//请求来源域名
-            $domainIp = gethostbyname($hostname);//域名IP
-            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
-                $this->showmessage('来源域名IP地址与报备IP不一致！');
-            }
+//            $hostname = getHost($referer);//请求来源域名
+//            $domainIp = gethostbyname($hostname);//域名IP
+//            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
+//                $this->showmessage('来源域名IP地址与报备IP不一致！');
+//            }
         }
 
         $request = [
@@ -308,11 +308,11 @@ class TradeController extends CreateDFController
             if (!checkDfIp($ip, $this->merchants['df_ip'])) {
                 $this->showmessage('IP地址与报备IP不一致！');
             }
-            $hostname = getHost($referer);//请求来源域名
-            $domainIp = gethostbyname($hostname);//域名IP
-            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
-                $this->showmessage('来源域名IP地址与报备IP不一致！');
-            }
+//            $hostname = getHost($referer);//请求来源域名
+//            $domainIp = gethostbyname($hostname);//域名IP
+//            if (!checkDfIp($domainIp, $this->merchants['df_ip'])) {
+//                $this->showmessage('来源域名IP地址与报备IP不一致！');
+//            }
         }
         $request = [
             'currency'=>$currency,

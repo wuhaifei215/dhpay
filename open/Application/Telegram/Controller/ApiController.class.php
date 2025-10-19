@@ -318,7 +318,7 @@ class ApiController extends Controller
                     $uid = $str[1] - 10000;
                     $re = M('Member')->where(['id'=> $uid])->save(['telegram_id' => $chat_id]);
                     log_place_order($this->code . '_bind', "记录插入异常", json_encode($where, JSON_UNESCAPED_UNICODE));    //日志
-                    log_place_order($this->code . '_bind', "$chat_id", $chat_id);    //日志
+                    log_place_order($this->code . '_bind', "chat_id", $chat_id);    //日志
                     log_place_order($this->code . '_bind', "sql", M('Member')->getLastSql());    //日志
                     if ($re) {
                         $message = "成功绑定商户号：" . $str[1] . "\r\n--------------------------------\r\n";

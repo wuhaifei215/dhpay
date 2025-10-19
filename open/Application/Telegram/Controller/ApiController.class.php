@@ -315,13 +315,13 @@ class ApiController extends Controller
                     return;
                 } else {
                     $where=[];
-                    $where['id'] = $str[1] - 10000;
-                    $re = M('Member')->where($where)->save(['telegram_id' => $chat_id]);
+                    $uid = $str[1] - 10000;
+                    $re = M('Member')->where(['id'=> $uid])->save(['telegram_id' => $chat_id]);
                     log_place_order($this->code . '_bind', "记录插入异常", json_encode($where, JSON_UNESCAPED_UNICODE));    //日志
+                    log_place_order($this->code . '_bind', "$chat_id", $chat_id);    //日志
                     log_place_order($this->code . '_bind', "sql", M('Member')->getLastSql());    //日志
                     if ($re) {
-                        $uid = $user_check['id'] + 10000;
-                        $message = "成功绑定商户号：" . $uid . "\r\n--------------------------------\r\n";
+                        $message = "成功绑定商户号：" . $str[1] . "\r\n--------------------------------\r\n";
                         $message .= $this->title . "，7*24小时服务\r\n 可以帮助您查询余额，收款订单详情、出款订单详情\r\n ";
                         $message .= "输入 /show 可查看群组信息及提示，无需再添加其他参数\r\n ";
                         $message .= "输入 /balance 可查询当前账户的查询余额，无需再添加其他参数\r\n ";

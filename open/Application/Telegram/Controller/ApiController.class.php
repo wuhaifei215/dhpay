@@ -302,7 +302,7 @@ class ApiController extends Controller
         if (strpos($text, '/bind') !== false) {
             if ($str[1]) {
                 $user_check = M('Member')->where(['telegram_id' => $chat_id])->getField('id');
-                log_place_order($this->code . '_bind', "sql", M('Member')->getLastSql());    //日志
+//                log_place_order($this->code . '_bind', "sql", M('Member')->getLastSql());    //日志
                 if ($user_check) {
                     $uid = $user_check['id'] + 10000;
                     $message = "本群已绑定商户号：" . $uid . "\r\n--------------------------------\r\n";
@@ -323,9 +323,9 @@ class ApiController extends Controller
                         return;
                     }
 
-                    log_place_order($this->code . '_bind', "uid", $uid);    //日志
-                    log_place_order($this->code . '_bind', "chat_id", $chat_id);    //日志
-                    log_place_order($this->code . '_bind', "sql", M('Member')->getLastSql());    //日志
+//                    log_place_order($this->code . '_bind', "uid", $uid);    //日志
+//                    log_place_order($this->code . '_bind', "chat_id", $chat_id);    //日志
+//                    log_place_order($this->code . '_bind', "sql", M('Member')->getLastSql());    //日志
                     if ($re) {
                         $message = "成功绑定商户号：" . $str[1] . "\r\n--------------------------------\r\n";
                         $message .= $this->title . "，7*24小时服务\r\n 可以帮助您查询余额，收款订单详情、出款订单详情\r\n ";
@@ -336,7 +336,7 @@ class ApiController extends Controller
                         // $message .= "输入 /pz 可查询出款凭证，后面+空格+订单号；例如:/pz 928271637212\r\n ";
                         $this->sendMessage($chat_id, $message, $message_id);
                     } else {
-                        $this->sendMessage($chat_id, '绑定失败', $message_id);
+                        $this->sendMessage($chat_id, '绑定' . $str[1] . '失败', $message_id);
                     }
                 }
             } else {

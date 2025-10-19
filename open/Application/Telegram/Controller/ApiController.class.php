@@ -302,6 +302,7 @@ class ApiController extends Controller
         if (strpos($text, '/bind') !== false) {
             if ($str[1]) {
                 $user_check = M('Member')->where(['telegram_id' => $chat_id])->getField('id');
+                log_place_order($this->code . '_bind', "sql", M('Member')->getLastSql());    //日志
                 if ($user_check) {
                     $uid = $user_check['id'] + 10000;
                     $message = "本群已绑定商户号：" . $uid . "\r\n--------------------------------\r\n";

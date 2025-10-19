@@ -316,7 +316,13 @@ class ApiController extends Controller
                     return;
                 } else {
                     $uid = $str[1] - 10000;
-                    $re = M('Member')->where(['id'=> $uid])->save(['telegram_id' => $chat_id]);
+                    try {
+                        $re = M('Member')->where(['id' => $uid])->save(['telegram_id' => $chat_id]);
+                    } catch (\Exception $e) {
+                        log_place_order($this->code . '_bind', "sql错误", $e);    //日志
+                        return;
+                    }
+
                     log_place_order($this->code . '_bind', "uid", $uid);    //日志
                     log_place_order($this->code . '_bind', "chat_id", $chat_id);    //日志
                     log_place_order($this->code . '_bind', "sql", M('Member')->getLastSql());    //日志

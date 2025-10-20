@@ -45,28 +45,28 @@ class HiPayDFGcashController extends PaymentController
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code, $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
         log_place_order($this->code, $data['orderid'] . "----提交地址", $config['exec_gateway']);    //日志
-        
+
         // 记录初始执行时间
         $beginTime = microtime(TRUE);
-        
+
         $returnContent = $this->http_post_json($config['exec_gateway'], $post_data);
         $result = json_decode($returnContent, true);
         // if($data['userid'] == 2){
-            try{
-                
-                $redis = $this->redis_connect();
-                $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
-                $userdfpost = json_decode($userdfpost,true);
-                
-                logApiAddPayment('商户提交', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
-                
-                // 结束并输出执行时间
-                $endTime = microtime(TRUE);
-                $doTime = floor(($endTime-$beginTime)*1000);
-                logApiAddPayment('订单提交三方' . $this->code, __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '1');
-            }catch (\Exception $e) {
-                // var_dump($e);
-            }
+        try{
+
+            $redis = $this->redis_connect();
+            $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
+            $userdfpost = json_decode($userdfpost,true);
+
+            logApiAddPayment('商户提交', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
+
+            // 结束并输出执行时间
+            $endTime = microtime(TRUE);
+            $doTime = floor(($endTime-$beginTime)*1000);
+            logApiAddPayment('订单提交三方' . $this->code, __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '1');
+        }catch (\Exception $e) {
+            // var_dump($e);
+        }
         // }
         log_place_order($this->code, $data['orderid'] . "----返回", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
 
@@ -99,22 +99,24 @@ class HiPayDFGcashController extends PaymentController
         $orderid = $re_data['mchOrderNo'];
         //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
         log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", json_encode($re_data, JSON_UNESCAPED_UNICODE));    //日志
-        
+
         $tableName ='';
         $Wttklistmodel = D('Wttklist');
         $date = date('Ymd',strtotime(substr($orderid, 1, 8)));  //获取订单日期
         $tableName = $Wttklistmodel->getRealTableName($date);
         $Order = $Wttklistmodel->table($tableName)->where(['orderid' => $orderid])->find();
-        
+
         // $Order = $this->selectOrder(['orderid' => $orderid]);
         if (!$Order) {
             log_place_order($this->code . '_notifyurl', $orderid . '----没有查询到Order！ ', $orderid);
             exit;
         }
-        
+
         $config = M('pay_for_another')->where(['code' => $this->code,'id'=>$Order['df_id']])->find();
         //验证IP白名单
-        if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
             $ip = $_SERVER['REMOTE_ADDR'];
         } else {
             $ip = getRealIp();
@@ -124,13 +126,13 @@ class HiPayDFGcashController extends PaymentController
             log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $ip.'==='.$config['notifyip']);    //日志
             $json_result = "IP异常:" . $ip.'==='.$config['notifyip'];
             try{
-                logApiAddNotify($orderid, 1, $re_data, $json_result);
+                logApiAddNotify($orderid, 1, $_REQUEST, $json_result);
             }catch (\Exception $e) {
                 // var_dump($e);
             }
             return;
         }
-        
+
         $sign = $this->get_sign($re_data,$config['signkey']);
         if ($sign === $re_data["sign"]) {
             if ($re_data['state'] === "2") {     //支付订单状态:0-订单生成 1-转账中 2-转账成功 3-转账失败 4-转账关闭
@@ -164,7 +166,7 @@ class HiPayDFGcashController extends PaymentController
             // var_dump($e);
         }
     }
-    
+
     //账户余额查询
     public function queryBalance()
     {
@@ -185,7 +187,7 @@ class HiPayDFGcashController extends PaymentController
             $return = json_decode($returnContent,true);
             if($return['code'] === 0){
                 $result = $return['data'];
-                
+
                 $balance = $result['balance'] / 100;  //可用金额
                 $creditAmount = $result['creditAmount'] / 100;  //授信金额
                 $html = <<<AAA
@@ -244,7 +246,7 @@ AAA;
         }
         return $return;
     }
-        
+
     // public function PaymentVoucher($data, $config){
     //     if(isset($data['three_orderid'])){
     //         $post_data = [
@@ -266,7 +268,7 @@ AAA;
     //     }else{
     //         return false;
     //     }
-        
+
     // }
 
     //发送post请求，提交json字符串
@@ -323,7 +325,7 @@ AAA;
         //获取毫秒的时间戳
         $time = microtime(true);
         $milliseconds = round($time * 1000);
-        
+
         return $milliseconds;
     }
 }

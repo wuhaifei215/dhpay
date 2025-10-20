@@ -81,7 +81,7 @@ class GcashHiPayController extends PayController
                     'datetime' => date('Y-m-d')
                 ];
             }
-        }elseif($ans['code']== 2203 || $ans['code']== 10008){
+        }elseif($ans['code']){
             $return_arr = [
                 'status' => 'error',
                 'msg' => $ans['msg'], 

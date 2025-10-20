@@ -380,8 +380,8 @@ class ApiController extends Controller
             $message .= "查询时间：" . date('Y-m-d H:i:s', time()) . "\r\n";
             $message .= "当前余额及时核对以此为准，如有疑问联系值班客服\r\n";
 
-            $btn['text'] = 'YunPay官方频道，点击进入';
-            $btn['url'] = 'https://t.me/Yun_Pay0';
+            $btn['text'] = 'I8Pay官方频道，点击进入';
+            $btn['url'] = 'https://t.me/i8Pay1';
             $markup = [
                 'inline_keyboard'=>[[
                     $btn

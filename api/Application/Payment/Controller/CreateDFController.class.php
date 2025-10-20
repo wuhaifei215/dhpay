@@ -752,7 +752,7 @@ class CreateDFController extends Controller
             		    M()->rollback();
             		}
 			    } catch (\Exception $e) {
-                    log_place_order( 'DFadd_error', $withdraw['orderid'] . '$e',  $e);    //日志
+                    log_place_order( 'DFadd_error', $withdraw['orderid'] . 'error',  $e);    //日志
                 }
 			    break;
 			default:

@@ -245,7 +245,7 @@ class PaymentController extends Controller
                     $Moneychange = D("Moneychange");
                     $tablename = $Moneychange -> getRealTableName($arrayField['datetime']);
                     $res2 = $Moneychange->table($tablename)->add($arrayField);
-                     log_place_order( 'DFadd_error', $withdraw['orderid'],   $Moneychange->table($tablename)->getLastSql());    //日志
+//                     log_place_order( 'DFadd_error', $withdraw['orderid'],   $Moneychange->table($tablename)->getLastSql());    //日志
                     $sxf_re = true;
                     //代付驳回退回手续费
                     if ($withdraw['df_charge_type'] && $withdraw['sxfmoney']>0) {
@@ -289,7 +289,7 @@ class PaymentController extends Controller
             		    M()->rollback();
             		}
 			    } catch (\Exception $e) {
-                    log_place_order( 'DFadd_error', $withdraw['orderid'] . '$e',  $e);    //日志
+                    log_place_order( 'DFadd_error', $withdraw['orderid'] . 'error',  $e);    //日志
                 }
 			    break;
 			default:

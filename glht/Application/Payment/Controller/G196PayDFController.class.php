@@ -2,7 +2,7 @@
 
 namespace Payment\Controller;
 
-class G169PayDFController extends PaymentController
+class G196PayDFController extends PaymentController
 {
     private $code = '';
 

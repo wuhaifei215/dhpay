@@ -112,13 +112,25 @@ class Gcash196PayController extends PayController
         if (!$orderList) return;
 
         //验证IP白名单
-        if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
             $ip = $_SERVER['REMOTE_ADDR'];
         } else {
             $ip = getRealIp();
         }
+
         $check_re = check_IP($orderList['channel_id'], $ip, $orderid);
-        if ($check_re !== true) return;
+        if ($check_re !== true) {
+            log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $ip);    //日志
+            $json_result = "IP异常:" . $ip;
+            try{
+                logApiAddNotify($orderid, 0, $_REQUEST, $json_result);
+            }catch (\Exception $e) {
+                // var_dump($e);
+            }
+            return;
+        }
 
         $sign = $this->sign($result, $orderList['key']);
         if ($sign == $result["sign"]) {

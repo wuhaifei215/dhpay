@@ -58,37 +58,40 @@ class Gcash196PayController extends PayController
         log_place_order($this->code, $return['orderid'] . "----返回", $returnContent);    //日志
         $ans = json_decode($returnContent, true);
 
+
+        if($ans['code'] === 0){
+            // if($array['userid'] == 2){
+            //     echo '<script type="text/javascript">window.location.href="' . $ans['data']['payUrl'] . '"</script>';
+            // }else{
+            $return_arr = [
+                'status' => 'success',
+                'H5_url' => $ans['data']['payUrl'],
+                'pay_orderid' => $orderid,
+                'out_trade_id' => $return['orderid'],
+                'amount' => sprintf('%.2f', $return['amount']),
+                'datetime' => date('Y-m-d')
+            ];
+            // }
+        }
+        echo json_encode($return_arr);
+
+        // if($array['userid'] == 2){
         try{
             $redis = $this->redis_connect();
             $userpost = $redis->get('userpost_' . $return['out_trade_id']);
             $userpost = json_decode($userpost,true);
 
-            logApiAddReceipt('商户提交', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, [], '0', '0', '1', '2');
+            logApiAddReceipt('下游商户提交', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, $return_arr, '0', '0', '1', '2');
 
             // 结束并输出执行时间
             $endTime = microtime(TRUE);
             $doTime = floor(($endTime-$beginTime)*1000);
-            logApiAddReceipt('订单提交三方' . $this->code, __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $native, $ans, $doTime, '0', '1', '2');
+            logApiAddReceipt('订单提交上游' . $this->code, __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $native, $ans, $doTime, '0', '1', '2');
         }catch (\Exception $e) {
             // var_dump($e);
         }
-
-        if($ans['code'] === 0){
-            if($array['userid'] == 2){
-                echo '<script type="text/javascript">window.location.href="' . $ans['data']['payUrl'] . '"</script>';
-            }else{
-                $return_arr = [
-                    'status' => 'success',
-                    'H5_url' => $ans['data']['payUrl'],
-                    'pay_orderid' => $orderid,
-                    'out_trade_id' => $return['orderid'],
-                    'amount' => sprintf('%.2f', $return['amount']),
-                    'datetime' => date('Y-m-d')
-                ];
-            }
-        }else{
-            die($ans['msg']);
-        }
+        // }
+        exit;
     }
 
     //异步通知
@@ -112,25 +115,13 @@ class Gcash196PayController extends PayController
         if (!$orderList) return;
 
         //验证IP白名单
-        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+        if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
             $ip = $_SERVER['REMOTE_ADDR'];
         } else {
             $ip = getRealIp();
         }
-
         $check_re = check_IP($orderList['channel_id'], $ip, $orderid);
-        if ($check_re !== true) {
-            log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $ip);    //日志
-            $json_result = "IP异常:" . $ip;
-            try{
-                logApiAddNotify($orderid, 0, $_REQUEST, $json_result);
-            }catch (\Exception $e) {
-                // var_dump($e);
-            }
-            return;
-        }
+        if ($check_re !== true) return;
 
         $sign = $this->sign($result, $orderList['key']);
         if ($sign == $result["sign"]) {

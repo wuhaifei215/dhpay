@@ -38,45 +38,11 @@ class Gcash196PayController extends PayController
         //跳转页面，优先取数据库中的跳转页面
         $_site = ((is_https()) ? 'https' : 'http') . '://' . C("DOMAIN") . '/';
         $site = trim($return['unlockdomain']) ? $return['unlockdomain'] . '/' : $_site;
-        
-        //redis存储订单数据
-        $token = randpw(5, 'CHAR') . nonceStr(32);
-        $redis = $this->redis_connect();
-        $redis->set($token, json_encode($return),600);
-        
-        $url = $site . 'Pay_' . $this->code . '_Orderpay?token=' . $token;
-        if ($array['userid'] != 2) {
-            $return_arr = [
-                'status' => 'success',
-                'H5_url' => $url,
-                'pay_orderid' => $orderid,
-                'out_trade_id' => $return['orderid'],
-                'amount' => $return['amount'],
-                'datetime' => date('Y-m-d', $return['datetime'])
-            ];
-            echo json_encode($return_arr);
-        } else {
-            echo '<script type="text/javascript">window.location.href="' . $url . '"</script>';
-        }
-    }
 
-    public function Orderpay()
-    {
-        $token = I('get.token', '');
-        $redis = $this->redis_connect();
-        $order = $redis->get($token);
-        $return = json_decode($order,true);
-        if(!$order || empty($return)){
-            echo "订单已过期或不存在";
-            return;
-        }else{
-            $redis->delete($token);
-        }
-        
         $native = array(
             'merId' => $return['mch_id'],
             'merNo' => $return['orderid'],
-            'amount' => $return['amount'], 
+            'amount' => $return['amount'],
             'notifyUrl' => $return["notifyurl"],
             'timestamp' => time(),
             'channelCategory' =>'2',        //通道分类 1：个码 2：原生
@@ -91,24 +57,35 @@ class Gcash196PayController extends PayController
         $returnContent = $this->http_post_json($return['gateway'] . '/php/gcash/api/v2/dsApi', $native);
         log_place_order($this->code, $return['orderid'] . "----返回", $returnContent);    //日志
         $ans = json_decode($returnContent, true);
-        
+
         try{
             $redis = $this->redis_connect();
             $userpost = $redis->get('userpost_' . $return['out_trade_id']);
             $userpost = json_decode($userpost,true);
-            
+
             logApiAddReceipt('商户提交', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, [], '0', '0', '1', '2');
-    
+
             // 结束并输出执行时间
             $endTime = microtime(TRUE);
             $doTime = floor(($endTime-$beginTime)*1000);
-            logApiAddReceipt('订单提交三方', __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $native, $ans, $doTime, '0', '1', '2');
+            logApiAddReceipt('订单提交三方' . $this->code, __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $native, $ans, $doTime, '0', '1', '2');
         }catch (\Exception $e) {
             // var_dump($e);
         }
-            
+
         if($ans['code'] === 0){
-            echo '<script type="text/javascript">window.location.href="' . $ans['data']['payUrl'] . '"</script>';
+            if($array['userid'] == 2){
+                echo '<script type="text/javascript">window.location.href="' . $ans['data']['payUrl'] . '"</script>';
+            }else{
+                $return_arr = [
+                    'status' => 'success',
+                    'H5_url' => $ans['data']['payUrl'],
+                    'pay_orderid' => $orderid,
+                    'out_trade_id' => $return['orderid'],
+                    'amount' => sprintf('%.2f', $return['amount']),
+                    'datetime' => date('Y-m-d')
+                ];
+            }
         }else{
             die($ans['msg']);
         }
@@ -133,8 +110,14 @@ class Gcash196PayController extends PayController
         $tablename = $OrderModel->getRealTableName($date);
         $orderList = $OrderModel->table($tablename)->where(['pay_orderid' => $orderid])->find();
         if (!$orderList) return;
+
         //验证IP白名单
-        $check_re = check_IP($orderList['channel_id'], getIP(), $orderid);
+        if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        } else {
+            $ip = getRealIp();
+        }
+        $check_re = check_IP($orderList['channel_id'], $ip, $orderid);
         if ($check_re !== true) return;
 
         $sign = $this->sign($result, $orderList['key']);

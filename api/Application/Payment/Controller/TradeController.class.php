@@ -247,13 +247,13 @@ class TradeController extends CreateDFController
             'status' => 'success',
             'msg' => '请求成功',
             'mchid' => $memberid,
-            'data' => [
-                'currency' => $this->merchants['currency'],
-                'balance' => $this->merchants['balance'],//菲律宾可提现余额
-                'blockedbalance' => $this->merchants['blockedbalance'],//菲律宾冻结余额
-            ],
         ];
         $return['sign'] = $this->createSign($this->merchants['apikey'], $return);
+        $return['data'] = [
+            'currency' => $this->merchants['currency'],
+            'balance' => $this->merchants['balance'],//菲律宾可提现余额
+            'blockedbalance' => $this->merchants['blockedbalance'],//菲律宾冻结余额
+        ];
         echo json_encode($return);
     }
     

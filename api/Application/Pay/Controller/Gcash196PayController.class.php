@@ -48,13 +48,14 @@ class Gcash196PayController extends PayController
             'channelCategory' =>'2',        //通道分类 1：个码 2：原生
         );
         $native['sign'] = $this->sign($native, $return['signkey']);
+        $postUrl = $return['gateway'] . '/php/gcash/api/v2/dsApi';
         log_place_order($this->code, $return['orderid'] . "----提交", json_encode($native, JSON_UNESCAPED_UNICODE));    //日志
-        log_place_order($this->code, $return['orderid'] . "----提交地址", $return['gateway'] . '/php/gcash/api/v2/dsApi');    //日志
+        log_place_order($this->code, $return['orderid'] . "----提交地址", $postUrl);    //日志
 
         // 记录初始执行时间
         $beginTime = microtime(TRUE);
 
-        $returnContent = $this->http_post_json($return['gateway'] . '/php/gcash/api/v2/dsApi', $native);
+        $returnContent = $this->http_post_json($postUrl, $native);
         log_place_order($this->code, $return['orderid'] . "----返回", $returnContent);    //日志
         $ans = json_decode($returnContent, true);
 
@@ -86,7 +87,7 @@ class Gcash196PayController extends PayController
             // 结束并输出执行时间
             $endTime = microtime(TRUE);
             $doTime = floor(($endTime-$beginTime)*1000);
-            logApiAddReceipt('订单提交上游' . $this->code, __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $native, $ans, $doTime, '0', '1', '2');
+            logApiAddReceipt('订单提交上游' . $this->code, __METHOD__, $return['orderid'], $return['out_trade_id'], $postUrl, $native, $ans, $doTime, '0', '1', '2');
         }catch (\Exception $e) {
             // var_dump($e);
         }

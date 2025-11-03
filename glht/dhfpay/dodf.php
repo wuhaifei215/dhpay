@@ -20,7 +20,7 @@ if (in_array($_POST['bankcode'], [7710, 7711, 7712])) {
     $tjurl = $apidomain . "/Payment_CreateDF_payoutBRL.html";   //巴西
 } elseif ($_POST['bankcode'] == 7713) {
     if($_POST['extends']) {
-        $_POST['extends'] = base64_encode(json_encode($_POST['extends']));
+        $_POST['extends'] = base64_encode($_POST['extends']);
     }
     $pay_currency = 'PKR';
     $tjurl = $apidomain . "/Payment_CreateDF_payoutPAK.html";   //巴基斯坦

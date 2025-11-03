@@ -114,9 +114,9 @@
                         <thead>
                         <tr lay-data="{min-height:400px}">
                             <th lay-data="{field:'memberid', width:120}">商户号/用户名</th>
+                            <th lay-data="{field:'currency', width:120}">所属国家</th>
                             <th lay-data="{field:'money', width:200,style:'background-color: #7e98e6; color: #fff;cursor: pointer;'}">账户总额</th>
                             <th lay-data="{field:'groupid', width:90}">用户类型/上级用户</th>
-                            <th lay-data="{field:'currency', width:120}">所属国家</th>
                             <th lay-data="{field:'agency', width:90}">所属包网</th>
                             <th lay-data="{field:'status', width:90}">状态</th>
                             <th lay-data="{field:'authorized', width:80}">认证</th>
@@ -139,6 +139,11 @@
                                 <br><{$vo.username}>
                                 </td>
                                 <td>
+                                    <volist name="country" id="co">
+                                        <if condition="$vo.currency eq $co['currency']"><{$co.title}>(<{$co.currency}>)</if>
+                                    </volist>
+                                </td>
+                                <td>
                                     <div title="用户资金管理" onclick="member_money('商户：<{$vo.username}>','<{:U("User/usermoney",['userid'=>$vo["id"]])}>',800,600)">
                                     可结算资金：<{:number_format($vo[balance],4)}><br>
                                     未结算资金：<{:round($vo[blockedbalance],4)}><br>
@@ -148,11 +153,6 @@
                                 <td>
                                     <{$vo.groupname}>
                                 <br><{$vo['parentid']|getParentName=###}>
-                                </td>
-                                <td>
-                                    <volist name="country" id="co">
-                                        <if condition="$vo.currency eq $co['currency']"><{$co.title}>(<{$co.currency}>)</if>
-                                    </volist>
                                 </td>
                                 <td>
                                     <{$vo.agency}>

@@ -51,6 +51,13 @@ $native["pay_md5sign"] = $sign;
 $native['pay_attach'] = "1234|456";
 $native['pay_productname'] = 'Vip基础服务';
 $native['ip'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
+
+if(in_array($pay_bankcode,[7713, 7719, 7720])){
+    $native['pay_extends'] = base64_encode(json_encode([
+        'cnic' => '42101-1234567-8',
+        'phone' => '03488161552',
+    ]));
+}
 ?>
 
 <!DOCTYPE html>

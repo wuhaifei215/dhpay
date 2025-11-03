@@ -116,7 +116,7 @@
                             <th lay-data="{field:'memberid', width:120}">商户号/用户名</th>
                             <th lay-data="{field:'currency', width:120}">所属国家</th>
                             <th lay-data="{field:'money', width:200,style:'background-color: #7e98e6; color: #fff;cursor: pointer;'}">账户总额</th>
-                            <th lay-data="{field:'groupid', width:90}">用户类型/上级用户</th>
+                            <th lay-data="{field:'groupid', width:90}">上级用户/用户类型</th>
                             <th lay-data="{field:'agency', width:90}">所属包网</th>
                             <th lay-data="{field:'dftongdao', width:180,style:'background-color: #7e98e6; color: #fff;cursor: pointer;'}">代付通道</th>
                             <th lay-data="{field:'tongdao', width:180,style:'background-color: #857ee6; color: #fff;cursor: pointer;'}">代收通道</th>
@@ -151,8 +151,9 @@
                                     </div>
                                 </td>
                                 <td>
+                                    <{$vo['parentid']|getParentName=###}>
+                                    <br>
                                     <{$vo.groupname}>
-                                <br><{$vo['parentid']|getParentName=###}>
                                 </td>
                                 <td>
                                     <{$vo.agency}>

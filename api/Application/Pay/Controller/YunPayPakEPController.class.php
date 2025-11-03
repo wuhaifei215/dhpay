@@ -67,11 +67,9 @@ class YunPayPakEPController extends PayController
         log_place_order($this->code, $return['orderid'] . "----返回", $returnContent);    //日志
         $ans = json_decode($returnContent, true);
         if($ans['status'] === 'success'){
-            $payurl = $site . 'PayPage/Index.html?sid=' . $return['orderid'] . '&amount=' . $return['amount']. '&qrcode=' .$ans['QRcode'];
             $return_arr = [
                 'status' => 'success',
-                'H5_url' => $payurl,
-                'QRcode' => $ans['QRcode'],
+                'H5_url' => $ans['H5_url'],
                 'pay_orderid' => $orderid,
                 'out_trade_id' => $return['orderid'],
                 'amount' => $return['amount'],

@@ -15,7 +15,7 @@ return [
         ['id'=>'11','currency'=>'IND','name'=>'印度UPI'],
         ['id'=>'12','currency'=>'IND','name'=>'印度原生'],
         ['id'=>'13','currency'=>'IND','name'=>'印度唤醒'],
-        ['id'=>'14','currency'=>'PHP','name'=>'PAK-JZ-直连'],
-        ['id'=>'15','currency'=>'PHP','name'=>'PAK-EP-直连'],
+        ['id'=>'14','currency'=>'PHP','name'=>'PAK-jazzcash'],
+        ['id'=>'15','currency'=>'PHP','name'=>'PAK-easypaisa'],
     ],
 ];

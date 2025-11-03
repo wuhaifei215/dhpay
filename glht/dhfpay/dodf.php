@@ -10,9 +10,7 @@ $_POST['mchid'] = $mchid;
 if(empty($mchid)||empty($_POST['money']) || empty($_POST['accountname']) || empty($_POST['cardnumber']) ){
 		die("信息不完整！");
 }
-//if($_POST['extends']) {
-//	$_POST['extends'] = base64_encode(json_encode($_POST['extends']));
-//}
+
 
 $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
 
@@ -21,6 +19,9 @@ if (in_array($_POST['bankcode'], [7710, 7711, 7712])) {
     $pay_currency = 'BRL';
     $tjurl = $apidomain . "/Payment_CreateDF_payoutBRL.html";   //巴西
 } elseif ($_POST['bankcode'] == 7713) {
+    if($_POST['extends']) {
+        $_POST['extends'] = base64_encode(json_encode($_POST['extends']));
+    }
     $pay_currency = 'PKR';
     $tjurl = $apidomain . "/Payment_CreateDF_payoutPAK.html";   //巴基斯坦
 }elseif (in_array($_POST['bankcode'], [7714, 7715, 7716,7717])) {

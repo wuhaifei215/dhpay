@@ -206,6 +206,18 @@ $product_name = "Vip基础服务";
                         <span>PAK-easypaisa</span>
                     </li>
                 </label>
+                <label for="PKRJZz">
+                    <li class="pay_li" data_power_id="3000000004" data_product_id="3000000004">
+                        <input value="7721" name="channel" id="PKRJZz" type="radio">
+                        <span>PAK-jazzcash-直连</span>
+                    </li>
+                </label>
+                <label for="PKREPz">
+                    <li class="pay_li" data_power_id="3000000004" data_product_id="3000000004">
+                        <input value="7722" name="channel" id="PKREPz" type="radio">
+                        <span>PAK-easypaisa-直连</span>
+                    </li>
+                </label>
             </ul>
             <ul>
                 <label for="GcashWap2">

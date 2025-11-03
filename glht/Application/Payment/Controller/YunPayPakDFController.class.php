@@ -152,7 +152,6 @@ class YunPayPakDFController extends PaymentController
     //账户余额查询
     public function queryBalance()
     {
-        log_place_order($this->code . '_queryBalance', "提交", '1111');    //日志
         if (IS_AJAX) {
             $id = I('post.id', 1);
             $config = M('pay_for_another')->where(['id' => $id])->find();
@@ -162,6 +161,7 @@ class YunPayPakDFController extends PaymentController
             $post_data["pay_md5sign"] = $this->get_sign($post_data, $config['signkey']);
             $post_data["currency"] = 'PKR';
             log_place_order($this->code . '_queryBalance', "提交", json_encode($post_data));    //日志
+            log_place_order($this->code . '_queryBalance', "url", $config['serverreturn']);    //日志
             $returnContent = $this->http_post_data($config['serverreturn'], $post_data);
             log_place_order($this->code . '_queryBalance', "返回", $returnContent);    //日志
             $result = json_decode($returnContent, true);

@@ -18,7 +18,7 @@ $apidomain = $http_type . "papi.i8pay.com";
 if (in_array($pay_bankcode, [7710, 7711, 7712])) {
     $pay_currency = 'BRL';
     $tjurl = $apidomain . "/Pay_Create_payinBRL.html";   //巴西
-} elseif ($pay_bankcode == 7713) {
+} elseif (in_array($pay_bankcode, [7713, 7719, 7720])) {
     $pay_currency = 'PKR';
     $tjurl = $apidomain . "/Pay_Create_payinPAK.html";   //巴基斯坦
 }elseif (in_array($pay_bankcode, [7714, 7715, 7716,7717])) {

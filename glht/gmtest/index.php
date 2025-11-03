@@ -50,6 +50,10 @@ $product_name = "Vip基础服务";
             text-indent: 0.5em;
             line-height: 1.8em;
         }
+        .PayMethod12 ul li {
+            margin: 20px;
+        }
+
 
 
     </style>

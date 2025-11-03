@@ -167,7 +167,7 @@ $product_name = "Vip基础服务";
     <div class="w1080 PayMethod12" style="border-radius: 1em;">
         <div class="row">
             <h2>支付方式:</h2>
-            <ul>
+            <ul style="border-bottom: 1px dashed #000; ">
                 <label for="BRLH5">
                     <li class="pay_li active" data_power_id="3000000001" data_product_id="3000000001">
                         <input value="7710" checked="checked" name="channel" id="BRLH5" type="radio">
@@ -187,7 +187,7 @@ $product_name = "Vip基础服务";
                     </li>
                 </label>
             </ul>
-            <ul>
+            <ul style="border-bottom: 1px dashed #000; ">
                 <label for="PKR">
                     <li class="pay_li" data_power_id="3000000004" data_product_id="3000000004">
                         <input value="7713" name="channel" id="PKR" type="radio">
@@ -219,7 +219,7 @@ $product_name = "Vip基础服务";
                     </li>
                 </label>
             </ul>
-            <ul>
+            <ul style="border-bottom: 1px dashed #000; ">
                 <label for="GcashWap2">
                     <li class="pay_li" data_power_id="3000000005" data_product_id="3000000005">
                         <input value="7714" name="channel" id="GcashWap2" type="radio">
@@ -245,7 +245,7 @@ $product_name = "Vip基础服务";
                     </li>
                 </label>
             </ul>
-            <ul>
+            <ul style="border-bottom: 1px dashed #000; ">
                 <label for="VietQR">
                     <li class="pay_li" data_power_id="3000000009" data_product_id="3000000009">
                         <input value="7718" name="channel" id="VietQR" type="radio">

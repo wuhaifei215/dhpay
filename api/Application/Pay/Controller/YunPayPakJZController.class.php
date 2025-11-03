@@ -54,7 +54,7 @@ class YunPayPakJZController extends PayController
         );
 
         $native['pay_md5sign'] = $this->sign($native, $return['signkey']);
-        $native["pay_currency"] = 'PKR ';
+        $native["pay_currency"] = 'PKR';
 
         $native["pay_extends"] = $extends;//交易内容描述
         log_place_order($this->code, $return['orderid'] . "----提交", json_encode($native, JSON_UNESCAPED_UNICODE));    //日志

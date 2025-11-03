@@ -160,7 +160,7 @@ class YunPayPakDFController extends PaymentController
                 "mchid" => $config['mch_id'], //商户号
             );
             $post_data["pay_md5sign"] = $this->get_sign($post_data, $config['signkey']);
-
+            $post_data["currency"] = 'PKR';
             log_place_order($this->code . '_queryBalance', "提交", json_encode($post_data));    //日志
             $returnContent = $this->http_post_data($config['serverreturn'], $post_data);
             log_place_order($this->code . '_queryBalance', "返回", $returnContent);    //日志
@@ -194,6 +194,7 @@ AAA;
             "mchid" => $config['mch_id'], //商户号
         );
         $post_data["pay_md5sign"] = $this->get_sign($post_data, $config['signkey']);
+        $post_data["currency"] = 'PKR';
         log_place_order($this->code . '_queryBalance2', "提交", json_encode($post_data));    //日志
         $returnContent = $this->http_post_data($config['serverreturn'], $post_data);
         log_place_order($this->code . '_queryBalance2', "返回", $returnContent);    //日志
@@ -215,6 +216,7 @@ AAA;
             'datetime' => $date,
         ];
         $post_data["pay_md5sign"] = $this->get_sign($post_data, $config['signkey']);
+        $post_data["currency"] = 'PKR';
         log_place_order($this->code . '_PaymentQuery', $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
         $returnContent = $this->http_post_data($config['query_gateway'], $post_data);
         log_place_order($this->code . '_PaymentQuery', $data['orderid'] . "----返回", $returnContent);    //日志
@@ -256,7 +258,7 @@ AAA;
             'datetime' => $date,
         ];
         $post_data["pay_md5sign"] = $this->get_sign($post_data, $config['signkey']);
-
+        $post_data["currency"] = 'PKR';
         log_place_order($this->code . '_PaymentVoucher', $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));
         $url = 'https://api.r97pay.com/Payment_Trade_voucherData';
         $returnContent = $this->http_post_data($url, $post_data);

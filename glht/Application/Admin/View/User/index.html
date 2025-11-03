@@ -118,10 +118,10 @@
                             <th lay-data="{field:'money', width:200,style:'background-color: #7e98e6; color: #fff;cursor: pointer;'}">账户总额</th>
                             <th lay-data="{field:'groupid', width:90}">用户类型/上级用户</th>
                             <th lay-data="{field:'agency', width:90}">所属包网</th>
-                            <th lay-data="{field:'status', width:90}">状态</th>
-                            <th lay-data="{field:'authorized', width:80}">认证</th>
                             <th lay-data="{field:'dftongdao', width:180,style:'background-color: #7e98e6; color: #fff;cursor: pointer;'}">代付通道</th>
                             <th lay-data="{field:'tongdao', width:180,style:'background-color: #857ee6; color: #fff;cursor: pointer;'}">代收通道</th>
+                            <th lay-data="{field:'status', width:90}">状态</th>
+                            <th lay-data="{field:'authorized', width:80}">认证</th>
                             <!--<th lay-data="{field:'charge', width:100}">充值功能</th>-->
 
                             <!--<th lay-data="{field:'regdatetime', width:160}">注册时间</th>-->
@@ -157,6 +157,14 @@
                                 <td>
                                     <{$vo.agency}>
                                 </td>
+                                <td>
+                                    <volist name="vo['dftongdao']" id="do"><{$do.title}><br>
+                                    </volist>
+                                </td>
+                                <td>
+                                    <volist name="vo['tongdao']" id="voo"><{$voo.title}><br>
+                                    </volist>
+                                </td>
                                 
                                 <td>
                                     <input type="checkbox"
@@ -176,14 +184,6 @@
                                             <default />
                                         </switch>
                                     </a>
-                                </td>
-                                <td>
-                                    <volist name="vo['dftongdao']" id="do"><{$do.title}><br>
-                                    </volist>
-                                </td>
-                                <td>
-                                    <volist name="vo['tongdao']" id="voo"><{$voo.title}><br>
-                                    </volist>
                                 </td>
                                 <!--<td>-->
                                 <!--<eq name="vo.groupid" value="4">-->

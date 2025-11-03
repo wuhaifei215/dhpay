@@ -47,7 +47,7 @@ class YunPayPakJZ2Controller extends PayController
             "pay_memberid" => $return['mch_id'],
             "pay_orderid" => $return['orderid'],
             "pay_applydate" => date("Y-m-d H:i:s"),
-            "pay_bankcode" => 916,
+            "pay_bankcode" => 927,
             "pay_notifyurl" => $return["notifyurl"],
             "pay_callbackurl" => $pay_callbackurl,
             "pay_amount" => sprintf('%.2f', $return['amount']),

@@ -114,7 +114,7 @@ class UserController extends BaseController
             $list[$k]['tongdao'] = $pay;
 
             $dfpay = M('UserPayForAnother')->alias('a')->join('pay_pay_for_another ON a.channel=pay_pay_for_another.id')->field('pay_pay_for_another.title')
-                ->where(['a.userid' => $v['id'],'pay_pay_for_another.status'=>1,'pay_pay_for_another.currency'=>$v['currency'])->select();
+                ->where(['a.userid' => $v['id'],'pay_pay_for_another.status'=>1,'pay_pay_for_another.currency'=>$v['currency']])->select();
             $list[$k]['dftongdao'] = $dfpay;
 
             $agency = M('Agency')->where(['id' => $v['agency_id'],'currency'=>$v['currency']])->find();

@@ -58,10 +58,10 @@ class UserController extends BaseController
         } elseif (intval($username) - 10000 > 0) {
             $where['id'] = intval($username) - 10000;
         }
-
-        $where['currency'] = $currency;
-        $this->assign('currency', $currency);
-
+        if ($currency != '0') {
+            $where['currency'] = $currency;
+            $this->assign('currency', $currency);
+        }
         if ($agency_id != '') {
             $where['agency_id'] = $agency_id;
         }
@@ -110,14 +110,14 @@ class UserController extends BaseController
             $list[$k]['complaintsDepositPaused'] = number_format((double)$deposit['complaintsDepositPaused'], 2, '.', '');
 
             $pay = M('Channel')->alias('a')->join('pay_product_user ON a.id=pay_product_user.channel')->field('a.title')
-                ->where(['pay_product_user.userid' => $v['id'],['pay_product_user.status' => 1],'a.currency'=>$currency])->select();
+                ->where(['pay_product_user.userid' => $v['id'],['pay_product_user.status' => 1],'a.currency'=>$v['currency']])->select();
             $list[$k]['tongdao'] = $pay;
 
             $dfpay = M('UserPayForAnother')->alias('a')->join('pay_pay_for_another ON a.channel=pay_pay_for_another.id')->field('pay_pay_for_another.title')
-                ->where(['a.userid' => $v['id'],'pay_pay_for_another.status'=>1,'pay_pay_for_another.currency'=>$currency])->select();
+                ->where(['a.userid' => $v['id'],'pay_pay_for_another.status'=>1,'pay_pay_for_another.currency'=>$v['currency'])->select();
             $list[$k]['dftongdao'] = $dfpay;
 
-            $agency = M('Agency')->where(['id' => $v['agency_id'],'currency'=>$currency])->find();
+            $agency = M('Agency')->where(['id' => $v['agency_id'],'currency'=>$v['currency']])->find();
             $list[$k]['agency'] = $agency['username'];
         }
 

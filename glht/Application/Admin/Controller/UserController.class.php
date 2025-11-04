@@ -58,10 +58,9 @@ class UserController extends BaseController
         } elseif (intval($username) - 10000 > 0) {
             $where['id'] = intval($username) - 10000;
         }
-        if ($currency != '0') {
-            $where['currency'] = $currency;
-            $this->assign('currency', $currency);
-        }
+
+        $where['currency'] = $currency;
+        $this->assign('currency', $currency);
 
         if ($agency_id != '') {
             $where['agency_id'] = $agency_id;
@@ -110,24 +109,15 @@ class UserController extends BaseController
             $list[$k]['complaintsDeposit'] = number_format((double)$deposit['complaintsDeposit'], 2, '.', '');
             $list[$k]['complaintsDepositPaused'] = number_format((double)$deposit['complaintsDepositPaused'], 2, '.', '');
 
-            $pay_where = ['pay_product_user.userid' => $v['id'],['pay_product_user.status' => 1]];
-            $dfpay_where = ['a.userid' => $v['id'],'pay_pay_for_another.status'=>1];
-            $agency_where = ['id' => $v['agency_id']];
-            if ($currency != '0') {
-                $pay_where = ['a.currency'=>$currency];
-                $dfpay_where = ['pay_pay_for_another.currency'=>$currency];
-                $agency_where = ['currency'=>$currency];
-            }
-
             $pay = M('Channel')->alias('a')->join('pay_product_user ON a.id=pay_product_user.channel')->field('a.title')
-                ->where($pay_where)->select();
+                ->where(['pay_product_user.userid' => $v['id'],['pay_product_user.status' => 1],'a.currency'=>$currency])->select();
             $list[$k]['tongdao'] = $pay;
 
             $dfpay = M('UserPayForAnother')->alias('a')->join('pay_pay_for_another ON a.channel=pay_pay_for_another.id')->field('pay_pay_for_another.title')
-                ->where($dfpay_where)->select();
+                ->where(['a.userid' => $v['id'],'pay_pay_for_another.status'=>1,'pay_pay_for_another.currency'=>$currency])->select();
             $list[$k]['dftongdao'] = $dfpay;
 
-            $agency = M('Agency')->where($agency_where)->find();
+            $agency = M('Agency')->where(['id' => $v['agency_id'],'currency'=>$currency])->find();
             $list[$k]['agency'] = $agency['username'];
         }
 

@@ -1745,6 +1745,7 @@ function Reject($Reject,$return=array(), $tableName='',$notifyurl=1) {
                 "orderid"    => $withdraw['out_trade_no'],
                 "lx"         => 19,
                 'contentstr' => $contentstr.' 结算退回手续费',
+                "currency" =>$withdraw['currency'],
             );
 
             $Moneychange = D("Moneychange");

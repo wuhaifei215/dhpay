@@ -18,7 +18,7 @@
                             <label class="layui-form-label">所属国家：</label>
                             <div class="layui-input-inline">
                                 <select name="currency">
-                                    <!--<option value="">全部国家</option>-->
+                                    <option value="0">全部国家</option>
                                     <volist name="country" id="co">
                                         <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
                                     </volist>

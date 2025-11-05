@@ -41,7 +41,9 @@ class AgentController extends BaseController
         $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
 
         $where =[];
-        $where['currency'] = $currency;
+        if($currency != '0') {
+            $where['currency'] = $currency;
+        }
         if ($groupid != '') {
             $where['groupid'] = $groupid != 1 ? $groupid : ['neq', '4'];
         }

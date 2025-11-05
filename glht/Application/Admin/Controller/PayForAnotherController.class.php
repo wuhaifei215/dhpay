@@ -15,8 +15,8 @@ class PayForAnotherController extends BaseController{
 
 	public function index(){
         $where = array();
-        $currency = I("request.currency", '', 'trim,string,strip_tags,htmlspecialchars');
-        if($currency) {
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        if($currency != '0') {
             $where['currency'] = ['eq', $currency];
         }
         $this->assign('currency', $currency);

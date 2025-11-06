@@ -47,6 +47,7 @@ class IndexController extends PaymentController{
                 break;
             }
         }
+
         // $wttk_lists = $this->selectOrder($where);
 		
 		$post_data['code'] = $post_data['opt'] == 'exec'?$post_data['code']:$wttk_lists[0]['df_id'];

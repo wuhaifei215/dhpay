@@ -39,6 +39,8 @@ class IndexController extends PaymentController{
 
         $Wttklistmodel = D('Wttklist');
         $tables = $Wttklistmodel->getTables();
+
+        var_dump($tables);
         foreach ($tables as $v){
             $wttk_lists = $Wttklistmodel->table($v)->where($where)->select();
             if(!empty($wttk_lists)){

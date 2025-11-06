@@ -46,6 +46,7 @@ class IndexController extends PaymentController{
                 break;
             }
         }
+        var_dump($where);
         var_dump($tableName);
         var_dump($wttk_lists);die;
         // $wttk_lists = $this->selectOrder($where);

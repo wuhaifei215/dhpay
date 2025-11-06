@@ -360,7 +360,6 @@ class CreateDFController extends Controller
             $money2 = bcsub($money, $sxfmoney, 4);
         }
 
-        $extends = I("request.extends", '');
         $bankcode = I('request.bankcode', 0, 'intval');
         if (in_array($bankcode, [7713,7719,7720,7721,7722])) {
             //当前可用代付渠道
@@ -369,10 +368,10 @@ class CreateDFController extends Controller
                 //获取渠道扩展字段
                 $fields = M('pay_channel_extend_fields')->where(['channel_id'=>['in',$channel_ids]])->select();
                 if(!empty($fields)) {
-                    if(!$extends) {
+                    if(!$this->extends) {
                         $this->showmessage('The extends field cannot be empty!');
                     }
-                    $extend_fields_array = json_decode(base64_decode($extends), true);
+                    $extend_fields_array = json_decode(base64_decode($this->extends), true);
                     foreach($fields as $k => $v) {
                         if(!isset($extend_fields_array[$v['name']]) || $extend_fields_array[$v['name']]=='') {
                             $this->showmessage('The secondary parameter of the extends field 【' . $v['alias'] . '】 cannot be empty');
@@ -380,7 +379,7 @@ class CreateDFController extends Controller
                     }
                 }
             }
-            $extends = base64_decode($extends);
+            $this->extends = base64_decode($this->extends);
         }
         
         //验签

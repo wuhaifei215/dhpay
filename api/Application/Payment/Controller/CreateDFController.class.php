@@ -584,7 +584,7 @@ class CreateDFController extends Controller
                      ];
     
                     $member_list = M('Member')->field('telegram_id')->where(['id'=>$this->userid])->find();
-                    $result = R('Telegram/Api2/send', [$member_list['telegram_id'], $message, '', 'Markdown', $markup]);
+                    $result = R('Telegram/Api/send', [$member_list['telegram_id'], $message, '', 'Markdown', $markup]);
                 }
             }else{
                 // log_place_order( 'DFadd_NoSubmit', $orderid,   '表' . $table);    //日志

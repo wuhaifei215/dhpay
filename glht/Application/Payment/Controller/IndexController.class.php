@@ -42,7 +42,6 @@ class IndexController extends PaymentController{
 
         foreach ($tables as $v){
             $wttk_lists = $Wttklistmodel->table($v)->where($where)->select();
-            echo $Wttklistmodel->table($v)->getLastSql();
             if(!empty($wttk_lists)){
                 $tableName = $v;
                 break;

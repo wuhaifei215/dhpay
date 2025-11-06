@@ -408,8 +408,11 @@
     //提交查询
     function submitPayment(obj, id, name) {
         var loading = '';
-        var select_obj = $(obj).parent().parent().prev().find('select');
+        var select_obj = $(obj).closest('tr').find('select');
         var code = select_obj.val();
+
+//        var select_obj = $(obj).parent().parent().prev().find('select');
+//        var code = select_obj.val();
         console.log(code);
         if(typeof(code)=="undefined")
             code = 'query';

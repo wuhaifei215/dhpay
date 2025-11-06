@@ -58,7 +58,6 @@ class IndexController extends PaymentController{
 		
         //判断代付通道的文件是否存在
         $code = $pfa_list['code'];
-        echo $code;die;
         $code || showError('代付渠道不存在！');
         $file = APP_PATH . 'Payment/Controller/' . $code . 'Controller.class.php';
         is_file($file) || showError('代付渠道不存在！');

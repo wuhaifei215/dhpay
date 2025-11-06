@@ -31,7 +31,7 @@ class IndexController extends PaymentController{
 		
         //根据操作查询不同状态的订单
         if ($post_data['opt'] == 'exec') {
-            $status = 0;
+            $status = '0';
         } else {
             $status = ['in', '1, 4'];
         }
@@ -43,15 +43,11 @@ class IndexController extends PaymentController{
         foreach ($tables as $v){
             $wttk_lists = $Wttklistmodel->table($v)->where($where)->select();
             echo $Wttklistmodel->table($v)->getLastSql();
-            var_dump($wttk_lists);
             if(!empty($wttk_lists)){
                 $tableName = $v;
                 break;
             }
         }
-        var_dump($where);
-        var_dump($tableName);
-        var_dump($wttk_lists);die;
         // $wttk_lists = $this->selectOrder($where);
 		
 		$post_data['code'] = $post_data['opt'] == 'exec'?$post_data['code']:$wttk_lists[0]['df_id'];

@@ -41,7 +41,6 @@ class PaymentController extends Controller
             $where['id'] = $code;
         }
         $list = M('PayForAnother')->where($where)->find();
-        echo M('PayForAnother')->getLastSql();
         $list || showError('支付方式错误');
 
 

@@ -410,6 +410,7 @@
         var loading = '';
         var select_obj = $(obj).parent().parent().prev().find('select');
         var code = select_obj.val();
+        console.log(code);
         if(typeof(code)=="undefined")
             code = 'query';
         if(name=='exec') {

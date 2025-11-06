@@ -37,7 +37,6 @@ class IndexController extends PaymentController{
         }
         $where = ['id'=>['in', $post_data['id']], 'status'=>$status];
 
-        $tableName ='Wttklist';
         $Wttklistmodel = D('Wttklist');
         $tables = $Wttklistmodel->getTables();
         foreach ($tables as $v){

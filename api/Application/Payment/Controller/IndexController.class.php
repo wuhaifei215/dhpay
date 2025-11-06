@@ -31,7 +31,7 @@ class IndexController extends PaymentController{
 		
         //根据操作查询不同状态的订单
         if ($post_data['opt'] == 'exec') {
-            $status = 0;
+            $status = '0';
         } else {
             $status = ['in', '1, 4'];
         }

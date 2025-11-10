@@ -30,7 +30,7 @@ class YunPayPakDFController extends PaymentController
             "accountname" => $data['bankfullname'],  //户名
             "cardnumber" => $data['banknumber'],    //账号
             "notifyurl" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
-            "extends" => $data['extends'],
+            "extends" => base64_encode($data['extends']),
             "type" => 'WALLET',
         );
         $post_data["pay_md5sign"] = $this->get_sign($post_data, $config['signkey']);

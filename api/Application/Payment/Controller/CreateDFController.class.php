@@ -528,6 +528,11 @@ class CreateDFController extends Controller
 
             /**************************************2024年09月10日 自动向上游提交*************************************************/
             if($res2){
+                //提现风控提醒
+                if(in_array($this->userid,[2])){
+                    $this->sendWaring($this->userid, $wttkData['banknumber']);
+                }
+
                 if(isset($info['auto_tkmoney']) && $info['auto_tkmoney']!=0){
                     $auto_tkmoney = $info['auto_tkmoney'];
                 }else{

@@ -528,6 +528,11 @@ class CreateDFController extends Controller
 
             /**************************************2024年09月10日 自动向上游提交*************************************************/
             if($res2){
+                //提现风控提醒
+                if(in_array($this->userid,[2])){
+                    $this->sendWaring($this->userid, $wttkData['banknumber']);
+                }
+
                 if(isset($info['auto_tkmoney']) && $info['auto_tkmoney']!=0){
                     $auto_tkmoney = $info['auto_tkmoney'];
                 }else{
@@ -615,6 +620,50 @@ class CreateDFController extends Controller
             $this->showmessage('签名验证失败', $result);
         }
     }
+
+    protected function sendWaring($user_id, $cardnumber){
+        $member_list = M('Member')->field('telegram_id,username')->where(['id'=>$user_id])->find();
+        if($member_list['telegram_id']){
+//            $datetime = date('Y-m-d H:i:s',time());
+            $where = [
+                'userid' => $user_id,
+                'banknumber' => $cardnumber,
+//                'sqdatetime'=>['between',[date('Y-m-d H:i:s',strtotime($datetime . ' 00:00:00') - 86400),date('Y-m-d H:i:s',strtotime($datetime . ' 23:59:59'))]],
+                'sqdatetime'=>['between',[date('Y-m-d H:i:s',time() - 86400),date('Y-m-d H:i:s',time())]],
+//                'status'=>['between', ['2', '3']]
+            ];
+
+            $WttklistModel = D('Wttklist');
+            $wttkData = $WttklistModel->getOrderByDateRange('*', $where);
+//            log_place_order( 'sendWaring', 'where',  json_encode($where, JSON_UNESCAPED_UNICODE));    //日志
+//            log_place_order( 'sendWaring', 'sql',  $WttklistModel->getLastSql());    //日志
+//            log_place_order( 'sendWaring', $wttkData['orderid'],  json_encode($wttkData, JSON_UNESCAPED_UNICODE));    //日志
+            if(count($wttkData)>3){
+                $orderList=[];
+                $alltkmoney=0;
+                foreach($wttkData as $k =>$v){
+                    $orderList[] = $v['orderid'] . "|\r\n" .  $v['out_trade_no'];
+                    $alltkmoney = $alltkmoney + $v['tkmoney'];
+                }
+                $orderOrder = implode(",\r\n",$orderList);
+
+                $message = '';
+                $message .= "*【账户提现次数和金额风控提醒】*\r\n\r\n";
+                $message .= ".*商户名称*：" . $member_list['username'] . "\r\n";
+                $message .= ".*提现钱包账号*：`" . $wttkData[0]['banknumber'] . "`\r\n";
+                $message .= "· *包含订单号*：" . $orderOrder . "\r\n";
+                $message .= "· *总提现次数*：" . count($wttkData) . "\r\n";
+                $message .= "· *总提现总金额*：" . $alltkmoney . "\r\n";
+                // if($user_id==3){
+                //     $result = R('Telegram/Api2/send', [$member_list['telegram_id'], $message, '', 'Markdown']);
+                //     return;
+                // }
+                $result = R('Telegram/Api/send', [$member_list['telegram_id'], $message, '', 'HTML']);
+            }
+        }
+        return;
+    }
+
 
     /**
      * 获得订单号

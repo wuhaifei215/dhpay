@@ -359,7 +359,28 @@ class CreateDFController extends Controller
             //实际提现的金额
             $money2 = bcsub($money, $sxfmoney, 4);
         }
-        
+
+        $bankcode = I('request.bankcode', 0, 'intval');
+        if (in_array($bankcode, [7713,7719,7720,7721,7722])) {
+            //当前可用代付渠道
+            $channel_ids = M('pay_for_another')->where(['status' => 1, "currency" =>$this->currency])->getField('id', true);
+            if($channel_ids) {
+                //获取渠道扩展字段
+                $fields = M('pay_channel_extend_fields')->where(['channel_id'=>['in',$channel_ids]])->select();
+                if(!empty($fields)) {
+                    if(!$this->extends) {
+                        $this->showmessage('The extends field cannot be empty!');
+                    }
+                    $extend_fields_array = json_decode(base64_decode($this->extends), true);
+                    foreach($fields as $k => $v) {
+                        if(!isset($extend_fields_array[$v['name']]) || $extend_fields_array[$v['name']]=='') {
+                            $this->showmessage('The secondary parameter of the extends field 【' . $v['alias'] . '】 cannot be empty');
+                        }
+                    }
+                }
+            }
+            $this->extends = base64_decode($this->extends);
+        }
         
         //验签
         if ($this->verify($_POST)) {
@@ -563,7 +584,7 @@ class CreateDFController extends Controller
                      ];
     
                     $member_list = M('Member')->field('telegram_id')->where(['id'=>$this->userid])->find();
-                    $result = R('Telegram/Api2/send', [$member_list['telegram_id'], $message, '', 'Markdown', $markup]);
+                    $result = R('Telegram/Api/send', [$member_list['telegram_id'], $message, '', 'Markdown', $markup]);
                 }
             }else{
                 // log_place_order( 'DFadd_NoSubmit', $orderid,   '表' . $table);    //日志

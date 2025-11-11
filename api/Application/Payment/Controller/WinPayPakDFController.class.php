@@ -25,7 +25,7 @@ class WinPayPakDFController extends PaymentController
             'currencyCode' =>'PKR',
             "merchantOrderId" => $data['orderid'], //订单号
             "custId" => $config['mch_id'], //商户号
-            "remark" => $data['extends']?$data['extends']:'remark',
+            "remark" =>'remark',
             "email" => '123456789@gmail.com',
             "phone" => '12345678901',
             "type" => "wallet",
@@ -99,7 +99,6 @@ class WinPayPakDFController extends PaymentController
     public function notifyurl()
     {
         $re_data = $_REQUEST;
-        unset($re_data['PHPSESSID']);
         //获取报文信息
         $orderid = $re_data['merchantOrderId'];
         //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
@@ -118,6 +117,26 @@ class WinPayPakDFController extends PaymentController
         }
         
         $config = M('pay_for_another')->where(['code' => $this->code,'id'=>$Order['df_id']])->find();
+
+        //验证IP白名单
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        } else {
+            $ip = getRealIp();
+        }
+        $check_re = checkNotifyurlIp($ip, $config['notifyip']);
+        if ($check_re !== true) {
+            log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $ip.'==='.$config['notifyip']);    //日志
+            $json_result = "IP异常:" . $ip.'==='.$config['notifyip'];
+            try{
+                logApiAddNotify($orderid, 1, $_REQUEST, $json_result);
+            }catch (\Exception $e) {
+                // var_dump($e);
+            }
+            return;
+        }
 
         $sign = $this->get_sign($re_data, $config['signkey']);
         if ($sign === $re_data["sign"]) {
@@ -162,7 +181,9 @@ class WinPayPakDFController extends PaymentController
     public function queryBalance()
     {
         if (IS_AJAX) {
-            $config = M('pay_for_another')->where(['code' => $this->code])->find();
+            $id = I('post.id', 1);
+            $config = M('pay_for_another')->where(['id' => $id])->find();
+            
             $post_data = array(
                 "custId" => $config['mch_id'], //商户号
                 "appId" => $config['appid'], //商户号
@@ -200,27 +221,6 @@ AAA;
                 $this->ajaxReturn(['status' => 1, 'msg' => '成功', 'data' => $result['msg']]);
             }
         }
-    }
-
-
-    //账户余额查询
-    public function queryBalance2($config)
-    {
-        $post_data = array(
-            "custId" => $config['mch_id'], //商户号
-            "appId" => $config['appid'], //商户号
-            "currencyCode" => 'PKR',
-        );
-        $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
-        log_place_order($this->code . '_queryBalance2', "提交", json_encode($post_data));    //日志
-        $returnContent = $this->http_post_json($config['serverreturn'], $post_data);
-        log_place_order($this->code . '_queryBalance2', "返回", $returnContent);    //日志
-        $result = json_decode($returnContent, true);
-        if($result['code'] === '000000'){
-            $result_data['resultCode'] = "0";
-            $result_data['balance'] = $result['available'] / 100;
-        }
-        return $result_data;
     }
 
     //代付订单查询

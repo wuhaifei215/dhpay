@@ -43,28 +43,28 @@ class H88PayDFController extends PaymentController
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code, $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
         log_place_order($this->code, $data['orderid'] . "----提交地址", $config['exec_gateway']);    //日志
-
+        
         // 记录初始执行时间
         $beginTime = microtime(TRUE);
-
+        
         $returnContent = $this->http_post_data($config['exec_gateway'], $post_data);
         $result = json_decode($returnContent, true);
         // if($data['userid'] == 2){
-        try{
-
-            $redis = $this->redis_connect();
-            $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
-            $userdfpost = json_decode($userdfpost,true);
-
-            logApiAddPayment('下游商户提交YunPay', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
-
-            // 结束并输出执行时间
-            $endTime = microtime(TRUE);
-            $doTime = floor(($endTime-$beginTime)*1000);
-            logApiAddPayment('YunPay订单提交三方H88Pay', __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '2');
-        }catch (\Exception $e) {
-            // var_dump($e);
-        }
+            try{
+                
+                $redis = $this->redis_connect();
+                $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
+                $userdfpost = json_decode($userdfpost,true);
+                
+                logApiAddPayment('下游商户提交YunPay', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
+                
+                // 结束并输出执行时间
+                $endTime = microtime(TRUE);
+                $doTime = floor(($endTime-$beginTime)*1000);
+                logApiAddPayment('YunPay订单提交三方H88Pay', __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '2');
+            }catch (\Exception $e) {
+                // var_dump($e);
+            }
         // }
         log_place_order($this->code, $data['orderid'] . "----返回", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
 
@@ -93,19 +93,19 @@ class H88PayDFController extends PaymentController
         $orderid = $re_data['order_no'];
         //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
         log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", json_encode($_REQUEST, JSON_UNESCAPED_UNICODE));    //日志
-
+        
         $tableName ='';
         $Wttklistmodel = D('Wttklist');
         $date = date('Ymd',strtotime(substr($orderid, 1, 8)));  //获取订单日期
         $tableName = $Wttklistmodel->getRealTableName($date);
         $Order = $Wttklistmodel->table($tableName)->where(['orderid' => $orderid])->find();
-
+        
         // $Order = $this->selectOrder(['orderid' => $orderid]);
         if (!$Order) {
             log_place_order($this->code . '_notifyurl', $orderid . '----没有查询到Order！ ', $orderid);
             exit;
         }
-
+        
         $config = M('pay_for_another')->where(['code' => $this->code,'id'=>$Order['df_id']])->find();
 
         //验证IP白名单
@@ -191,8 +191,8 @@ class H88PayDFController extends PaymentController
         }
         return $return;
     }
-
-
+    
+    
     //账户余额查询
     public function queryBalance()
     {
@@ -224,10 +224,10 @@ class H88PayDFController extends PaymentController
 AAA;
                 $this->ajaxReturn(['status' => 1, 'msg' => '成功', 'data' => $html]);
             }
-
+            
         }
     }
-
+    
     // public function PaymentVoucher($data, $config){
     //     if(isset($data['three_orderid'])){
     //         $post_data = [
@@ -241,7 +241,7 @@ AAA;
     //         $returnContent = $this->http_post_data('https://phlapi.newwinpay.site/br/voucherData.json', $post_data);
     //         log_place_order($this->code . '_PaymentVoucher', $data['orderid'] . "----返回", $returnContent);    //日志
     //         $result = json_decode($returnContent, true);
-
+        
     //         // $redata = json_decode(file_get_contents('https://api.winpay.site/payment/br/voucherData.webapp?casOrdNo=' . $data['three_orderid']),true);
     //         log_place_order($this->code . '_PaymentVoucher', $data['three_orderid'] . "----返回",  json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
     //         if(!empty($result) && $result['code'] === '000000'){
@@ -252,7 +252,7 @@ AAA;
     //     }else{
     //         return false;
     //     }
-
+        
     // }
 
     //发送post请求，提交data字符串

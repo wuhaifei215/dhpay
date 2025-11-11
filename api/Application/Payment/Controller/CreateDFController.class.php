@@ -54,6 +54,23 @@ class CreateDFController extends Controller
         if($this->currency !=='PKR'){
             $this->showmessage("国家货币不对！");
         }
+
+//        $bankcode = I('request.bankcode', 0, 'intval');
+//        if ($bankcode !== 912) {
+//            $this->showmessage('bankcode error');
+//        }
+        $bankname = I("request.bankname", '', 'string,strip_tags,htmlspecialchars');
+        if (!$bankname) {
+            $this->showmessage('bankname error');
+        }else{
+            $bank_arr = [
+                "JAZZCASH", "EASYPAISA"
+            ];
+            //判断是否有该银行编码
+            if(!in_array($bankname,$bank_arr)){
+                $this->showmessage('bankname error2');
+            }
+        }
         $this->doNext();
     }
 

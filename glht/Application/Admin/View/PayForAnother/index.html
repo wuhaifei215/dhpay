@@ -91,7 +91,7 @@
                                         <td >
 											<div class="layui-btn-group">
                                               <a href="javascript:;" class="layui-btn layui-btn-small" onclick="checkMoney('<{:U("Payment/". $v['code'] ."/queryBalance")}>',<{$v['id']}>)">查询余额</a>
-                                              <!--<a href="<{:U('PayForAnother/extendFields', array('id' => $v[id]))}>" class="layui-btn layui-btn-small">扩展字段</a>-->
+                                              <a href="<{:U('PayForAnother/extendFields', array('id' => $v[id]))}>" class="layui-btn layui-btn-small">扩展字段</a>
                                               <button class="layui-btn layui-btn-small" onclick="admin_control('编辑代付风控----<{$v['title']}>','<{:U('PayForAnother/editControl',array('id' => $v[id],'currency'=>$v['currency']))}>')">代付风控</button>
 
 											  <button class="layui-btn layui-btn-small" onclick="admin_edit('编辑供应商接口','<{:U('PayForAnother/operationSupplier',array('id'=>$v[id]))}>')">编辑</button>

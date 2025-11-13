@@ -534,6 +534,12 @@ class CreateDFController extends Controller
                     // $res7 = M('Moneychange')->add($dl_mcData);
 //                }
                 M()->commit();
+
+                try{
+                    logApiAddPayment('商户提交及返回信息', __METHOD__, $orderid, $this->out_trade_no, '/', $postData, [], '0', '0', '1', '2');
+                }catch (\Exception $e) {
+                    // var_dump($e);
+                }
                 
                 //订单信息存入缓存
                 // $redis->set($orderid,json_encode($wttkData),3600 * 2);
@@ -614,12 +620,6 @@ class CreateDFController extends Controller
             header('Content-Type:application/json; charset=utf-8');
             $data = array('status' => 'success', 'msg' => '代付申请成功', 'transaction_id' => $orderid, 'datetime' => date('Y-m-d', strtotime($wttkData['sqdatetime'])));
             echo json_encode($data);
-
-            try{
-                logApiAddPayment('商户提交及返回信息', __METHOD__, $orderid, $this->out_trade_no, '/', $postData, $data, '0', '0', '1', '2');
-            }catch (\Exception $e) {
-                // var_dump($e);
-            }
             exit;
         } else {
             ksort($_POST);

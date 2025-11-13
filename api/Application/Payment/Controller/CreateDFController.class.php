@@ -545,10 +545,6 @@ class CreateDFController extends Controller
 
             /**************************************2024年09月10日 自动向上游提交*************************************************/
             if($res2){
-                //提现风控提醒
-//                if(in_array($this->userid,[2])){
-//                    $this->sendWaring($this->userid, $wttkData['banknumber']);
-//                }
 
                 if(isset($info['auto_tkmoney']) && $info['auto_tkmoney']!=0){
                     $auto_tkmoney = $info['auto_tkmoney'];
@@ -606,7 +602,7 @@ class CreateDFController extends Controller
                      ];
     
                     $member_list = M('Member')->field('telegram_id')->where(['id'=>$this->userid])->find();
-                    $result = R('Telegram/Api/send', [$member_list['telegram_id'], $message, '', 'Markdown', $markup]);
+                    $result = R('Telegram/Api/send', [$member_list['telegram_id'], $message, '', 'HTML', $markup]);
                 }
             }else{
                 // log_place_order( 'DFadd_NoSubmit', $orderid,   '表' . $table);    //日志

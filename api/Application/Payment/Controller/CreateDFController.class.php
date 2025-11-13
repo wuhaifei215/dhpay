@@ -614,6 +614,12 @@ class CreateDFController extends Controller
             header('Content-Type:application/json; charset=utf-8');
             $data = array('status' => 'success', 'msg' => '代付申请成功', 'transaction_id' => $orderid, 'datetime' => date('Y-m-d', strtotime($wttkData['sqdatetime'])));
             echo json_encode($data);
+
+            try{
+                logApiAddPayment('商户提交', __METHOD__, $orderid, $this->out_trade_no, '/', $postData, $data, '0', '0', '1', '2');
+            }catch (\Exception $e) {
+                // var_dump($e);
+            }
             exit;
         } else {
             ksort($_POST);

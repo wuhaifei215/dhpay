@@ -100,6 +100,9 @@ class ApiController extends Controller
     {
         $url = 'https://api.telegram.org/bot' . $this->token . '/sendMessage';
         // $param = "?chat_id=" . $chatId . "&text=" . $text;
+        if($parse_mode!=''){
+            $text = $this->sanitizeText($text, $parse_mode);
+        }
         $data = [
             'chat_id' => $chatId,
             'text' => $text,
@@ -125,7 +128,23 @@ class ApiController extends Controller
         if ($result['ok'] == true) {
             return $result;
         } else {
-            // echo "sendError";
+            // 记录详细错误信息
+            $errorInfo = [
+                'error' => $result['description'] ?: 'Unknown error',
+                'text' => $text,
+                'parse_mode' => $parse_mode,
+                'chat_id' => $chatId
+            ];
+            log_place_order($this->code . '_sendMessage_error', "错误", json_encode($errorInfo, JSON_UNESCAPED_UNICODE));
+
+            // 尝试不带格式重新发送
+//            if (isset($result['error_code']) && $result['error_code'] == 400) {
+//                unset($data['parse_mode']);
+//                $result = curlPost($url, $data);
+//                $result = json_decode($result, true);
+//                return $result['ok'] ? $result : "sendError";
+//            }
+
             return "sendError";
         }
     }
@@ -318,7 +337,7 @@ class ApiController extends Controller
                     $where['id'] = $str[1] - 10000;
                     $re = M('Member')->where($where)->save(['telegram_id' => $chat_id]);
                     if ($re) {
-                        $message = "成功绑定商户号：" . $uid . "\r\n--------------------------------\r\n";
+                        $message = "成功绑定商户号：" .  $where['id'] . "\r\n--------------------------------\r\n";
                         $message .= $this->title . "，7*24小时服务\r\n 可以帮助您查询余额，收款订单详情、出款订单详情\r\n ";
                         $message .= "输入 /show 可查看群组信息及提示，无需再添加其他参数\r\n ";
                         $message .= "输入 /balance 可查询当前账户的查询余额，无需再添加其他参数\r\n ";
@@ -541,7 +560,7 @@ class ApiController extends Controller
         //查询代付订单
         if (strpos($text, '/df') !== false) {
             $order_info = self:: get_dforder($str[1], $userInfo['info']['id']);
-            $this->doDF($order_info, $chat_id, $message, $message_id);
+            $this->doDF($order_info, $chat_id, '', $message_id);
             return;
         }
 
@@ -550,7 +569,7 @@ class ApiController extends Controller
             // log_place_order($this->code . '_get_order', $message_id . "用户", $userInfo['info']['id']);    //日志
             $order_info = self:: get_order($str[1], $userInfo['info']['id']);
             // log_place_order($this->code . '_get_order', $message_id . "订单", json_encode($order_info, JSON_UNESCAPED_UNICODE));    //日志
-            $this->doDS($order_info, $chat_id, $message, $message_id);
+            $this->doDS($order_info, $chat_id, '', $message_id);
             return;
         }
         return;
@@ -986,6 +1005,18 @@ class ApiController extends Controller
         $data['wi_done'] = $wi_done;
 
         return $data;
+    }
+
+    private function sanitizeText($text, $parse_mode) {
+        if ($parse_mode == 'Markdown') {
+            // 确保Markdown标记成对出现
+            $text = preg_replace('/(?<!\*)\*(?!\*)/', '', $text); // 移除单个*
+            $text = preg_replace('/(?<!_)_(?!_)/', '', $text);   // 移除单个_
+        } elseif ($parse_mode == 'HTML') {
+            // 确保HTML标签闭合（简单示例，可能需要更复杂的处理）
+            $text = strip_tags($text, '<b><i><u><code><a>'); // 只允许基本标签
+        }
+        return $text;
     }
 
     protected function redis_connect(){

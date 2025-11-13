@@ -100,6 +100,9 @@ class ApiController extends Controller
     {
         $url = 'https://api.telegram.org/bot' . $this->token . '/sendMessage';
         // $param = "?chat_id=" . $chatId . "&text=" . $text;
+        if($parse_mode!=''){
+            $text = $this->sanitizeText($text, $parse_mode);
+        }
         $data = [
             'chat_id' => $chatId,
             'text' => $text,
@@ -125,35 +128,24 @@ class ApiController extends Controller
         if ($result['ok'] == true) {
             return $result;
         } else {
-            // echo "sendError";
-            return "sendError";
-        }
-    }
+            // 记录详细错误信息
+            $errorInfo = [
+                'error' => $result['description'] ?: 'Unknown error',
+                'text' => $text,
+                'parse_mode' => $parse_mode,
+                'chat_id' => $chatId
+            ];
+            log_place_order($this->code . '_sendMessage_error', "错误", json_encode($errorInfo, JSON_UNESCAPED_UNICODE));
 
-    // 回复用户信息
-    private function sendPhoto($chatId, $photo, $text='', $message_thread_id='')
-    {
-        $url = 'https://api.telegram.org/bot' . $this->token . '/sendPhoto';
-        $data = [
-            'chat_id' => $chatId,
-            'photo' => $photo,
-            'caption' => $text,
-        ];
-        if($message_thread_id!=''){
-            $data['reply_parameters'] = json_encode([
-                'message_id'=> $message_thread_id,
-                'chat_id'=>$chatId,
-            ], JSON_UNESCAPED_UNICODE);
-        }
-        // log_place_order($this->code . '_sendPhoto', "发送", json_encode($data, JSON_UNESCAPED_UNICODE));    //日志
-        $result = curlPost($url, $data);
-        // log_place_order($this->code . '_sendPhoto', "返回", $result);    //日志
-        $result = json_decode($result, true);
-        if ($result['ok'] == true) {
-            return true;
-        } else {
-            echo "sendError";
-            return false;
+            // 尝试不带格式重新发送
+//            if (isset($result['error_code']) && $result['error_code'] == 400) {
+//                unset($data['parse_mode']);
+//                $result = curlPost($url, $data);
+//                $result = json_decode($result, true);
+//                return $result['ok'] ? $result : "sendError";
+//            }
+
+            return "sendError";
         }
     }
 
@@ -995,6 +987,18 @@ class ApiController extends Controller
         $data['wi_done'] = $wi_done;
 
         return $data;
+    }
+
+    private function sanitizeText($text, $parse_mode) {
+        if ($parse_mode == 'Markdown') {
+            // 确保Markdown标记成对出现
+            $text = preg_replace('/(?<!\*)\*(?!\*)/', '', $text); // 移除单个*
+            $text = preg_replace('/(?<!_)_(?!_)/', '', $text);   // 移除单个_
+        } elseif ($parse_mode == 'HTML') {
+            // 确保HTML标签闭合（简单示例，可能需要更复杂的处理）
+            $text = strip_tags($text, '<b><i><u><code><a>'); // 只允许基本标签
+        }
+        return $text;
     }
 
     protected function redis_connect(){

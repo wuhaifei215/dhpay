@@ -37,7 +37,7 @@ class IndexController extends PaymentController{
         }
         $where = ['id'=>['in', $post_data['id']], 'status'=>$status];
 
-
+        $tableName ='Wttklist';
         $Wttklistmodel = D('Wttklist');
         $tables = $Wttklistmodel->getTables();
         foreach ($tables as $v){
@@ -47,7 +47,6 @@ class IndexController extends PaymentController{
                 break;
             }
         }
-
         // $wttk_lists = $this->selectOrder($where);
 		
 		$post_data['code'] = $post_data['opt'] == 'exec'?$post_data['code']:$wttk_lists[0]['df_id'];
@@ -229,9 +228,14 @@ class IndexController extends PaymentController{
         }
     }
     
+        
     //凭证查询
     public function voucher(){
-        //https://open.yunpay.me/Payment_Index_voucher.html?casOrdNo=O2024122605472902849628399
+        //https://open.yunpay.me/Payment_Index_voucher.html?casOrdNo=O2024122605472902849628399&pay_currency=BRL
+        $currency= I('post.pay_currency', '', 'string,strip_tags,htmlspecialchars');
+        if (!$currency) {
+            $this->showmessage('国家货币不能为空！');
+        }
         $orderid = I('request.casOrdNo', '', 'string');
         if (!$orderid) {
             $this->showmessage("缺少参数");

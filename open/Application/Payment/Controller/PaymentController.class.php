@@ -192,10 +192,10 @@ class PaymentController extends Controller
 
     protected function changeStatus($id, $status = 1, $return,$table='Wttklist'){
         $redis = $this->redis_connect();
-        if($redis->get('changestatus' . $status . $id)){
-            return;
-        }
-        $redis->set('changestatus' . $status . $id,'1',120);
+//        if($redis->get('changestatus' . $status . $id)){
+//            return;
+//        }
+//        $redis->set('changestatus' . $status . $id,'1',120);
         
         $where = ['id'=>$id, 'status'=>['in', '0,1']];
 	    //处理成功返回的数据
@@ -210,7 +210,7 @@ class PaymentController extends Controller
 			case 1:
 				//提交代付成功
 			   $data['status'] = 1;
-			   $data['memo']  = '申请成功！ - '. $return['memo']. date('Y-m-d H:i:s').'<br>'.$memo;
+			   $data['memo']  = '申请成功！ - '. $return['memo']. date('Y-m-d H:i:s');
 			   break;
 			case 2:
 				 //支付成功
@@ -226,14 +226,8 @@ class PaymentController extends Controller
     				 //各种失败未返回 并退回金额
                     $Member     = M('Member');
                     $memberInfo = $Member->where(['id' => $withdraw['userid']])->lock(true)->find();
-                    if(getPaytypeCurrency($withdraw['paytype']) ==='PHP'){        //菲律宾余额
-                        $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance_php' => array('exp', "balance_php+{$withdraw['tkmoney']}")]);
-                        $ymoney = $memberInfo['balance_php'];
-                    }
-                    if(getPaytypeCurrency($withdraw['paytype']) ==='INR'){        //菲律宾余额
-                        $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance_inr' => array('exp', "balance_inr+{$withdraw['tkmoney']}")]);
-                        $ymoney = $memberInfo['balance_inr'];
-                    }
+                     $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['tkmoney']}")]);
+                     $ymoney = $memberInfo['balance'];
                     //2,记录流水订单号
                     $arrayField = array(
                         "userid"     => $withdraw['userid'],
@@ -244,23 +238,18 @@ class PaymentController extends Controller
                         "tongdao"    => 0,
                         "transid"    => $withdraw['orderid'],
                         "orderid"    => $withdraw['out_trade_no'],
-                        "paytype"    => $withdraw['paytype'],
+                        'currency' => $withdraw['currency'],
                         "lx"         => 18,
                         'contentstr' => $contentstr.': '.$withdraw['orderid'],
                     );
                     $Moneychange = D("Moneychange");
                     $tablename = $Moneychange -> getRealTableName($arrayField['datetime']);
                     $res2 = $Moneychange->table($tablename)->add($arrayField);
-                    // log_place_order( 'DFadd_error', $withdraw['orderid'],   $Moneychange->table($tablename)->getLastSql());    //日志
+//                     log_place_order( 'DFadd_error', $withdraw['orderid'],   $Moneychange->table($tablename)->getLastSql());    //日志
                     $sxf_re = true;
                     //代付驳回退回手续费
                     if ($withdraw['df_charge_type'] && $withdraw['sxfmoney']>0) {
-                        if(getPaytypeCurrency($withdraw['paytype']) ==='PHP'){        //菲律宾余额
-                            $res3 = $Member->where(['id' => $withdraw['userid']])->save(['balance_php' => array('exp', "balance_php+{$withdraw['sxfmoney']}")]);
-                        }
-                        if(getPaytypeCurrency($withdraw['paytype']) ==='INR'){        //菲律宾余额
-                            $res3 = $Member->where(['id' => $withdraw['userid']])->save(['balance_inr' => array('exp', "balance_inr+{$withdraw['sxfmoney']}")]);
-                        }
+                        $res3 = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['sxfmoney']}")]);
                         if (!$res3) {
                             $sxf_re = false;
                         }
@@ -273,7 +262,7 @@ class PaymentController extends Controller
                             "tongdao"    => 0,
                             "transid"    => $withdraw['orderid'],
                             "orderid"    => $withdraw['out_trade_no'],
-                            "paytype"    => $withdraw['paytype'],
+                            'currency' => $withdraw['currency'],
                             "lx"         => 19,
                             'contentstr' => $contentstr.' 结算退回手续费',
                         );
@@ -307,14 +296,15 @@ class PaymentController extends Controller
 				 //订单状态不改变
 				 $sta = $Wttklist->table($table)->where(['id' => $id])->getField('status');
 				 $data['status'] = $sta;
-				 $data['memo']  = '状态不改变！ - '. $return['memo']. date('Y-m-d H:i:s').'<br>'.$memo;
+				 $data['memo']  = '状态不改变！ - '. $return['memo']. date('Y-m-d H:i:s');
 				 break;
 		}
         $ad = $Wttklist->table($table)->where($where)->save($data);
         if($status == 2 || $status == 3){
+            $withdraw['memo'] = $data['memo'];
             $withdraw['status'] = $data['status'];
             $redis->set($withdraw['orderid'],json_encode($withdraw),3600 * 2);
-            $redis->rPush('notifyList_DF', $withdraw['orderid']);
+            // $redis->rPush('notifyList_DF', $withdraw['orderid']);
             Automatic_Notify($withdraw['orderid']);
         }
         return;
@@ -346,20 +336,20 @@ class PaymentController extends Controller
     //         case 1:
     //             //提交代付成功
     //             $data['status'] = 1;
-    //             $data['memo']  = '申请成功！ - '. $return['memo']. date('Y-m-d H:i:s').'<br>'.$memo;
+    //             $data['memo']  = '申请成功！ - '. $return['memo']. date('Y-m-d H:i:s').' - '.$memo;
     //             break;
     //         case 2:
     //             //支付成功
     //             //  if($Wttklist["status"] != 0 && $Wttklist["status"] != 1){return;}
     //             $data['status'] = 2;
     //             $data['cldatetime'] = date('Y-m-d H:i:s', time());
-    //             $data['memo']  = '代付成功！ - '. $return['memo']. date('Y-m-d H:i:s').'<br>'.$memo;
+    //             $data['memo']  = '代付成功！ - '. $return['memo']. date('Y-m-d H:i:s').' - '.$memo;
     //             break;
     //         case 3:
     //             // if($Wttklist["status"] != 0 && $Wttklist["status"] != 1){return;}
     //             //各种失败未返回 并退回金额
     //             $message = isset($return['memo'])?$return['memo']:'代付失败！';
-    //             $message = $message .' - '.date('Y-m-d H:i:s').'<br>'.$memo;
+    //             $message = $message .' - '.date('Y-m-d H:i:s').' - '.$memo;
     //             M()->startTrans();
 				// $Reject_re = Reject(['id' => $id, 'status' => '4','message'=> $message],$return);
 				// if($Reject_re ===false){
@@ -374,7 +364,7 @@ class PaymentController extends Controller
     //             //订单状态不改变
     //             $sta = $Wttklistmodel->table($tableName)->where(['id' => $id])->getField('status');
     //             $data['status'] = $sta;
-    //             $data['memo']  = '状态不改变！ - '. $return['memo']. date('Y-m-d H:i:s').'<br>'.$memo;
+    //             $data['memo']  = '状态不改变！ - '. $return['memo']. date('Y-m-d H:i:s').' - '.$memo;
     //     }
     //     if(in_array($status, [0,1,2])){
     //         $data = array_merge($data, $return);

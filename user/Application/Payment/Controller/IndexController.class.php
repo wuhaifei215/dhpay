@@ -58,7 +58,6 @@ class IndexController extends PaymentController{
 		
         //判断代付通道的文件是否存在
         $code = $pfa_list['code'];
-        echo $code;die;
         $code || showError('代付渠道不存在！');
         $file = APP_PATH . 'Payment/Controller/' . $code . 'Controller.class.php';
         is_file($file) || showError('代付渠道不存在！');
@@ -226,6 +225,40 @@ class IndexController extends PaymentController{
             showError('查询失败！');
         } else {
             showSuccess('查询成功,请在页面刷新后查看订单状态！');
+        }
+    }
+    
+        
+    //凭证查询
+    public function voucher(){
+        //https://open.yunpay.me/Payment_Index_voucher.html?casOrdNo=O2024122605472902849628399&pay_currency=BRL
+        $currency= I('post.pay_currency', '', 'string,strip_tags,htmlspecialchars');
+        if (!$currency) {
+            $this->showmessage('国家货币不能为空！');
+        }
+        $orderid = I('request.casOrdNo', '', 'string');
+        if (!$orderid) {
+            $this->showmessage("缺少参数");
+        }
+        $Wttklistmodel = D('Wttklist');
+        $date = date('Ymd',strtotime(substr($orderid, 1, 8)));  //获取订单日期
+        $tableName = $Wttklistmodel->getRealTableName($date);
+        $info = $Wttklistmodel->table($tableName)->where(['orderid' => $orderid])->find();
+        if(!$info['three_orderid'] && $info['df_id'] < 8){
+            echo '请联系客服获取!';
+            return;
+        } 
+        if($info['status'] == 2 || $info['status'] == 3){
+            $where['id'] = $info['df_id'];
+            $pfa_list = M('PayForAnother')->where($where)->find();
+            
+            $voucherrData = R('Payment/'.$pfa_list['code'].'/PaymentVoucher', [$info, $pfa_list]);
+            if($voucherrData === false){
+                echo '请联系客服获取!';
+                return;
+            } 
+            $this->assign('list', $voucherrData['data']);
+		    $this->display("Public/form");
         }
     }
 }

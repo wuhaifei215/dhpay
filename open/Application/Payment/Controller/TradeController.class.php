@@ -13,7 +13,7 @@ class TradeController extends CreateDFController
     {
         parent::__construct();
     }
-
+    
     //代付查询
     public function query()
     {
@@ -33,14 +33,14 @@ class TradeController extends CreateDFController
         if (!$sign) {
             $this->showmessage("缺少签名参数");
         }
-
+        
         $memberid= I('post.mchid', 0, 'intval');
         if ($memberid == 0) {
             $this->showmessage('不存在的商户编号!');
         }else{
             $user_id = $memberid - 10000;
         }
-
+        
         //用户信息
         $this->merchants = D('Member')->where(array('id' => $user_id,'currency'=>$currency))->find();
         if (empty($this->merchants)) {
@@ -117,7 +117,7 @@ class TradeController extends CreateDFController
             try {
                 $order = $Wttklist->table($Wttklist->getRealTableName($t_date))->where($where)->find();
             } catch (\Exception $e) {
-
+                
             }
         }
         // echo $Wttklist->table($Wttklist->getRealTableName($datetime))->getLastSql();
@@ -187,7 +187,7 @@ class TradeController extends CreateDFController
         }else{
             $user_id = $memberid - 10000;
         }
-
+        
         //用户信息
         $this->merchants = D('Member')->where(array('id' => $user_id,'currency'=>$currency))->find();
         if (empty($this->merchants)) {
@@ -247,16 +247,16 @@ class TradeController extends CreateDFController
             'status' => 'success',
             'msg' => '请求成功',
             'mchid' => $memberid,
-            'data' => [
-                'currency' => $this->merchants['currency'],
-                'balance' => $this->merchants['balance'],//菲律宾可提现余额
-                'blockedbalance' => $this->merchants['blockedbalance'],//菲律宾冻结余额
-            ],
         ];
         $return['sign'] = $this->createSign($this->merchants['apikey'], $return);
+        $return['data'] = [
+            'currency' => $this->merchants['currency'],
+            'balance' => $this->merchants['balance'],//菲律宾可提现余额
+            'blockedbalance' => $this->merchants['blockedbalance'],//菲律宾冻结余额
+        ];
         echo json_encode($return);
     }
-
+    
     //获取凭证
     public function voucher(){
         $currency= I('post.currency', '', 'string,strip_tags,htmlspecialchars');
@@ -282,7 +282,7 @@ class TradeController extends CreateDFController
         }else{
             $user_id = $memberid - 10000;
         }
-
+        
         //用户信息
         $this->merchants = D('Member')->where(array('id' => $user_id))->find();
         if (empty($this->merchants)) {
@@ -359,7 +359,7 @@ class TradeController extends CreateDFController
             try {
                 $order = $Wttklist->table($Wttklist->getRealTableName($t_date))->where($where)->find();
             } catch (\Exception $e) {
-
+                
             }
         }
         if (!$order) {

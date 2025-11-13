@@ -35,7 +35,6 @@ class RepostController extends PaymentController
         $maps['userid'] = ['neq', 2];
         $maps['notifyurl'] = ['neq', ''];
         $maps['status'] = ['in', ["2", "4"]];
-        // $maps['fail_re'] = ['neq', 1];
         $maps['num'] = array('lt', $nums);
         $maps['last_reissue_time'] = array('lt', time() - 10);//距离上次补发至少10秒
         // $maps['cldatetime'] = ['between', [date('Y-m-d H:i:s', time() - 180), date('Y-m-d H:i:s', time())]];

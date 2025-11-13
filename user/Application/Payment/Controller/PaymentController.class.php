@@ -30,6 +30,7 @@ class PaymentController extends Controller
         if(PHP_SAPI !== 'cli' && ACTION_NAME == 'PaymentExec' && !session('admin_submit_df')) {
             showError('没有权限');
         }
+        
     }
 
     protected function findPaymentType($code='default'){
@@ -189,66 +190,191 @@ class PaymentController extends Controller
         $balance < $money && showError('支付金额错误');
     }
 
-    protected function handle($id, $status = 1, $return, $tableName = ''){
+    protected function changeStatus($id, $status = 1, $return,$table='Wttklist'){
         $redis = $this->redis_connect();
-        if($redis->get('handle' . $id)){
+//        if($redis->get('changestatus' . $status . $id)){
+//            return;
+//        }
+//        $redis->set('changestatus' . $status . $id,'1',120);
+        
+        $where = ['id'=>$id, 'status'=>['in', '0,1']];
+	    //处理成功返回的数据
+        $Wttklist = D('Wttklist');
+        $withdraw = $Wttklist->table($table)->where($where)->find();
+        if(!$withdraw || empty($withdraw)){
             return;
         }
-        $redis->set('handle' . $id,'1',120);
-        //处理成功返回的数据
-        $Wttklistmodel = D('Wttklist');
-        if($tableName==''){
-            $tables = $Wttklistmodel->getTables();
-            foreach ($tables as $v){
-                $Wttklist = $Wttklistmodel->table($v)->where(['id' => $id])->find();
-                if(!empty($Wttklist)){
-                    $tableName = $v;
-                    break;
-                }
-            }
-        }else{
-            $Wttklist = $Wttklistmodel->table($tableName)->where(['id' => $id])->find();
-        }
-        if($Wttklist["status"] > 1){return;}
-        $memo =$Wttklist['memo'];
+        $memo = $withdraw['memo'];
         $data = array();
-        switch($status){
-            case 1:
-                //提交代付成功
-                $data['status'] = 1;
-                $data['memo']  = '申请成功！ - '. $return['memo']. date('Y-m-d H:i:s').'<br>'.$memo;
-                break;
-            case 2:
-                //支付成功
-                //  if($Wttklist["status"] != 0 && $Wttklist["status"] != 1){return;}
-                $data['status'] = 2;
-                $data['cldatetime'] = date('Y-m-d H:i:s', time());
-                $data['memo']  = '代付成功！ - '. $return['memo']. date('Y-m-d H:i:s').'<br>'.$memo;
-                break;
-            case 3:
-                // if($Wttklist["status"] != 0 && $Wttklist["status"] != 1){return;}
-                //各种失败未返回 并退回金额
-                $message = isset($return['memo'])?$return['memo']:'代付失败！';
-                $message = $message .' - '.date('Y-m-d H:i:s').'<br>'.$memo;
-                Reject(['id' => $id, 'status' => '4','message'=> $message],$return);
-                //异步通知下游
-                Automatic_Notify($id);
-                return;
-            default:
-                //订单状态不改变
-                $sta = $Wttklistmodel->table($tableName)->where(['id' => $id])->getField('status');
-                $data['status'] = $sta;
-                $data['memo']  = '状态不改变！ - '. $return['memo']. date('Y-m-d H:i:s').'<br>'.$memo;
+		switch($status){
+			case 1:
+				//提交代付成功
+			   $data['status'] = 1;
+			   $data['memo']  = '申请成功！ - '. $return['memo']. date('Y-m-d H:i:s');
+			   break;
+			case 2:
+				 //支付成功
+			   $data['status'] = 2;
+			   $data['cldatetime'] = date('Y-m-d H:i:s', time());
+			   $data['memo']  = '代付成功！';
+			   break;
+			case 3:
+                    // log_place_order( 'DFadd_error', $withdraw['orderid'],  json_encode($withdraw, JSON_UNESCAPED_UNICODE));    //日志
+			     try {
+			        $contentstr = '失败';
+                    M()->startTrans();
+    				 //各种失败未返回 并退回金额
+                    $Member     = M('Member');
+                    $memberInfo = $Member->where(['id' => $withdraw['userid']])->lock(true)->find();
+                     $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['tkmoney']}")]);
+                     $ymoney = $memberInfo['balance'];
+                    //2,记录流水订单号
+                    $arrayField = array(
+                        "userid"     => $withdraw['userid'],
+                        "ymoney"     => $ymoney,
+                        "money"      => $withdraw['tkmoney'],
+                        "gmoney"     => $ymoney + $withdraw['tkmoney'],
+                        "datetime"   => date("Y-m-d H:i:s"),
+                        "tongdao"    => 0,
+                        "transid"    => $withdraw['orderid'],
+                        "orderid"    => $withdraw['out_trade_no'],
+                        'currency' => $withdraw['currency'],
+                        "lx"         => 18,
+                        'contentstr' => $contentstr.': '.$withdraw['orderid'],
+                    );
+                    $Moneychange = D("Moneychange");
+                    $tablename = $Moneychange -> getRealTableName($arrayField['datetime']);
+                    $res2 = $Moneychange->table($tablename)->add($arrayField);
+//                     log_place_order( 'DFadd_error', $withdraw['orderid'],   $Moneychange->table($tablename)->getLastSql());    //日志
+                    $sxf_re = true;
+                    //代付驳回退回手续费
+                    if ($withdraw['df_charge_type'] && $withdraw['sxfmoney']>0) {
+                        $res3 = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['sxfmoney']}")]);
+                        if (!$res3) {
+                            $sxf_re = false;
+                        }
+                        $chargeField = array(
+                            "userid"     => $withdraw['userid'],
+                            "ymoney"     => $ymoney + $withdraw['tkmoney'],
+                            "money"      => $withdraw['sxfmoney'],
+                            "gmoney"     => $ymoney + $withdraw['tkmoney'] + $withdraw['sxfmoney'],
+                            "datetime"   => date("Y-m-d H:i:s"),
+                            "tongdao"    => 0,
+                            "transid"    => $withdraw['orderid'],
+                            "orderid"    => $withdraw['out_trade_no'],
+                            'currency' => $withdraw['currency'],
+                            "lx"         => 19,
+                            'contentstr' => $contentstr.' 结算退回手续费',
+                        );
+                        $res4 = $Moneychange->table($tablename)->add($chargeField);
+                        // $res = M('Moneychange')->add($chargeField);
+                        if (!$res4) {
+                            $sxf_re = false;
+                        }
+                    }
+    				$message = isset($return['memo'])?$return['memo']:'代付失败！';
+    				
+    			    $data['status'] = 4;
+    			    $data['cldatetime'] = date('Y-m-d H:i:s', time());
+    			    $data['memo']  = $message;
+    			 //   log_place_order( 'DFadd_error', $withdraw['orderid'], '$res1:' . $res1);    //日志
+    			 //   log_place_order( 'DFadd_error', $withdraw['orderid'], '$res2:' . $res2);    //日志
+    			 //   log_place_order( 'DFadd_error', $withdraw['orderid'], '$sxf_re:' . $sxf_re);    //日志
+    			    
+                    if($res1 && $res2 && $sxf_re === true){
+                    // log_place_order( 'DFadd_error', $withdraw['orderid'],   11111);    //日志
+            		    M()->commit();
+            		}else{
+                        log_place_order( 'DFadd_error', $withdraw['orderid'],   '数据回滚了');    //日志
+            		    M()->rollback();
+            		}
+			    } catch (\Exception $e) {
+                    log_place_order( 'DFadd_error', $withdraw['orderid'] . 'error',  $e);    //日志
+                }
+			    break;
+			default:
+				 //订单状态不改变
+				 $sta = $Wttklist->table($table)->where(['id' => $id])->getField('status');
+				 $data['status'] = $sta;
+				 $data['memo']  = '状态不改变！ - '. $return['memo']. date('Y-m-d H:i:s');
+				 break;
+		}
+        $ad = $Wttklist->table($table)->where($where)->save($data);
+        if($status == 2 || $status == 3){
+            $withdraw['memo'] = $data['memo'];
+            $withdraw['status'] = $data['status'];
+            $redis->set($withdraw['orderid'],json_encode($withdraw),3600 * 2);
+            // $redis->rPush('notifyList_DF', $withdraw['orderid']);
+            Automatic_Notify($withdraw['orderid']);
         }
-        if(in_array($status, [0,1,2])){
-            $data = array_merge($data, $return);
-            $where = ['id'=>$id, 'status'=>['in', '0,1']];
-            $res = $Wttklistmodel->table($tableName)->where($where)->save($data);
-        }
-        //异步通知下游
-        Automatic_Notify($id);
+        return;
+	}
+    // protected function handle($id, $status = 1, $return, $tableName = ''){
+    //     $redis = $redis_connect();
+    //     if($redis->get('handle' . $id)){
+    //         return;
+    //     }
+    //     $redis->set('handle' . $id,'1',120);
+    //     //处理成功返回的数据
+    //     $Wttklistmodel = D('Wttklist');
+    //     if($tableName==''){
+    //         $tables = $Wttklistmodel->getTables();
+    //         foreach ($tables as $v){
+    //             $Wttklist = $Wttklistmodel->table($v)->where(['id' => $id])->find();
+    //             if(!empty($Wttklist)){
+    //                 $tableName = $v;
+    //                 break;
+    //             }
+    //         }
+    //     }else{
+    //         $Wttklist = $Wttklistmodel->table($tableName)->where(['id' => $id])->find();
+    //     }
+    //     if($Wttklist["status"] > 1){return;}
+    //     $memo =$Wttklist['memo'];
+    //     $data = array();
+    //     switch($status){
+    //         case 1:
+    //             //提交代付成功
+    //             $data['status'] = 1;
+    //             $data['memo']  = '申请成功！ - '. $return['memo']. date('Y-m-d H:i:s').' - '.$memo;
+    //             break;
+    //         case 2:
+    //             //支付成功
+    //             //  if($Wttklist["status"] != 0 && $Wttklist["status"] != 1){return;}
+    //             $data['status'] = 2;
+    //             $data['cldatetime'] = date('Y-m-d H:i:s', time());
+    //             $data['memo']  = '代付成功！ - '. $return['memo']. date('Y-m-d H:i:s').' - '.$memo;
+    //             break;
+    //         case 3:
+    //             // if($Wttklist["status"] != 0 && $Wttklist["status"] != 1){return;}
+    //             //各种失败未返回 并退回金额
+    //             $message = isset($return['memo'])?$return['memo']:'代付失败！';
+    //             $message = $message .' - '.date('Y-m-d H:i:s').' - '.$memo;
+    //             M()->startTrans();
+				// $Reject_re = Reject(['id' => $id, 'status' => '4','message'=> $message],$return);
+				// if($Reject_re ===false){
+				//     M()->rollback();
+				// }else{
+				//     M()->commit();
+				// }
+    //             //异步通知下游
+    //             Automatic_Notify($id);
+    //             return;
+    //         default:
+    //             //订单状态不改变
+    //             $sta = $Wttklistmodel->table($tableName)->where(['id' => $id])->getField('status');
+    //             $data['status'] = $sta;
+    //             $data['memo']  = '状态不改变！ - '. $return['memo']. date('Y-m-d H:i:s').' - '.$memo;
+    //     }
+    //     if(in_array($status, [0,1,2])){
+    //         $data = array_merge($data, $return);
+    //         $where = ['id'=>$id, 'status'=>['in', '0,1']];
+    //         $res = $Wttklistmodel->table($tableName)->where($where)->save($data);
+    //     }
+    //     //异步通知下游
+    //     Automatic_Notify($id);
 
-    }
+    // }
     
     protected function redis_connect(){
         //创建一个redis对象

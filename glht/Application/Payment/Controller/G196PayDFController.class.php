@@ -51,11 +51,11 @@ class G196PayDFController extends PaymentController
 
         try{
 
-            $redis = $this->redis_connect();
-            $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
-            $userdfpost = json_decode($userdfpost,true);
-
-            logApiAddPayment('商户提交', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
+//            $redis = $this->redis_connect();
+//            $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
+//            $userdfpost = json_decode($userdfpost,true);
+//
+//            logApiAddPayment('商户提交', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
 
             // 结束并输出执行时间
             $endTime = microtime(TRUE);

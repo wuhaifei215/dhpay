@@ -43,11 +43,11 @@ class P2pPayDFController extends PaymentController
         // if($data['userid'] == 2){
             try{
                 
-                $redis = $this->redis_connect();
-                $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
-                $userdfpost = json_decode($userdfpost,true);
-                
-                logApiAddPayment('下游商户提交YunPay', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
+//                $redis = $this->redis_connect();
+//                $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
+//                $userdfpost = json_decode($userdfpost,true);
+//
+//                logApiAddPayment('下游商户提交YunPay', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
                 
                 // 结束并输出执行时间
                 $endTime = microtime(TRUE);
@@ -57,8 +57,8 @@ class P2pPayDFController extends PaymentController
                 // var_dump($e);
             }
         // }
-        log_place_order($this->code, $data['orderid'] . "----返回", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
 
+        log_place_order($this->code, $data['orderid'] . "----返回", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
         // log_place_order($this->code, $data['orderid'] . "----状态：", $result['status']);    //日志
         if($result['code'] === '0'){
             //保存第三方订单号
@@ -229,6 +229,25 @@ AAA;
         }
     }
     
+    //账户余额查询
+    public function queryBalance2($config)
+    {
+        $result_data=[];
+        $header = [
+            'AppId: ' . $config['mch_id'],
+        ];
+        
+        log_place_order($this->code . '_queryBalance2', "提交", json_encode($header));    //日志
+        $returnContent = $this->http_get_json($config['serverreturn'], $header);
+        $result = json_decode($returnContent, true);
+        log_place_order($this->code . '_queryBalance2', "返回", json_encode($result));    //日志
+        if($result['code']==="0"){
+            $result_data['resultCode'] = "0";
+            $result_data['balance'] = $result['data']['balance'] / 100;
+        }
+        return $result_data;
+    }
+    
     
     /*-----------------------------------辅助方法---------------------------------------------*/
     /**
@@ -246,8 +265,8 @@ AAA;
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_HEADER => false,
                 CURLOPT_HTTPHEADER => $header,
-                CURLOPT_CONNECTTIMEOUT => 20,
-                CURLOPT_TIMEOUT => 120,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT => 10,
     
                 CURLOPT_URL => $url,
                 CURLOPT_POST => true,
@@ -281,7 +300,7 @@ AAA;
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
+            CURLOPT_TIMEOUT => 10,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_HTTPHEADER => $headerArray,

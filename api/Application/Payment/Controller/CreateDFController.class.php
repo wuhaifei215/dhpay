@@ -282,7 +282,7 @@ class CreateDFController extends Controller
         $postData = I('post.');
         $postData['get_time'] = microtime(TRUE);
         $redis =redis_connect();
-        $redis->set('userdfpost_' . $this->out_trade_no, json_encode($postData, JSON_UNESCAPED_UNICODE), 300);
+//        $redis->set('userdfpost_' . $this->out_trade_no, json_encode($postData, JSON_UNESCAPED_UNICODE), 300);
         /*******************************用户订单信息*******************************/
 
         //结算方式：

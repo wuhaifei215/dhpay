@@ -623,7 +623,7 @@ class CreateDFController extends Controller
                 $endTime = microtime(TRUE);
                 $doTime = floor(($endTime-$beginTime)*1000);
 
-                logApiAddPayment('商户提交及返回信息', __METHOD__, $orderid, $this->out_trade_no, '/', $postData, $data, $doTime, '0', '1', '2');
+                logApiAddPayment('商户提交及返回参数', __METHOD__, $orderid, $this->out_trade_no, '/', $postData, $data, $doTime, '0', '1', '2');
             }catch (\Exception $e) {
                 // var_dump($e);
             }

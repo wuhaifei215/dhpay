@@ -1019,6 +1019,9 @@ class WithdrawalController extends BaseController
                     $Rejsct = Reject(['id' => $id, 'status' => '4','message'=> $memo]);
                     if($Rejsct){
                         M()->commit();
+
+                        $withdraw['status'] = $data['status'];
+                        $redis->set($withdraw['orderid'],json_encode($withdraw),3600 * 2);
                         Automatic_Notify($withdraw['orderid']);
                         $this->ajaxReturn(['status' => 1,'msg' => '订单状态设置失败，成功!']);
                         break;
@@ -1033,6 +1036,9 @@ class WithdrawalController extends BaseController
                     $Rejsct = Reject(['id' => $id, 'status' => '6','message'=> $memo]);
                     if($Rejsct){
                         M()->commit();
+
+                        $withdraw['status'] = $data['status'];
+                        $redis->set($withdraw['orderid'],json_encode($withdraw),3600 * 2);
                         Automatic_Notify($withdraw['orderid']);
                         $this->ajaxReturn(['status' => 1,'msg' => '订单状态设置驳回，成功!']);
                     }else{

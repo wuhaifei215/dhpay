@@ -237,7 +237,7 @@ class AutodfTelController extends Controller
         if($status == 2 || $status == 3){
             $withdraw['status'] = $data['status'];
             $this->redis->set($withdraw['orderid'],json_encode($withdraw),3600 * 2);
-            $this->redis->rPush('notifyList_DF', $withdraw['orderid']);
+//            $this->redis->rPush('notifyList_DF', $withdraw['orderid']);
             Automatic_Notify($withdraw['orderid']);
         }
         return;

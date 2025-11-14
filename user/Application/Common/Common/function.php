@@ -1740,9 +1740,9 @@ function Reject($Reject,$return=array(), $tableName='') {
 }
 
 //下游异步回调
-function Automatic_Notify ($orderid, $tableName='') {
+function Automatic_Notify ($orderid) {
     $redis = redis_connect();
-    $redis->rPush('notifyList_DF', $orderid . '_' . $tableName);
+    $redis->rPush('notifyList_DF', $orderid);
 }
 // function Automatic_Notify ($id, $tableName='') {
 //     $WttklistModel = D('Wttklist');

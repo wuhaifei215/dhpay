@@ -166,6 +166,7 @@ class AutodfTelController extends Controller
                         "paytype"    => $withdraw['paytype'],
                         "lx"         => 18,
                         'contentstr' => $contentstr.': '.$withdraw['orderid'],
+                        'currency' => $withdraw['currency'],
                     );
                     $Moneychange = D("Moneychange");
                     $tablename = $Moneychange -> getRealTableName($arrayField['datetime']);
@@ -195,6 +196,7 @@ class AutodfTelController extends Controller
                             "paytype"    => $withdraw['paytype'],
                             "lx"         => 19,
                             'contentstr' => $contentstr.' 结算退回手续费',
+                            'currency' => $withdraw['currency'],
                         );
                         $res4 = $Moneychange->table($tablename)->add($chargeField);
                         // $res = M('Moneychange')->add($chargeField);

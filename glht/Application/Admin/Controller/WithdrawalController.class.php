@@ -573,9 +573,9 @@ class WithdrawalController extends BaseController
         $totalMap['status']   = array('between', ['2','3']);
         $stat['total_success_count'] = $Wttklist->getCount($totalMap);
         //平台手续费利润
-        // $totalMap['status']   = array('between', ['2','3']);
-        // $stat_total_profit = $Wttklist->getSum('sxfmoney,cost',$totalMap);
-        // $stat['total_profit'] = round($stat_total_profit['sxfmoney'] - $stat_total_profit['cost'], 2);
+         $totalMap['status']   = array('between', ['2','3']);
+         $stat_total_profit = $Wttklist->getSum('sxfmoney,cost',$totalMap);
+         $stat['total_profit'] = round($stat_total_profit['sxfmoney'] - $stat_total_profit['cost'], 2);
 
         foreach ($stat as $k => $v) {
             $stat[$k] += 0;

@@ -49,7 +49,7 @@
     							<select name="product" lay-verify="" lay-search="" id="product" lay-filter="product">
     								<option value="">直接选择或搜索选择</option>
     								<volist name="product" id="c">
-    									<option value="<{$c.id}>"><{$c.name}></option>
+    									<option value="<{$c.id}>"><{$c.id}> -- <{$c.name}></option>
     								</volist>
     							</select>
     						</div>

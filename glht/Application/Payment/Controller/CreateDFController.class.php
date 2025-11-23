@@ -279,8 +279,11 @@ class CreateDFController extends Controller
     protected function doNext()
     {
         /*******************************用户订单信息*******************************/
+        // 记录初始执行时间
+        $beginTime = microtime(TRUE);
         $postData = I('post.');
         $postData['get_time'] = microtime(TRUE);
+
         $redis =redis_connect();
 //        $redis->set('userdfpost_' . $this->out_trade_no, json_encode($postData, JSON_UNESCAPED_UNICODE), 300);
         /*******************************用户订单信息*******************************/
@@ -534,7 +537,7 @@ class CreateDFController extends Controller
                     // $res7 = M('Moneychange')->add($dl_mcData);
 //                }
                 M()->commit();
-                
+
                 //订单信息存入缓存
                 // $redis->set($orderid,json_encode($wttkData),3600 * 2);
                 $redis->set($this->out_trade_no,$orderid,3600 * 2);
@@ -616,7 +619,11 @@ class CreateDFController extends Controller
             echo json_encode($data);
 
             try{
-                logApiAddPayment('商户提交', __METHOD__, $orderid, $this->out_trade_no, '/', $postData, $data, '0', '0', '1', '2');
+                // 结束并输出执行时间
+                $endTime = microtime(TRUE);
+                $doTime = floor(($endTime-$beginTime)*1000);
+
+                logApiAddPayment('商户提交信息', __METHOD__, $orderid, $this->out_trade_no, '/', $postData, $data, $doTime, '0', '1', '2');
             }catch (\Exception $e) {
                 // var_dump($e);
             }
@@ -748,6 +755,7 @@ class CreateDFController extends Controller
                         "currency"    => $withdraw['currency'],
                         "lx"         => 18,
                         'contentstr' => $contentstr.': '.$withdraw['orderid'],
+                        'currency' => $withdraw['currency'],
                     );
                     $Moneychange = D("Moneychange");
                     $tablename = $Moneychange -> getRealTableName($arrayField['datetime']);
@@ -772,6 +780,7 @@ class CreateDFController extends Controller
                             "currency"    => $withdraw['currency'],
                             "lx"         => 19,
                             'contentstr' => $contentstr.' 结算退回手续费',
+                            'currency' => $withdraw['currency'],
                         );
                         $res4 = $Moneychange->table($tablename)->add($chargeField);
                         // $res = M('Moneychange')->add($chargeField);

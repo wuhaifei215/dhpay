@@ -171,7 +171,8 @@ class HiPayDFGcashController extends PaymentController
     public function queryBalance()
     {
         if (IS_AJAX) {
-            $config = M('pay_for_another')->where(['code' => $this->code])->find();
+            $id = I('post.id', 1);
+            $config = M('pay_for_another')->where(['id' => $id,'code' => $this->code])->find();
             $post_data = array(
                 "mchNo" => $config['mch_id'], //商户号
                 "appId" => $config['appid'], //应用ID

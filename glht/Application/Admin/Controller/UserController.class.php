@@ -518,9 +518,9 @@ class UserController extends BaseController
                 "tongdao" => '',
                 "transid" => $orderid,
                 "orderid" => $orderid,
-                "currency" => $info['currency'],
                 "lx" => $cztype, // 增减类型
                 "contentstr" => $contentstr . '【冲正周期:' . $date . '】',
+                "currency" => $info['currency'],
             );
             $res2 = moneychangeadd($arrayField);
             //冲正订单

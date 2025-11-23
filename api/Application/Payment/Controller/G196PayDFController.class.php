@@ -167,7 +167,8 @@ class G196PayDFController extends PaymentController
     public function queryBalance()
     {
         if (IS_AJAX) {
-            $config = M('pay_for_another')->where(['code' => $this->code])->find();
+            $id = I('post.id', 1);
+            $config = M('pay_for_another')->where(['id' => $id,'code' => $this->code])->find();
             $post_data = array(
                 "custId" => $config['mch_id'], //商户号
                 "payCode" => 'Gcash',       //支付方式 示例值：巴西传：PIX，菲律宾传：Gcash或者Maya，越南传：VN

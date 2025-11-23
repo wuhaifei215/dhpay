@@ -156,7 +156,7 @@ class YunPayDFController extends PaymentController
     //账户余额查询
     public function queryBalance()
     {
-        log_place_order($this->code . '_queryBalance', "提交", '1111');    //日志
+//        log_place_order($this->code . '_queryBalance', "提交", '1111');    //日志
         if (IS_AJAX) {
             $id = I('post.id', 1);
             $config = M('pay_for_another')->where(['id' => $id])->find();

@@ -198,7 +198,8 @@ class P2pPayDFController extends PaymentController
     public function queryBalance()
     {
         if (IS_AJAX) {
-            $config = M('pay_for_another')->where(['code' => $this->code])->find();
+            $id = I('post.id', 1);
+            $config = M('pay_for_another')->where(['id' => $id,'code' => $this->code])->find();
             $header = [
                 'AppId: ' . $config['mch_id'],
             ];

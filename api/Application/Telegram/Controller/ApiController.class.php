@@ -145,6 +145,11 @@ class ApiController extends Controller
 //                return $result['ok'] ? $result : "sendError";
 //            }
 
+            //清理掉官方返回 不存在的群
+            if ($result['error_code'] == 400 && $result['description'] == 'Bad Request: chat not found') {
+                $where['telegram_id'] = $chatId;
+                $re = M('Member')->where($where)->save(['telegram_id' => '']);
+            }
             return "sendError";
         }
     }
@@ -586,7 +591,7 @@ class ApiController extends Controller
             $member_list = M('Member')->field('telegram_id')->where($where)->order('id asc')->limit($row * 50,50)->select();
             if(isset($member_list) && !empty($member_list)){
                 foreach ($member_list as $mv){
-                    if(isset($_REQUEST['photo']) && $photo==1){
+                    if(isset($_REQUEST['photo']) && $_REQUEST['photo']==1){
                         $this->sendPhoto($mv['telegram_id'], $_REQUEST['file_id'],$text);
                     }else{
                         $this->sendMessage($mv['telegram_id'], $text);

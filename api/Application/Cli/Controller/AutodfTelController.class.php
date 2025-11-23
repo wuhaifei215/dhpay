@@ -175,12 +175,7 @@ class AutodfTelController extends Controller
                     $sxf_re = true;
                     //代付驳回退回手续费
                     if ($withdraw['df_charge_type'] && $withdraw['sxfmoney']>0) {
-                        if(getPaytypeCurrency($withdraw['paytype']) ==='PHP'){        //菲律宾余额
-                            $res3 = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['sxfmoney']}")]);
-                        }
-                        if(getPaytypeCurrency($withdraw['paytype']) ==='INR'){        //菲律宾余额
-                            $res3 = $Member->where(['id' => $withdraw['userid']])->save(['balance_inr' => array('exp', "balance_inr+{$withdraw['sxfmoney']}")]);
-                        }
+                        $res3 = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['sxfmoney']}")]);
                         if (!$res3) {
                             $sxf_re = false;
                         }

@@ -25,6 +25,8 @@ class ExportController extends Controller
             }
         }
         $this->_site= 'https://' . C("DOMAIN") . '/';
+        ini_set('default_charset', 'UTF-8');
+        ini_set('memory_limit', '2048M');
     }
     public function index(){
         echo "[" . date('Y-m-d H:i:s'). "] 自动代付任务触发\n";

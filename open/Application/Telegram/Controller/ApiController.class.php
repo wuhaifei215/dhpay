@@ -266,10 +266,12 @@ class ApiController extends Controller
             $reply_to_message = $input['message']['reply_to_message'];
             if($reply_to_message['from']['is_bot'] === true){
                 $user_check = M('TelegramApiDforder')->where(['message_id2' => $reply_to_message['message_id']])->find();
-                if($photo){
-                    $this->sendPhoto($user_check['chat_id'], $photo[0]['file_id'],$text, $user_check['message_id']);
-                }else{
-                    $this->sendMessage($user_check['chat_id'], $text, $user_check['message_id']);
+                if($user_check && !empty($user_check)){
+                    if($photo){
+                        $this->sendPhoto($user_check['chat_id'], $photo[0]['file_id'],$text, $user_check['message_id']);
+                    }else{
+                        $this->sendMessage($user_check['chat_id'], $text, $user_check['message_id']);
+                    }
                 }
             }
             return;

@@ -35,7 +35,7 @@ class ApiController extends Controller
             'url' => $this->callback . '?token=' . md5($this->token),
             'drop_pending_updates'=> 'True'
         ];
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
         $result = json_decode($result, true);
         if ($result['result'] === true) {
             echo "域名绑定成功！";
@@ -50,7 +50,7 @@ class ApiController extends Controller
         $data = [
             'url' => $this->callback . '?token=' . md5($this->token),
         ];
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
         log_place_order($this->code . '_deleteWebhook', "删除回调", $result);    //日志
 
         $result = json_decode($result, true);
@@ -66,7 +66,7 @@ class ApiController extends Controller
         $data = [
             'url' => $this->callback . '?token=' . md5($this->token),
         ];
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
         log_place_order($this->code . '_getWebhookInfo', "当前回调信息", $result);    //日志
 
         $result = json_decode($result, true);
@@ -121,7 +121,7 @@ class ApiController extends Controller
                 , JSON_UNESCAPED_UNICODE);
         }
         log_place_order($this->code . '_sendMessage', "发送", json_encode($data, JSON_UNESCAPED_UNICODE));    //日志
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
 
         log_place_order($this->code . '_sendMessage', "返回", $result);    //日志
         $result = json_decode($result, true);
@@ -140,7 +140,7 @@ class ApiController extends Controller
             // 尝试不带格式重新发送
 //            if (isset($result['error_code']) && $result['error_code'] == 400) {
 //                unset($data['parse_mode']);
-//                $result = curlPost($url, $data);
+//                $result = $this->curlPost($url, $data);
 //                $result = json_decode($result, true);
 //                return $result['ok'] ? $result : "sendError";
 //            }
@@ -516,7 +516,7 @@ class ApiController extends Controller
                 $curlErrno = curl_errno($ch);
                 curl_close($ch);
 
-                // $result = curlPost($url, $data);
+                // $result = $this->curlPost($url, $data);
             }
             return true;
         }
@@ -1013,5 +1013,29 @@ class ApiController extends Controller
         //密码验证
         $redis->auth(C('REDIS_PWD'));
         return $redis;
+    }
+    protected function curlPost($url, $data){
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 299);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // https请求 不验证证书和hosts
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+
+        $file_contents = curl_exec($ch);
+        //获取错误编码
+        //获取错误编码
+        $curlErrno = curl_errno($ch);
+        if($curlErrno){
+            log_place_order($this->code . '_curlPostError', "curlcode", $curlErrno);    //日志
+            log_place_order($this->code . '_curlPostError', "curlErrno", curl_error($ch));    //日志
+        }
+        curl_close($ch);
+        //这里解析
+        return $file_contents;
     }
 }

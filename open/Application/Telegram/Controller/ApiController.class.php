@@ -342,7 +342,9 @@ class ApiController extends Controller
         //根据群ID 获取用户信息
         $userInfo = self::get_user($chat_id);
         if ($userInfo['status'] !== 1 || !$userInfo['info']['id']) {
-            $this->sendMessage($chat_id, '该群未绑定用户！请联系值班客服', $message_id);
+            if($chat_id) {
+                $this->sendMessage($chat_id, '该群未绑定用户！请联系值班客服', $message_id);
+            }
             return;
         }
 

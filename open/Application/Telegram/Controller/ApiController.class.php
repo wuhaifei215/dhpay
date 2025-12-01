@@ -348,6 +348,17 @@ class ApiController extends Controller
             return;
         }
 
+        //查询usdt汇率
+        if (strpos($text, '/usdt@' . $this->bot_name) !== false) {
+            $where['currency'] = $userInfo['info']['currency'];
+            $rate = M('URate')->where($where)->getField('rate');
+            if($chat_id && $rate){
+                $message = '当前汇率：' . $rate;
+                $this->sendMessage($chat_id, $message, $message_id);
+            }
+            return;
+        }
+
         //查询用户余额
         if (strpos($text, '/balance@' . $this->bot_name) !== false) {
             $uid = $userInfo['info']['id'] + 10000;

@@ -35,7 +35,7 @@ class ApiController extends Controller
             'url' => $this->callback . '?token=' . md5($this->token),
             'drop_pending_updates'=> 'True'
         ];
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
         $result = json_decode($result, true);
         if ($result['result'] === true) {
             echo "域名绑定成功！";
@@ -50,7 +50,7 @@ class ApiController extends Controller
         $data = [
             'url' => $this->callback . '?token=' . md5($this->token),
         ];
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
         log_place_order($this->code . '_deleteWebhook', "删除回调", $result);    //日志
 
         $result = json_decode($result, true);
@@ -66,7 +66,7 @@ class ApiController extends Controller
         $data = [
             'url' => $this->callback . '?token=' . md5($this->token),
         ];
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
         log_place_order($this->code . '_getWebhookInfo', "当前回调信息", $result);    //日志
 
         $result = json_decode($result, true);
@@ -89,8 +89,8 @@ class ApiController extends Controller
         self::to_do($input);
         return 'True';
     }
-    
-   public function send($chatId, $text,$message_id='',$parse_mode='',$markup=''){
+
+    public function send($chatId, $text,$message_id='',$parse_mode='',$markup=''){
         return $this -> sendMessage($chatId, $text, $message_id, $parse_mode,$markup);
     }
 
@@ -121,7 +121,7 @@ class ApiController extends Controller
                 , JSON_UNESCAPED_UNICODE);
         }
         log_place_order($this->code . '_sendMessage', "发送", json_encode($data, JSON_UNESCAPED_UNICODE));    //日志
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
 
         log_place_order($this->code . '_sendMessage', "返回", $result);    //日志
         $result = json_decode($result, true);
@@ -140,44 +140,12 @@ class ApiController extends Controller
             // 尝试不带格式重新发送
 //            if (isset($result['error_code']) && $result['error_code'] == 400) {
 //                unset($data['parse_mode']);
-//                $result = curlPost($url, $data);
+//                $result = $this->curlPost($url, $data);
 //                $result = json_decode($result, true);
 //                return $result['ok'] ? $result : "sendError";
 //            }
 
-            //清理掉官方返回 不存在的群
-            if ($result['error_code'] == 400 && $result['description'] == 'Bad Request: chat not found') {
-                $where['telegram_id'] = $chatId;
-                $re = M('Member')->where($where)->save(['telegram_id' => '']);
-            }
             return "sendError";
-        }
-    }
-    
-        // 回复用户信息
-    private function sendPhoto($chatId, $photo, $text='', $message_thread_id='')
-    {
-        $url = 'https://api.telegram.org/bot' . $this->token . '/sendPhoto';
-        $data = [
-            'chat_id' => $chatId,
-            'photo' => $photo,
-            'caption' => $text,
-        ];
-        if($message_thread_id!=''){
-            $data['reply_parameters'] = json_encode([
-                'message_id'=> $message_thread_id,
-                'chat_id'=>$chatId,
-            ], JSON_UNESCAPED_UNICODE);
-        }
-        // log_place_order($this->code . '_sendPhoto', "发送", json_encode($data, JSON_UNESCAPED_UNICODE));    //日志
-        $result = curlPost($url, $data);
-        // log_place_order($this->code . '_sendPhoto', "返回", $result);    //日志
-        $result = json_decode($result, true);
-        if ($result['ok'] == true) {
-            return true;
-        } else {
-            echo "sendError";
-            return false;
         }
     }
 
@@ -188,7 +156,7 @@ class ApiController extends Controller
             $username = $callback_query['from']['username'];
             $chat_id = $callback_query['message']['chat']['id'];
             $message_id = $callback_query['message']['message_id'];
-            
+
             $userInfo = self::get_user($chat_id);
             $operator_arr = explode("\r\n", $userInfo['info']['operators']);
             if (trim($userInfo['info']['operators']) =='' || empty($operator_arr)) {
@@ -206,16 +174,16 @@ class ApiController extends Controller
                 $this->sendMessage($chat_id, $message, $message_id);
                 return;
             }
-            
-            
-            
+
+
+
             //存缓存。防止重复操作
             $redis = $this->redis_connect();
             if($redis->get('callback_query' . $chat_id . $message_id)){
                 return;
             }
             $redis->set('callback_query' . $chat_id . $message_id ,'1',600);
-            
+
             $text = $callback_query['data'];
             $str = explode(' ', $text);
             if($str[0] === 'pass'){       //通过
@@ -228,7 +196,7 @@ class ApiController extends Controller
                 log_place_order($this->code . '_callback_query', "异常", json_encode($callback_query));    //日志
                 return;
             }
-            
+
             if($str[1]){
                 $Wttklist = D('Wttklist');
                 $date = date('Ymd', strtotime(substr($str[1], 1, 8)));  //获取订单日期
@@ -244,7 +212,7 @@ class ApiController extends Controller
             }else{
                 return;
             }
-            
+
             $add_Callback_data = [
                 'orderid' => $str[1],
                 'chat_id' => $chat_id,
@@ -270,12 +238,12 @@ class ApiController extends Controller
                 log_place_order($this->code . '_callback_query', "重复操作,程序错误", $e);    //日志
                 return;
             }
-            
+
             $message = '订单号：' . $str[1] . "\r\n用户：" . $username . '，' . $do . '该订单，执行成功';
             $this->sendMessage($chat_id, $message, $message_id);
             return;
         }
-        
+
         $text = $input['message']['text'];
         $chat_id = $input['message']['chat']['id'];
         $message_id = $input['message']['message_id'];
@@ -292,16 +260,18 @@ class ApiController extends Controller
                 $this->sendMessage($chat_id, "欢迎 " . $v['first_name'] . " 来到本群 ！！\r\n");
             }
         }
-        
+
         //转发 回复机器人的信息
         if (isset($input['message']['reply_to_message'])) {
             $reply_to_message = $input['message']['reply_to_message'];
             if($reply_to_message['from']['is_bot'] === true){
                 $user_check = M('TelegramApiDforder')->where(['message_id2' => $reply_to_message['message_id']])->find();
-                if($photo){
-                    $this->sendPhoto($user_check['chat_id'], $photo[0]['file_id'],$text, $user_check['message_id']);
-                }else{
-                    $this->sendMessage($user_check['chat_id'], $text, $user_check['message_id']);
+                if($user_check && !empty($user_check)){
+                    if($photo){
+                        $this->sendPhoto($user_check['chat_id'], $photo[0]['file_id'],$text, $user_check['message_id']);
+                    }else{
+                        $this->sendMessage($user_check['chat_id'], $text, $user_check['message_id']);
+                    }
                 }
             }
             return;
@@ -310,7 +280,7 @@ class ApiController extends Controller
         //查询显示群组ID
         if (strpos($text, '/show') !== false || strpos($text, '/show@' . $this->bot_name) !== false) {
             $message='';
-                
+
             $message = "群组ID：" . $chat_id . "\r\n--------------------------------\r\n";
             $message .= $this->title . "，7*24小时服务\r\n 可以帮助您查询余额，收款订单详情、出款订单详情\r\n ";
             $message .= "输入 /show 可查看群组信息及提示，无需再添加其他参数\r\n ";
@@ -326,6 +296,7 @@ class ApiController extends Controller
         if (strpos($text, '/bind') !== false) {
             if ($str[1]) {
                 $user_check = M('Member')->where(['telegram_id' => $chat_id])->getField('id');
+//                log_place_order($this->code . '_bind', "sql", M('Member')->getLastSql());    //日志
                 if ($user_check) {
                     $uid = $user_check['id'] + 10000;
                     $message = "本群已绑定商户号：" . $uid . "\r\n--------------------------------\r\n";
@@ -338,11 +309,19 @@ class ApiController extends Controller
                     $this->sendMessage($chat_id, $message, $message_id);
                     return;
                 } else {
-                    $where=[];
-                    $where['id'] = $str[1] - 10000;
-                    $re = M('Member')->where($where)->save(['telegram_id' => $chat_id]);
+                    $uid = $str[1] - 10000;
+                    try {
+                        $re = M('Member')->where(['id' => $uid])->save(['telegram_id' => $chat_id]);
+                    } catch (\Exception $e) {
+                        log_place_order($this->code . '_bind', "sql错误", $e);    //日志
+                        return;
+                    }
+
+//                    log_place_order($this->code . '_bind', "uid", $uid);    //日志
+//                    log_place_order($this->code . '_bind', "chat_id", $chat_id);    //日志
+//                    log_place_order($this->code . '_bind', "sql", M('Member')->getLastSql());    //日志
                     if ($re) {
-                        $message = "成功绑定商户号：" . $uid . "\r\n--------------------------------\r\n";
+                        $message = "成功绑定商户号：" . $str[1] . "\r\n--------------------------------\r\n";
                         $message .= $this->title . "，7*24小时服务\r\n 可以帮助您查询余额，收款订单详情、出款订单详情\r\n ";
                         $message .= "输入 /show 可查看群组信息及提示，无需再添加其他参数\r\n ";
                         $message .= "输入 /balance 可查询当前账户的查询余额，无需再添加其他参数\r\n ";
@@ -351,7 +330,7 @@ class ApiController extends Controller
                         // $message .= "输入 /pz 可查询出款凭证，后面+空格+订单号；例如:/pz 928271637212\r\n ";
                         $this->sendMessage($chat_id, $message, $message_id);
                     } else {
-                        $this->sendMessage($chat_id, '绑定失败', $message_id);
+                        $this->sendMessage($chat_id, '绑定' . $str[1] . '失败', $message_id);
                     }
                 }
             } else {
@@ -363,7 +342,20 @@ class ApiController extends Controller
         //根据群ID 获取用户信息
         $userInfo = self::get_user($chat_id);
         if ($userInfo['status'] !== 1 || !$userInfo['info']['id']) {
-            $this->sendMessage($chat_id, '该群未绑定用户！请联系值班客服', $message_id);
+            if($chat_id) {
+                $this->sendMessage($chat_id, '该群未绑定用户！请联系值班客服', $message_id);
+            }
+            return;
+        }
+
+        //查询usdt汇率
+        if (strpos($text, '/usdt@' . $this->bot_name) !== false) {
+            $where['currency'] = $userInfo['info']['currency'];
+            $rate = M('URate')->where($where)->getField('rate');
+            if($chat_id && $rate){
+                $message = '当前汇率：' . $rate;
+                $this->sendMessage($chat_id, $message, $message_id);
+            }
             return;
         }
 
@@ -394,29 +386,29 @@ class ApiController extends Controller
             $message .= "--------------------------------\r\n";
             $message .= "查询时间：" . date('Y-m-d H:i:s', time()) . "\r\n";
             $message .= "当前余额及时核对以此为准，如有疑问联系值班客服\r\n";
-            
-            $btn['text'] = 'YunPay官方频道，点击进入';
-            $btn['url'] = 'https://t.me/Yun_Pay0';
+
+            $btn['text'] = 'I8Pay官方频道，点击进入';
+            $btn['url'] = 'https://t.me/i8Pay1';
             $markup = [
                 'inline_keyboard'=>[[
                     $btn
                 ]],
-             ];
-            
+            ];
+
             $this->sendMessage($chat_id, $message, $message_id, 'Markdown',$markup);
             return;
         }
-                
+
         //开启客服补单
         if (strpos($text, '/开启客服补单') !== false) {
             $title = $input['message']['chat']['title'];
             $title = mb_convert_encoding($title, 'UTF-8', mb_detect_encoding($title, "auto"));
             $where=[];
             $where['telegram_id'] = $chat_id;
-            $is_re = M('TelegramApi')->where($where)->find(); 
+            $is_re = M('TelegramApi')->where($where)->find();
             if($is_re && !is_null($is_re)){
                 if($is_re['status'] === 1){
-                    $this->sendMessage($chat_id, "此群已开启客服补单功能\r\n"); 
+                    $this->sendMessage($chat_id, "此群已开启客服补单功能\r\n");
                     return;
                 }else{
                     $re = M('TelegramApi')->where($where)->save(['telegram_name' => $title,'telegram_id' => $chat_id,'status'=>1]);
@@ -424,47 +416,47 @@ class ApiController extends Controller
             }else{
                 $re = M('TelegramApi')->add(['telegram_name' => $title,'telegram_id' => $chat_id,'status'=>1]);
             }
-            
+
             if($re){
-               $this->sendMessage($chat_id, "SUCCESS，客服补单功能开启成功\r\n"); 
+                $this->sendMessage($chat_id, "SUCCESS，客服补单功能开启成功\r\n");
             }else{
-               $this->sendMessage($chat_id, "FAIL，客服补单功能开启失败\r\n");  
+                $this->sendMessage($chat_id, "FAIL，客服补单功能开启失败\r\n");
             }
         }
-                
+
         //关闭客服补单
         if (strpos($text, '/关闭客服补单') !== false) {
             $where=[];
             $where['telegram_id'] = $chat_id;
-            $is_re = M('TelegramApi')->where($where)->find(); 
+            $is_re = M('TelegramApi')->where($where)->find();
             if($is_re){
                 if($is_re['status'] === 0){
-                    $this->sendMessage($chat_id, "此群已关闭客服补单功能\r\n"); 
+                    $this->sendMessage($chat_id, "此群已关闭客服补单功能\r\n");
                     return;
                 }else{
                     $title = $input['message']['chat']['title'];
                     $re = M('TelegramApi')->where($where)->save(['telegram_name' => $title,'telegram_id' => $chat_id,'status'=>0]);
                 }
             }else{
-                $this->sendMessage($chat_id, "此群未开启客服补单功能\r\n"); 
+                $this->sendMessage($chat_id, "此群未开启客服补单功能\r\n");
                 return;
             }
             if($re){
-               $this->sendMessage($chat_id, "SUCCESS，客服补单功能关闭成功\r\n"); 
+                $this->sendMessage($chat_id, "SUCCESS，客服补单功能关闭成功\r\n");
             }else{
-               $this->sendMessage($chat_id, "FAIL，客服补单功能关闭失败\r\n");  
+                $this->sendMessage($chat_id, "FAIL，客服补单功能关闭失败\r\n");
             }
         }
-        
+
         //开启客服补单
         if (strpos($text, '/开启群发') !== false) {
             $title = $input['message']['chat']['title'];
             $where=[];
             $where['telegram_id'] = $chat_id;
-            $is_re = M('TelegramApi')->where($where)->find(); 
+            $is_re = M('TelegramApi')->where($where)->find();
             if($is_re){
                 if($is_re['is_open'] === 1){
-                    $this->sendMessage($chat_id, "此群已开启群发功能\r\n"); 
+                    $this->sendMessage($chat_id, "此群已开启群发功能\r\n");
                     return;
                 }else{
                     $re = M('TelegramApi')->where($where)->save(['telegram_name' => $title,'telegram_id' => $chat_id,'is_open'=>1]);
@@ -472,44 +464,44 @@ class ApiController extends Controller
             }else{
                 $re = M('TelegramApi')->add(['telegram_name' => $title,'telegram_id' => $chat_id,'is_open'=>1]);
             }
-            
+
             if($re){
-               $this->sendMessage($chat_id, "SUCCESS，群发开启成功\r\n"); 
+                $this->sendMessage($chat_id, "SUCCESS，群发开启成功\r\n");
             }else{
-               $this->sendMessage($chat_id, "FAIL，群发开启失败\r\n");  
+                $this->sendMessage($chat_id, "FAIL，群发开启失败\r\n");
             }
         }
-                
+
         //关闭客服补单
         if (strpos($text, '/关闭群发') !== false) {
             $where=[];
             $where['telegram_id'] = $chat_id;
-            $is_re = M('TelegramApi')->where($where)->find(); 
+            $is_re = M('TelegramApi')->where($where)->find();
             if($is_re){
                 if($is_re['is_open'] === 0){
-                    $this->sendMessage($chat_id, "此群已关闭群发功能\r\n"); 
+                    $this->sendMessage($chat_id, "此群已关闭群发功能\r\n");
                     return;
                 }else{
                     $title = $input['message']['chat']['title'];
                     $re = M('TelegramApi')->where($where)->save(['telegram_name' => $title,'telegram_id' => $chat_id,'is_open'=>0]);
                 }
             }else{
-                $this->sendMessage($chat_id, "此群未开启群发功能\r\n"); 
+                $this->sendMessage($chat_id, "此群未开启群发功能\r\n");
                 return;
             }
             if($re){
-               $this->sendMessage($chat_id, "SUCCESS，群发功能关闭成功\r\n"); 
+                $this->sendMessage($chat_id, "SUCCESS，群发功能关闭成功\r\n");
             }else{
-               $this->sendMessage($chat_id, "FAIL，群发功能关闭失败\r\n");  
+                $this->sendMessage($chat_id, "FAIL，群发功能关闭失败\r\n");
             }
             return;
         }
-        
+
         if (strpos($text, '/qunfa') !== false) {
             $where=[];
             $where['telegram_id'] = $chat_id;
             $where['is_open'] = 1;
-            $is_re = M('TelegramApi')->where($where)->find(); 
+            $is_re = M('TelegramApi')->where($where)->find();
             if($is_re){
                 $text = str_replace('/qunfa', "", $text);
                 $data['text'] = $text;
@@ -529,13 +521,13 @@ class ApiController extends Controller
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // https请求 不验证证书和hosts
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
                 curl_setopt($ch, CURLOPT_HEADER, false);
-            
+
                 $file_contents = curl_exec($ch);
                 //获取错误编码
                 $curlErrno = curl_errno($ch);
                 curl_close($ch);
-    
-                // $result = curlPost($url, $data);
+
+                // $result = $this->curlPost($url, $data);
             }
             return true;
         }
@@ -552,7 +544,7 @@ class ApiController extends Controller
         //         $this->sendMessage($chat_id , '查询用户今日使用的upi', $message_id);
         //         return;
         // }
-        
+
         // //查询代付凭证查询
         // if (strpos($text, '/pz') !== false) {
         //     if(isset($str[1])){
@@ -579,7 +571,7 @@ class ApiController extends Controller
         }
         return;
     }
-    
+
     //执行群发操作
     public function qunfa(){
         $text = trim($_REQUEST['text']);
@@ -591,15 +583,15 @@ class ApiController extends Controller
             $member_list = M('Member')->field('telegram_id')->where($where)->order('id asc')->limit($row * 50,50)->select();
             if(isset($member_list) && !empty($member_list)){
                 foreach ($member_list as $mv){
-                    if(isset($_REQUEST['photo']) && $_REQUEST['photo']==1){
+                    if(isset($_REQUEST['photo']) && $photo==1){
                         $this->sendPhoto($mv['telegram_id'], $_REQUEST['file_id'],$text);
                     }else{
                         $this->sendMessage($mv['telegram_id'], $text);
                     }
                 }
-                
+
                 $_REQUEST['row']++;
-                
+
                 $url = 'https://' . C('DOMAIN') . '/Telegram_Api_qunfa.html';
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $url);
@@ -611,7 +603,7 @@ class ApiController extends Controller
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // https请求 不验证证书和hosts
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
                 curl_setopt($ch, CURLOPT_HEADER, false);
-            
+
                 $file_contents = curl_exec($ch);
                 //获取错误编码
                 $curlErrno = curl_errno($ch);
@@ -620,7 +612,7 @@ class ApiController extends Controller
         }
         return true;
     }
-    
+
     //代付回执查询
     public function doHZ($order_info, $chat_id, $message, $message_id, $parse_mode='Markdown'){
         if ($order_info && $order_info['status'] === 1) {
@@ -629,7 +621,7 @@ class ApiController extends Controller
             $message = "没有查询到此代付订单";
         }
         $result1 = $this->sendMessage($chat_id, $message, $message_id, $parse_mode);
-        
+
         if($order_info['info']['df_name']){
             $where=[];
             $where['realname']=['eq',$order_info['info']['df_name']];
@@ -658,7 +650,7 @@ class ApiController extends Controller
             } elseif ($info['status'] == 6) {
                 $status_str = "已驳回";
             }
-            
+
             $zf_message .= "最新代付订单详情\r\n--------------------------------\r\n";
             $zf_message .= "通道名称：" . $info['df_name'] . "\r\n";
             $zf_message .= "系统订单号：`" . $info['orderid'] . "`\r\n";
@@ -678,18 +670,18 @@ class ApiController extends Controller
             $zf_message .= "银行名称：" . $info['bankname'] . "\r\n";
             $zf_message .= "开户名 ：`" . $info['bankfullname'] . "`\r\n";
             $zf_message .= "账号 ：`" . $info['banknumber'] . "`\r\n";
-            
+
             $resule2 = $this->sendMessage($Member_info['telegram_id'], $zf_message, '', 'Markdown');
             if($resule2['ok'] === true && isset($resule2['result']['message_id'])){
                 $add_data = [
-                        'pay_orderid' => $info['orderid'],
-                        'member_id' =>$info['userid'] + 10000,
-                        'chat_id' => $chat_id,
-                        'chat_id2' => $Member_info['telegram_id'],
-                        'message_id' => $message_id,
-                        'message_id2' => $resule2['result']['message_id'],
-                        'create_time'=>time(),
-                    ];
+                    'pay_orderid' => $info['orderid'],
+                    'member_id' =>$info['userid'] + 10000,
+                    'chat_id' => $chat_id,
+                    'chat_id2' => $Member_info['telegram_id'],
+                    'message_id' => $message_id,
+                    'message_id2' => $resule2['result']['message_id'],
+                    'create_time'=>time(),
+                ];
                 // log_place_order($this->code . '_get_dforder22', "信息", json_encode($add_data, JSON_UNESCAPED_UNICODE));    //日志
                 $re = M('TelegramApiDforder')->add($add_data);
                 // log_place_order($this->code . '_get_dforder22', "sql", M('TelegramApiDforder')->getLastSql());    //日志
@@ -697,79 +689,79 @@ class ApiController extends Controller
         }
         return true;
     }
-   
+
     //代付处理
     public function doDF($order_info, $chat_id, $message, $message_id, $parse_mode='Markdown'){
         if ($order_info && $order_info['status'] === 1) {
             $info = $order_info['info'];
             $message = '';
             // if($info['status'] > 1){
-                if ($info['status'] == 0) {
-                    $status_str = "未处理";
-                } elseif ($info['status'] == 1) {
-                    $status_str = "处理中";
-                } elseif ($info['status'] == 2) {
-                    $status_str = "成功未回调";
-                } elseif ($info['status'] == 3) {
-                    $status_str = "成功已回调";
-                } elseif ($info['status'] == 4) {
-                    $status_str = "失败未回调";
-                } elseif ($info['status'] == 5) {
-                    $status_str = "失败已回调";
-                } elseif ($info['status'] == 6) {
-                    $status_str = "已驳回";
-                }
-                
-                if($info['status'] == 2 || $info['status'] == 3){
-                    $remark = 'https://' . C('DOMAIN') . '/Payment\_Index\_voucher.html?casOrdNo=' . $info['orderid'];
-                    
-                    // $where['id'] = $info['df_id'];
-                    // $pfa_list = M('PayForAnother')->where($where)->find();
-                    // $file = APP_PATH . 'Payment/Controller/' . $pfa_list['code'] . 'Controller.class.php';
-                    // if( is_file($file) ){
-                    //     $result = R('Payment/'.$pfa_list['code'].'/PaymentQuery', [$info, $pfa_list]);
-                    //         log_place_order($this->code . '_get_dforder', "PaymentQuery", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
-                    //     if($result!==FALSE && $result['status']===2 && $result['remark']!=''){
-                    //         $remark = $result['remark'];
-                    //     }
-                    // }
-                }
-                
-                $message .= "\r\n最新代付订单详情\r\n---------------------------------------------\r\n";
-                $message .= "系统订单号：`" . $info['orderid'] . "`\r\n";
-                $message .= "外部订单号：`" . $info['out_trade_no'] . "`\r\n";
-                $message .= "订单金额：" . $info['tkmoney'] . "\r\n";
-                if ($info['sqdatetime'] != '') {
-                    $message .= "申请时间：" . $info['sqdatetime'] . "\r\n";
-                }
-                if ($info['cldatetime'] != '') {
-                    $message .= "处理时间：" . $info['cldatetime'] . "\r\n";
-                }
-                $message .= "订单状态：" . $status_str . "\r\n";
-                $message .= "备注 ：" . $info['memo'] . "\r\n";
-                // $message .= "异步通知地址：" . $info['notifyurl'] . "\r\n";
-                $message .= "通知次数 ：" . $info['notifycount'] . "\r\n";
-                $message .= "最后通知时间：" . date('Y-m-d H:i:s', $info['last_notify_time']) . "\r\n";
-                $message .= "\r\n=========银行信息=========\r\n";
-                $message .= "银行名称：" . $info['bankname'] . "\r\n";
-                if($info['bankzhiname'] != '') {
-                    $message .= "支行名称：" . $info['bankzhiname'] . "\r\n";
-                }
-                $message .= "开户名 ：`" . $info['bankfullname'] . "`\r\n";
-                $message .= "账号 ：`" . $info['banknumber'] . "`\r\n";
-                if(isset($remark) || $remark!=''){
-                    $message .= "凭证地址 ：" . $remark . "\r\n";
-                }
-                
-                
+            if ($info['status'] == 0) {
+                $status_str = "未处理";
+            } elseif ($info['status'] == 1) {
+                $status_str = "处理中";
+            } elseif ($info['status'] == 2) {
+                $status_str = "成功未回调";
+            } elseif ($info['status'] == 3) {
+                $status_str = "成功已回调";
+            } elseif ($info['status'] == 4) {
+                $status_str = "失败未回调";
+            } elseif ($info['status'] == 5) {
+                $status_str = "失败已回调";
+            } elseif ($info['status'] == 6) {
+                $status_str = "已驳回";
+            }
+
+            if($info['status'] == 2 || $info['status'] == 3){
+                $remark = 'https://' . C('DOMAIN') . '/Payment\_Index\_voucher.html?casOrdNo=' . $info['orderid'];
+
+                // $where['id'] = $info['df_id'];
+                // $pfa_list = M('PayForAnother')->where($where)->find();
+                // $file = APP_PATH . 'Payment/Controller/' . $pfa_list['code'] . 'Controller.class.php';
+                // if( is_file($file) ){
+                //     $result = R('Payment/'.$pfa_list['code'].'/PaymentQuery', [$info, $pfa_list]);
+                //         log_place_order($this->code . '_get_dforder', "PaymentQuery", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
+                //     if($result!==FALSE && $result['status']===2 && $result['remark']!=''){
+                //         $remark = $result['remark'];
+                //     }
+                // }
+            }
+
+            $message .= "\r\n最新代付订单详情\r\n---------------------------------------------\r\n";
+            $message .= "系统订单号：`" . $info['orderid'] . "`\r\n";
+            $message .= "外部订单号：`" . $info['out_trade_no'] . "`\r\n";
+            $message .= "订单金额：" . $info['tkmoney'] . "\r\n";
+            if ($info['sqdatetime'] != '') {
+                $message .= "申请时间：" . $info['sqdatetime'] . "\r\n";
+            }
+            if ($info['cldatetime'] != '') {
+                $message .= "处理时间：" . $info['cldatetime'] . "\r\n";
+            }
+            $message .= "订单状态：" . $status_str . "\r\n";
+            $message .= "备注 ：" . $info['memo'] . "\r\n";
+            // $message .= "异步通知地址：" . $info['notifyurl'] . "\r\n";
+            $message .= "通知次数 ：" . $info['notifycount'] . "\r\n";
+            $message .= "最后通知时间：" . date('Y-m-d H:i:s', $info['last_notify_time']) . "\r\n";
+            $message .= "\r\n=========银行信息=========\r\n";
+            $message .= "银行名称：" . $info['bankname'] . "\r\n";
+            if($info['bankzhiname'] != '') {
+                $message .= "支行名称：" . $info['bankzhiname'] . "\r\n";
+            }
+            $message .= "开户名 ：`" . $info['bankfullname'] . "`\r\n";
+            $message .= "账号 ：`" . $info['banknumber'] . "`\r\n";
+            if(isset($remark) || $remark!=''){
+                $message .= "凭证地址 ：" . $remark . "\r\n";
+            }
+
+
             // }else{
-                
+
             //     $message .= "系统订单号：`" . $info['orderid'] . "`\r\n";
             //     $message .= "外部订单号：`" . $info['out_trade_no'] . "`\r\n";
             //     $message .= "订单金额：" . $info['tkmoney'] . "\r\n";
             //     $message .= "请稍等，正在为您查询...\r\n";
             //     $message .= "Please wait, we are querying for you ...";
-                
+
             //     $add_data = [
             //         'pay_orderid' => $info['orderid'],
             //         'member_id' =>$info['userid'] + 10000,
@@ -777,12 +769,12 @@ class ApiController extends Controller
             //         'message_id' => $message_id,
             //         'create_time'=>time(),
             //     ];
-                
+
             //     // log_place_order($this->code . '_get_dforder', "ApiDForder", json_encode($add_data, JSON_UNESCAPED_UNICODE));    //日志
             //     $re = M('TelegramApiDforder')->add($add_data);
             //     // log_place_order($this->code . '_get_dforder', "sql", M('TelegramApiDforder')->getLastSql());    //日志
             // }
-            
+
         } else {
             $message = "没有查询到代付订单，三种情况\r\n--------------------------------\r\n1.单号输入不正确，请确认单号；\r\n2.不是我们的订单，请确认收付款方是不是我们；\r\n3.订单没有提交到我们这里，请联系群里运营人员。";
         }
@@ -791,7 +783,7 @@ class ApiController extends Controller
 
     //代收处理
     public function doDS($order_info, $chat_id, $message, $message_id, $parse_mode='Markdown'){
-        
+
         if ($order_info && $order_info['status'] === 1) {
             $info = $order_info['info'];
             $message = '';
@@ -812,35 +804,35 @@ class ApiController extends Controller
             //     $re = M('TelegramApiOrder')->add($add_data);
             //     // log_place_order($this->code . '_get_order', "sql", M('TelegramApiOrder')->getLastSql());    //日志
             // }else{
-                $message .= "\r\n最新订单详情\r\n---------------------------------------------\r\n";
-                $message .= "系统订单号：`" . $info['pay_orderid'] . "`\r\n";
-                $message .= "外部订单号：`" . $info['out_trade_id'] . "`\r\n";
-                $message .= "订单金额：" . $info['pay_amount'] . "\r\n";
-                if ($info['pay_applydate'] != '') {
-                    $message .= "申请时间：" . date('Y-m-d H:i:s', $info['pay_applydate']) . "\r\n";
-                }
-                if ($info['pay_successdate'] != '0') {
-                    $message .= "成功时间：" . date('Y-m-d H:i:s', $info['pay_successdate']) . "\r\n";
-                }
-                if ($info['pay_status'] == 0) {
-                    $status_str = "未处理";
-                } elseif ($info['pay_status'] == 1) {
-                    $status_str = "成功未回调";
-                } elseif ($info['pay_status'] == 2) {
-                    $status_str = "成功已回调";
-                }
-                $message .= "订单状态：" . $status_str . "\r\n";
-                
-                //删除6小时前的记录
-                M('TelegramApiOrder')->where(['create_time' => ['elt', (time() - 3600 * 72)]])->delete();
-                // log_place_order($this->code . '_get_order', "sql", M('TelegramApiOrder')->getLastSql());    //日志
+            $message .= "\r\n最新订单详情\r\n---------------------------------------------\r\n";
+            $message .= "系统订单号：`" . $info['pay_orderid'] . "`\r\n";
+            $message .= "外部订单号：`" . $info['out_trade_id'] . "`\r\n";
+            $message .= "订单金额：" . $info['pay_amount'] . "\r\n";
+            if ($info['pay_applydate'] != '') {
+                $message .= "申请时间：" . date('Y-m-d H:i:s', $info['pay_applydate']) . "\r\n";
+            }
+            if ($info['pay_successdate'] != '0') {
+                $message .= "成功时间：" . date('Y-m-d H:i:s', $info['pay_successdate']) . "\r\n";
+            }
+            if ($info['pay_status'] == 0) {
+                $status_str = "未处理";
+            } elseif ($info['pay_status'] == 1) {
+                $status_str = "成功未回调";
+            } elseif ($info['pay_status'] == 2) {
+                $status_str = "成功已回调";
+            }
+            $message .= "订单状态：" . $status_str . "\r\n";
+
+            //删除6小时前的记录
+            M('TelegramApiOrder')->where(['create_time' => ['elt', (time() - 3600 * 72)]])->delete();
+            // log_place_order($this->code . '_get_order', "sql", M('TelegramApiOrder')->getLastSql());    //日志
             // }
         } else {
             $message = "没有查询到订单，三种情况\r\n--------------------------------\r\n 1.单号输入不正确，请确认单号；\r\n 2.不是我们的订单，请确认收付款方是不是我们；\r\n 3.订单没有提交到我们这里，请联系群里运营人员。";
         }
         return $this->sendMessage($chat_id, $message, $message_id, $parse_mode);
     }
- 
+
 
     //根据群ID 获取用户信息
     private function get_user($chat_id)
@@ -878,16 +870,16 @@ class ApiController extends Controller
             $map['_logic'] = 'or';
             $where['_complex'] = $map;
             $where['pay_memberid'] = ['eq', $uid + 10000];
-            
+
             $field = 'id,pay_memberid, pay_orderid, pay_amount, pay_poundage, pay_actualamount, pay_applydate ,pay_successdate, pay_bankname, pay_status, out_trade_id';
-            $OrderModel = D('Order');   
+            $OrderModel = D('Order');
             $tables = $OrderModel->getTables();
             // log_place_order($this->code . '_get_order', "表", json_encode($tables, JSON_UNESCAPED_UNICODE));    //日志
             foreach ($tables as $v){
                 $order = $OrderModel->table($v)
-                ->field($field)
-                ->where($where)
-                ->select();
+                    ->field($field)
+                    ->where($where)
+                    ->select();
                 // log_place_order($this->code . '_get_order', "sql:".$v, $OrderModel->table($v)->getLastSql());    //日志
                 if(!empty($order)) break;
             }
@@ -921,13 +913,13 @@ class ApiController extends Controller
             $where['_complex'] = $map;
             $where['userid'] =['eq', $uid];
             $field = 'id, userid, orderid, out_trade_no, tkmoney, sxfmoney, money, status, bankname, bankzhiname, banknumber, bankfullname, sqdatetime, cldatetime, memo, notifyurl, notifycount, last_notify_time,df_id, df_name, three_orderid';
-            $Wttklist = D('Wttklist');   
+            $Wttklist = D('Wttklist');
             $tables = $Wttklist->getTables();
             foreach ($tables as $v){
                 $order = $Wttklist->table($v)
-                ->field($field)
-                ->where($where)
-                ->select();
+                    ->field($field)
+                    ->where($where)
+                    ->select();
                 // log_place_order($this->code . '_get_dforder', "sql", $Wttklist->table($v)->getLastSql());    //日志
                 if(!empty($order)) break;
             }
@@ -947,7 +939,7 @@ class ApiController extends Controller
         // log_place_order($this->code . '_get_dforder', "返回", json_encode($data, JSON_UNESCAPED_UNICODE));    //日志
         return $data;
     }
-    
+
     //用户当日统计
     private function statistics($uid){
         $data = [];
@@ -957,10 +949,10 @@ class ApiController extends Controller
         $where = [
             'pay_memberid' => $uid,
             'pay_applydate' => ['between', [strtotime($todayBegin), strtotime($todyEnd)]],
-            ];
+        ];
         //今日平台总入金
         $field = 'id, pay_amount, pay_status';
-        $OrderModel = D('Order');   
+        $OrderModel = D('Order');
         $order_statistics = $OrderModel->getOrderByDateRange($field, $where);
         // $order_statistics = M('Order')->field('id, pay_amount, pay_status')->where($where)->select();
         $oi = $o_sum = $all_o_sum = $all_o_i = 0;
@@ -980,15 +972,15 @@ class ApiController extends Controller
         // if($data['o_success_rate'] > 10 && $data['o_success_rate'] < 90){
         //     $data['o_success_rate']+=5;
         // }
-        
+
         $wi_do = $w_sum_do = $wi_done = $w_sum_done = $all_w_amount = $all_w_i = 0;
         $dfwhere = [
             'sqdatetime' => ['between', [$todayBegin, $todyEnd]],
             'userid' => $uid - 10000,
-            ];
+        ];
         $field = 'id, tkmoney, status';
-        $Wttklist = D('Wttklist');  
-        
+        $Wttklist = D('Wttklist');
+
         $withdraw_statistics = $Wttklist->getOrderByDateRange($field, $dfwhere);
         foreach ($withdraw_statistics as $wk => $wv) {
             $all_w_amount += $wv['tkmoney'];
@@ -1008,7 +1000,7 @@ class ApiController extends Controller
         $data['wi_do'] = $wi_do;
         $data['w_sum_done'] = $w_sum_done;
         $data['wi_done'] = $wi_done;
-        
+
         return $data;
     }
 
@@ -1023,7 +1015,7 @@ class ApiController extends Controller
         }
         return $text;
     }
-    
+
     protected function redis_connect(){
         //创建一个redis对象
         $redis = new \Redis();
@@ -1032,5 +1024,29 @@ class ApiController extends Controller
         //密码验证
         $redis->auth(C('REDIS_PWD'));
         return $redis;
+    }
+    protected function curlPost($url, $data){
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 299);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // https请求 不验证证书和hosts
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+
+        $file_contents = curl_exec($ch);
+        //获取错误编码
+        //获取错误编码
+        $curlErrno = curl_errno($ch);
+        if($curlErrno){
+            log_place_order($this->code . '_curlPostError', "curlcode", $curlErrno);    //日志
+            log_place_order($this->code . '_curlPostError', "curlErrno", curl_error($ch));    //日志
+        }
+        curl_close($ch);
+        //这里解析
+        return $file_contents;
     }
 }

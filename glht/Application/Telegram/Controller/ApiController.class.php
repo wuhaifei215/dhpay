@@ -35,7 +35,7 @@ class ApiController extends Controller
             'url' => $this->callback . '?token=' . md5($this->token),
             'drop_pending_updates'=> 'True'
         ];
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
         $result = json_decode($result, true);
         if ($result['result'] === true) {
             echo "域名绑定成功！";
@@ -50,7 +50,7 @@ class ApiController extends Controller
         $data = [
             'url' => $this->callback . '?token=' . md5($this->token),
         ];
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
         log_place_order($this->code . '_deleteWebhook', "删除回调", $result);    //日志
 
         $result = json_decode($result, true);
@@ -66,7 +66,7 @@ class ApiController extends Controller
         $data = [
             'url' => $this->callback . '?token=' . md5($this->token),
         ];
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
         log_place_order($this->code . '_getWebhookInfo', "当前回调信息", $result);    //日志
 
         $result = json_decode($result, true);
@@ -121,7 +121,7 @@ class ApiController extends Controller
                 , JSON_UNESCAPED_UNICODE);
         }
         log_place_order($this->code . '_sendMessage', "发送", json_encode($data, JSON_UNESCAPED_UNICODE));    //日志
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
 
         log_place_order($this->code . '_sendMessage', "返回", $result);    //日志
         $result = json_decode($result, true);
@@ -140,39 +140,12 @@ class ApiController extends Controller
             // 尝试不带格式重新发送
 //            if (isset($result['error_code']) && $result['error_code'] == 400) {
 //                unset($data['parse_mode']);
-//                $result = curlPost($url, $data);
+//                $result = $this->curlPost($url, $data);
 //                $result = json_decode($result, true);
 //                return $result['ok'] ? $result : "sendError";
 //            }
 
             return "sendError";
-        }
-    }
-
-    // 回复用户信息
-    private function sendPhoto($chatId, $photo, $text='', $message_thread_id='')
-    {
-        $url = 'https://api.telegram.org/bot' . $this->token . '/sendPhoto';
-        $data = [
-            'chat_id' => $chatId,
-            'photo' => $photo,
-            'caption' => $text,
-        ];
-        if($message_thread_id!=''){
-            $data['reply_parameters'] = json_encode([
-                'message_id'=> $message_thread_id,
-                'chat_id'=>$chatId,
-            ], JSON_UNESCAPED_UNICODE);
-        }
-        // log_place_order($this->code . '_sendPhoto', "发送", json_encode($data, JSON_UNESCAPED_UNICODE));    //日志
-        $result = curlPost($url, $data);
-        // log_place_order($this->code . '_sendPhoto', "返回", $result);    //日志
-        $result = json_decode($result, true);
-        if ($result['ok'] == true) {
-            return true;
-        } else {
-            echo "sendError";
-            return false;
         }
     }
 
@@ -293,10 +266,12 @@ class ApiController extends Controller
             $reply_to_message = $input['message']['reply_to_message'];
             if($reply_to_message['from']['is_bot'] === true){
                 $user_check = M('TelegramApiDforder')->where(['message_id2' => $reply_to_message['message_id']])->find();
-                if($photo){
-                    $this->sendPhoto($user_check['chat_id'], $photo[0]['file_id'],$text, $user_check['message_id']);
-                }else{
-                    $this->sendMessage($user_check['chat_id'], $text, $user_check['message_id']);
+                if($user_check && !empty($user_check)){
+                    if($photo){
+                        $this->sendPhoto($user_check['chat_id'], $photo[0]['file_id'],$text, $user_check['message_id']);
+                    }else{
+                        $this->sendMessage($user_check['chat_id'], $text, $user_check['message_id']);
+                    }
                 }
             }
             return;
@@ -321,6 +296,7 @@ class ApiController extends Controller
         if (strpos($text, '/bind') !== false) {
             if ($str[1]) {
                 $user_check = M('Member')->where(['telegram_id' => $chat_id])->getField('id');
+//                log_place_order($this->code . '_bind', "sql", M('Member')->getLastSql());    //日志
                 if ($user_check) {
                     $uid = $user_check['id'] + 10000;
                     $message = "本群已绑定商户号：" . $uid . "\r\n--------------------------------\r\n";
@@ -333,11 +309,19 @@ class ApiController extends Controller
                     $this->sendMessage($chat_id, $message, $message_id);
                     return;
                 } else {
-                    $where=[];
-                    $where['id'] = $str[1] - 10000;
-                    $re = M('Member')->where($where)->save(['telegram_id' => $chat_id]);
+                    $uid = $str[1] - 10000;
+                    try {
+                        $re = M('Member')->where(['id' => $uid])->save(['telegram_id' => $chat_id]);
+                    } catch (\Exception $e) {
+                        log_place_order($this->code . '_bind', "sql错误", $e);    //日志
+                        return;
+                    }
+
+//                    log_place_order($this->code . '_bind', "uid", $uid);    //日志
+//                    log_place_order($this->code . '_bind', "chat_id", $chat_id);    //日志
+//                    log_place_order($this->code . '_bind', "sql", M('Member')->getLastSql());    //日志
                     if ($re) {
-                        $message = "成功绑定商户号：" . $uid . "\r\n--------------------------------\r\n";
+                        $message = "成功绑定商户号：" . $str[1] . "\r\n--------------------------------\r\n";
                         $message .= $this->title . "，7*24小时服务\r\n 可以帮助您查询余额，收款订单详情、出款订单详情\r\n ";
                         $message .= "输入 /show 可查看群组信息及提示，无需再添加其他参数\r\n ";
                         $message .= "输入 /balance 可查询当前账户的查询余额，无需再添加其他参数\r\n ";
@@ -346,7 +330,7 @@ class ApiController extends Controller
                         // $message .= "输入 /pz 可查询出款凭证，后面+空格+订单号；例如:/pz 928271637212\r\n ";
                         $this->sendMessage($chat_id, $message, $message_id);
                     } else {
-                        $this->sendMessage($chat_id, '绑定失败', $message_id);
+                        $this->sendMessage($chat_id, '绑定' . $str[1] . '失败', $message_id);
                     }
                 }
             } else {
@@ -358,7 +342,20 @@ class ApiController extends Controller
         //根据群ID 获取用户信息
         $userInfo = self::get_user($chat_id);
         if ($userInfo['status'] !== 1 || !$userInfo['info']['id']) {
-            $this->sendMessage($chat_id, '该群未绑定用户！请联系值班客服', $message_id);
+            if($chat_id) {
+                $this->sendMessage($chat_id, '该群未绑定用户！请联系值班客服', $message_id);
+            }
+            return;
+        }
+
+        //查询usdt汇率
+        if (strpos($text, '/usdt@' . $this->bot_name) !== false) {
+            $where['currency'] = $userInfo['info']['currency'];
+            $rate = M('URate')->where($where)->getField('rate');
+            if($chat_id && $rate){
+                $message = '当前汇率：' . $rate;
+                $this->sendMessage($chat_id, $message, $message_id);
+            }
             return;
         }
 
@@ -390,8 +387,8 @@ class ApiController extends Controller
             $message .= "查询时间：" . date('Y-m-d H:i:s', time()) . "\r\n";
             $message .= "当前余额及时核对以此为准，如有疑问联系值班客服\r\n";
 
-            $btn['text'] = 'YunPay官方频道，点击进入';
-            $btn['url'] = 'https://t.me/Yun_Pay0';
+            $btn['text'] = 'I8Pay官方频道，点击进入';
+            $btn['url'] = 'https://t.me/i8Pay1';
             $markup = [
                 'inline_keyboard'=>[[
                     $btn
@@ -530,7 +527,7 @@ class ApiController extends Controller
                 $curlErrno = curl_errno($ch);
                 curl_close($ch);
 
-                // $result = curlPost($url, $data);
+                // $result = $this->curlPost($url, $data);
             }
             return true;
         }
@@ -1027,5 +1024,29 @@ class ApiController extends Controller
         //密码验证
         $redis->auth(C('REDIS_PWD'));
         return $redis;
+    }
+    protected function curlPost($url, $data){
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 299);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // https请求 不验证证书和hosts
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+
+        $file_contents = curl_exec($ch);
+        //获取错误编码
+        //获取错误编码
+        $curlErrno = curl_errno($ch);
+        if($curlErrno){
+            log_place_order($this->code . '_curlPostError', "curlcode", $curlErrno);    //日志
+            log_place_order($this->code . '_curlPostError', "curlErrno", curl_error($ch));    //日志
+        }
+        curl_close($ch);
+        //这里解析
+        return $file_contents;
     }
 }

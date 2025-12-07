@@ -1792,6 +1792,7 @@ class UserController extends BaseController
         UserLogService::HTwrite(3, '保存提现规则', '保存提现规则');
         if (IS_POST) {
             $userid = I('post.userid', 0, 'intval');
+            $currency = I('post.currency', 0, 'intval');
             $id = I('post.id', 0, 'intval');
             if ((int)$_POST['u']['systemxz']) {
                 $rows = I('post.u');
@@ -1802,6 +1803,7 @@ class UserController extends BaseController
                 $this->ajaxReturn(['status' => 0, 'msg' => '参数错误']);
             }
             $rows['issystem'] = 0;
+            $rows['currency'] = $currency;
             if ($id) {
                 $res = M('Tikuanconfig')->where(['id' => $id, 'userid' => $userid])->save($rows);
                 UserLogService::HTwrite(3, '修改提现规则成功', '修改用户（' . $userid . '）提现规则成功');

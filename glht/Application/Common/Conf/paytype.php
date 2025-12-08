@@ -4,7 +4,7 @@ return [
     'PAYTYPES'=>[
         ['id'=>'1','currency'=>'BRL','name'=>'巴西H5'],
         ['id'=>'2','currency'=>'BRL','name'=>'巴西QR'],
-        ['id'=>'3','currency'=>'VND','name'=>'越南VN'],
+//        ['id'=>'3','currency'=>'VND','name'=>'越南VN'],
         ['id'=>'4','currency'=>'MXN','name'=>'墨西哥MX'],
         ['id'=>'5','currency'=>'PKR','name'=>'PAK'],
         ['id'=>'6','currency'=>'PHP','name'=>'Gcash原生'],
@@ -19,5 +19,12 @@ return [
         ['id'=>'15','currency'=>'PKR','name'=>'PAK-easypaisa'],
         ['id'=>'16','currency'=>'PKR','name'=>'PAK-jazzcash-直连'],
         ['id'=>'17','currency'=>'PKR','name'=>'PAK-easypaisa-直连'],
+        ['id'=>'18','currency'=>'VND','name'=>'VN-ZALO-P'],
+        ['id'=>'19','currency'=>'VND','name'=>'VN-MOMO-P'],
+        ['id'=>'20','currency'=>'VND','name'=>'VN-VIETTEL-P'],
+        ['id'=>'21','currency'=>'VND','name'=>'VN-BANK'],
+        ['id'=>'22','currency'=>'VND','name'=>'VN-DIRECT'],
+        ['id'=>'23','currency'=>'VND','name'=>'VN-BANK-QR'],
+        ['id'=>'24','currency'=>'VND','name'=>'VN-VN-PERPAID'],
     ],
 ];

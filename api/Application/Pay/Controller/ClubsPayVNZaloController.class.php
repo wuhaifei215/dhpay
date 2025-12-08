@@ -109,13 +109,12 @@ class ClubsPayVNZaloController extends PayController
     {
         $arrayData = $_REQUEST;
         //获取报文信息
-        $orderid = $arrayData['cipher']['reqNo'];
+        $result = json_decode($arrayData['cipher'],true);
+        $orderid = $result['reqNo'];
         // log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
         log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", json_encode($_REQUEST, JSON_UNESCAPED_UNICODE));    //日志
         if (!$orderid) return;
-        
-        
-        $result = $arrayData;
+
         //过滤数据，防SQL注入
         // $check_data = sqlInj($result);
         // if ($check_data === false) return;

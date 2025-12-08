@@ -200,7 +200,7 @@ table.hovertable td {border-width: 1px;padding: 8px;border-style: solid;border-c
 AAA;
                 $this->ajaxReturn(['status' => 1, 'msg' => '成功', 'data' => $html]);
             }else{
-                $this->ajaxReturn(['status' => 0, 'msg' => '成功', 'data' => $result['msg']]);
+                $this->ajaxReturn(['status' => 1, 'msg' => '成功', 'data' => $result['msg']]);
             }
         }
     }

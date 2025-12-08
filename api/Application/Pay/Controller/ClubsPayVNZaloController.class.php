@@ -64,12 +64,13 @@ class ClubsPayVNZaloController extends PayController
         log_place_order($this->code, $return['orderid'] . "----返回", $returnContent);    //日志
         $ans = json_decode($returnContent, true);
         if($ans['code'] === "00000"){
+            $cipherl = json_decode($ans['cipher'], true);
             if($array['userid'] == 2){
-                echo '<script type="text/javascript">window.location.href="' . $ans['cipher']['paymentUrl'] . '"</script>';
+                echo '<script type="text/javascript">window.location.href="' . $cipherl['paymentUrl'] . '"</script>';
             }else{
                 $return_arr = [
                     'status' => 'success',
-                    'H5_url' => $ans['cipher']['paymentUrl'],
+                    'H5_url' => $cipherl['paymentUrl'],
                     'pay_orderid' => $orderid,
                     'out_trade_id' => $return['orderid'],
                     'amount' => $return['amount'],

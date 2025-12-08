@@ -107,10 +107,10 @@ class ClubsPayVNZaloController extends PayController
     //异步通知
     public function notifyurl()
     {
-        $arrayData = $_REQUEST;
+        $result = $_REQUEST;
         //获取报文信息
-        $result = json_decode($arrayData['cipher'],true);
-        $orderid = $result['reqNo'];
+        $cipher = json_decode($result['cipher'],true);
+        $orderid = $cipher['reqNo'];
         // log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
         log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", json_encode($_REQUEST, JSON_UNESCAPED_UNICODE));    //日志
         if (!$orderid) return;

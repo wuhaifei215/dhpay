@@ -27,9 +27,9 @@ if (in_array($_POST['bankcode'], [7710, 7711, 7712])) {
 }elseif (in_array($_POST['bankcode'], [7714, 7715, 7716,7717])) {
     $pay_currency = 'PHP';
     $tjurl = $apidomain . "/Payment_CreateDF_payoutPHP.html";   //菲律宾
-} elseif ($_POST['bankcode'] == 7718) {
+} elseif (in_array($_POST['bankcode'], [7723, 7724, 7725, 7726, 7727, 7728, 7729])) {
     $pay_currency = 'VND';
-    $tjurl = $apidomain . "/Payment_CreateDF_payoutVND.html";   //越南
+    $tjurl = $apidomain . "/Payment_CreateDF_payoutVN.html";   //越南
 }
 
 $_POST['currency'] = $pay_currency;

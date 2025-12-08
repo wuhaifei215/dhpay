@@ -195,10 +195,10 @@ class ClubsPayVNZaloController extends PayController
      * @param $data         请求数据
      * @param $md5Key       md5秘钥
      */
-    private function get_sign($data, $sign_key)
+    private function get_sign($param, $sign_key)
     {
         $signPars = "";
-        ksort($data);
+        ksort($param);
         $param['mkey'] = $sign_key;
         foreach ($param as $k => $v) {
             if ("" != $v && "sign" != $k) {

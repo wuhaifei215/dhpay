@@ -148,7 +148,7 @@ class ClubsPayVNZaloController extends PayController
         $sign = $this->get_sign($result,$orderList['key']);
         
         if ($sign === $result['sign']) {
-            if($result['cipher']['status'] === 1){     //支付状态，1为已支付，2为未支付
+            if($cipher['status'] === 1){     //支付状态，1为已支付，2为未支付
                 $re = $this->EditMoney($orderList['pay_orderid'], $this->code, 0);
                 if ($re !== false) {
                     log_place_order($this->code . '_notifyurl', $orderid . "----回调上游", "成功");    //日志
@@ -156,7 +156,7 @@ class ClubsPayVNZaloController extends PayController
                     log_place_order($this->code . '_notifyurl', $orderid . "----回调上游", "失败");    //日志
                 }
             }else{
-                log_place_order($this->code . '_notifyurl', $orderid . "----订单状态异常", $result['cipher']['status']);    //日志
+                log_place_order($this->code . '_notifyurl', $orderid . "----订单状态异常", $cipher['status']);    //日志
             }
             $json_result = '00000';
         } else {

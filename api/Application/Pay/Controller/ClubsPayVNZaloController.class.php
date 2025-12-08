@@ -35,8 +35,8 @@ class ClubsPayVNZaloController extends PayController
         //如果生成错误，自动跳转错误页面
         $return["status"] == "error" && $this->showmessage($return["errorcontent"]);
         //跳转页面，优先取数据库中的跳转页面
-        $_site = ((is_https()) ? 'https' : 'http') . '://' . C("DOMAIN") . '/';
-        $site = trim($return['unlockdomain']) ? $return['unlockdomain'] . '/' : $_site;
+//        $_site = ((is_https()) ? 'https' : 'http') . '://' . C("DOMAIN") . '/';
+//        $site = trim($return['unlockdomain']) ? $return['unlockdomain'] . '/' : $_site;
         
         $cipher = array(
             'reqNo' => $return['orderid'],

@@ -175,6 +175,7 @@ class ClubsPayVNDFController extends PaymentController
                 'charset' => 'UTF-8',
                 'signType' => 'MD5',
             );
+            $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
             log_place_order($this->code . '_queryBalance', "提交", json_encode($post_data));    //日志
             $returnContent = $this->http_post_data($config['serverreturn'], $post_data);
             log_place_order($this->code . '_queryBalance', "URL", $config['serverreturn']);    //日志

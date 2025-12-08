@@ -206,7 +206,7 @@ class ClubsPayVNZaloController extends PayController
             }
         }
         $sign =md5(rtrim($signPars,'&'));
-        // log_place_order($this->code, $orderid . "----签名", rtrim($signPars,'&'));    //日志
+         log_place_order($this->code, "----签名", rtrim($signPars,'&'));    //日志
         return $sign; //最终的签名
     }
 }

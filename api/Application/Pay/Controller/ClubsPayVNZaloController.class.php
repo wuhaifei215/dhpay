@@ -65,9 +65,9 @@ class ClubsPayVNZaloController extends PayController
         $ans = json_decode($returnContent, true);
         if($ans['code'] === "00000"){
             $cipherl = json_decode($ans['cipher'], true);
-            if($array['userid'] == 2){
-                echo '<script type="text/javascript">window.location.href="' . $cipherl['paymentUrl'] . '"</script>';
-            }else{
+//            if($array['userid'] == 2){
+//                echo '<script type="text/javascript">window.location.href="' . $cipherl['paymentUrl'] . '"</script>';
+//            }else{
                 $return_arr = [
                     'status' => 'success',
                     'H5_url' => $cipherl['paymentUrl'],
@@ -76,7 +76,7 @@ class ClubsPayVNZaloController extends PayController
                     'amount' => $return['amount'],
                     'datetime' => date('Y-m-d')
                 ];
-            }
+//            }
         }else{
             $return_arr = [
                 'status' => 'error',

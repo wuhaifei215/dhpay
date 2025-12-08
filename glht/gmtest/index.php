@@ -257,37 +257,37 @@ $product_name = "Vip基础服务";
                     </li>
                 </label>
                 <label for="MOMO-P">
-                    <li class="pay_li" data_power_id="3000000009" data_product_id="3000000009">
+                    <li class="pay_li" data_power_id="3000000010" data_product_id="3000000010">
                         <input value="7724" name="channel" id="MOMO-P" type="radio">
                         <span>越南-momo-扫码</span>
                     </li>
                 </label>
                 <label for="VIETTEL-P">
-                    <li class="pay_li" data_power_id="3000000009" data_product_id="3000000009">
+                    <li class="pay_li" data_power_id="3000000011" data_product_id="3000000011">
                         <input value="7725" name="channel" id="VIETTEL-P" type="radio">
                         <span>越南-viettelpay-扫码</span>
                     </li>
                 </label>
                 <label for="VN-BANK">
-                    <li class="pay_li" data_power_id="3000000009" data_product_id="3000000009">
+                    <li class="pay_li" data_power_id="3000000012" data_product_id="3000000012">
                         <input value="7726" name="channel" id="VN-BANK" type="radio">
                         <span>越南-银行卡</span>
                     </li>
                 </label>
                 <label for="VN-DIRECT">
-                    <li class="pay_li" data_power_id="3000000009" data_product_id="3000000009">
+                    <li class="pay_li" data_power_id="3000000013" data_product_id="3000000013">
                         <input value="7727" name="channel" id="VN-DIRECT" type="radio">
                         <span>越南-银行卡直连</span>
                     </li>
                 </label>
                 <label for="VN-BANK-QR">
-                    <li class="pay_li" data_power_id="3000000009" data_product_id="3000000009">
+                    <li class="pay_li" data_power_id="3000000014" data_product_id="3000000014">
                         <input value="7728" name="channel" id="VN-BANK-QR" type="radio">
                         <span>越南-银行卡-扫码</span>
                     </li>
                 </label>
                 <label for="VN-PERPAID">
-                    <li class="pay_li" data_power_id="3000000009" data_product_id="3000000009">
+                    <li class="pay_li" data_power_id="3000000015" data_product_id="3000000015">
                         <input value="7729" name="channel" id="VN-PERPAID" type="radio">
                         <span>越南-点卡</span>
                     </li>

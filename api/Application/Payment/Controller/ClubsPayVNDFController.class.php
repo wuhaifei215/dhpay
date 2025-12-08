@@ -179,7 +179,7 @@ class ClubsPayVNDFController extends PaymentController
             $returnContent = $this->http_post_data($config['serverreturn'], $post_data);
             log_place_order($this->code . '_queryBalance', "返回", $returnContent);    //日志
             $result = json_decode($returnContent, true);
-            if($result['code']) {
+            if($result['code'] === "00000") {
                 $cipher = json_decode($result['cipher'],true);
                 $balance = $cipher['balance'] / 100;  //总余额
                 $freezeAmt = $result['freezeAmt'] / 100;  //冻结金额
@@ -198,6 +198,8 @@ table.hovertable td {border-width: 1px;padding: 8px;border-style: solid;border-c
 </table>
 AAA;
                 $this->ajaxReturn(['status' => 1, 'msg' => '成功', 'data' => $html]);
+            }else{
+                $this->ajaxReturn(['status' => 0, 'msg' => '成功', 'data' => $result['msg']]);
             }
         }
     }

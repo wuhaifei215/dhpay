@@ -250,21 +250,21 @@ $product_name = "Vip基础服务";
                 </label>
             </ul>
             <ul style="border-bottom: 1px dashed #000; ">
-                <label for="ZALO-P">
+                <label for="ZALO">
                     <li class="pay_li" data_power_id="3000000009" data_product_id="3000000009">
-                        <input value="7723" name="channel" id="ZALO-P" type="radio">
+                        <input value="7723" name="channel" id="ZALO" type="radio">
                         <span>越南-zalo-扫码</span>
                     </li>
                 </label>
-                <label for="MOMO-P">
+                <label for="MOMO">
                     <li class="pay_li" data_power_id="3000000010" data_product_id="3000000010">
-                        <input value="7724" name="channel" id="MOMO-P" type="radio">
+                        <input value="7724" name="channel" id="MOMO" type="radio">
                         <span>越南-momo-扫码</span>
                     </li>
                 </label>
-                <label for="VIETTEL-P">
+                <label for="VIETTEL">
                     <li class="pay_li" data_power_id="3000000011" data_product_id="3000000011">
-                        <input value="7725" name="channel" id="VIETTEL-P" type="radio">
+                        <input value="7725" name="channel" id="VIETTEL" type="radio">
                         <span>越南-viettelpay-扫码</span>
                     </li>
                 </label>

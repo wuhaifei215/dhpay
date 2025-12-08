@@ -40,10 +40,10 @@
 					<label>银行卡号</label>
 					<input type="text" name="cardnumber" value="" />
 				</li>
-				<li>
-					<label>类型</label>
-					<input type="text" name="type" value="" />（CPF/PHONE/EMAIL/EVP）
-				</li>
+<!--				<li>-->
+<!--					<label>类型</label>-->
+<!--					<input type="text" name="type" value="" />（CPF/PHONE/EMAIL/EVP）-->
+<!--				</li>-->
 				<li>
 					<label>备注</label>
 					<input type="text" name="extends" value="" />

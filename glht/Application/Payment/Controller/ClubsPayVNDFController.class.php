@@ -77,9 +77,11 @@ class ClubsPayVNDFController extends PaymentController
                     $return = ['status' => 1, 'msg' => '申请正常'];
                     break;
                 case 2:
-                    $return = ['status' => 3, 'msg' => '申请失败' . $cipher['message']];
+                    $return = ['status' => 3, 'msg' => '申请失败-' . $cipher['message']];
                     break;
             }
+        }elseif($result['code'] === '00000'){
+            $return = ['status' => 3, 'msg' => '申请失败-' . $cipher['msg']];
         }else{
             $return = ['status' => 0, 'msg' => $result['message']];
         }

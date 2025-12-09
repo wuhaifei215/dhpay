@@ -101,7 +101,7 @@ class CreateController extends PayController
     }
 
     //越南代收接口
-    public function payinVND(){
+    public function payinVN(){
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
         if($this->currency !=='VND'){

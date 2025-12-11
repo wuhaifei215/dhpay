@@ -106,7 +106,7 @@ class NotifyDFController extends Controller
             // 结束并输出执行时间
             $endTime = microtime(TRUE);
             $doTime = floor(($endTime-$beginTime)*1000);
-            logApiAddPayment('YunPay回调下游商户信息', __METHOD__, $wttklist['orderid'], $wttklist["out_trade_no"], $wttklist['notifyurl'], $return_array, substr($res,0,2000), $doTime, $httpCode, '2', '2');
+            logApiAddPayment('I8Pay回调下游商户信息', __METHOD__, $wttklist['orderid'], $wttklist["out_trade_no"], $wttklist['notifyurl'], $return_array, substr($res,0,2000), $doTime, $httpCode, '2', '2');
         // }
         //日志输出
         PaymentLogs( 'Automatic_Notify','orderid: ' . $wttklist['orderid'] . " 通知地址：". $wttklist['notifyurl']."\r\n通知参数: ". json_encode($return_array)."\r\n返回内容: ".$res);

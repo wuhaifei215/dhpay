@@ -126,7 +126,7 @@ class IdrQrisInPayController extends PayController
         $re_data = $_REQUEST;
         $orderid = $re_data['out_trade_no'];
         //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
-        log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", $re_data);    //日志
+        log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", json_encode($re_data, JSON_UNESCAPED_UNICODE));    //日志
         if (!$orderid) return;
         $result = $re_data;
         //过滤数据，防SQL注入

@@ -28,10 +28,14 @@
 					<label>通道编码</label>
 					<input type="text" name="bankcode" value="7710" />
 				</li>
-				<li>
-					<label>开户行</label>
-					<input type="text" name="bankname" value="" />
-				</li>
+                <li>
+                    <label>开户行</label>
+                    <input type="text" name="bankname" value="" />
+                </li>
+                <li>
+                    <label>支行</label>
+                    <input type="text" name="subbranch" value="" />
+                </li>
 				<li>
 					<label>开户名</label>
 					<input type="text" name="accountname" value="" />
@@ -40,10 +44,6 @@
 					<label>银行卡号</label>
 					<input type="text" name="cardnumber" value="" />
 				</li>
-<!--				<li>-->
-<!--					<label>类型</label>-->
-<!--					<input type="text" name="type" value="" />（CPF/PHONE/EMAIL/EVP）-->
-<!--				</li>-->
 				<li>
 					<label>备注</label>
 					<input type="text" name="extends" value="" />

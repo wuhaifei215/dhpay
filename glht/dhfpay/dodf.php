@@ -30,6 +30,9 @@ if (in_array($_POST['bankcode'], [7710, 7711, 7712])) {
 } elseif (in_array($_POST['bankcode'], [7723, 7724, 7725, 7726, 7727, 7728, 7729])) {
     $pay_currency = 'VND';
     $tjurl = $apidomain . "/Payment_CreateDF_payoutVN.html";   //越南
+} elseif (in_array($_POST['bankcode'], [7730, 7731])) {
+    $pay_currency = 'IDR';
+    $tjurl = $apidomain . "/Payment_CreateDF_payoutIDR.html";   //越南
 }
 
 $_POST['currency'] = $pay_currency;

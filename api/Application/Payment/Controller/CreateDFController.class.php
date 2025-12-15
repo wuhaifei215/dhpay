@@ -94,6 +94,18 @@ class CreateDFController extends Controller
         $this->doNext();
     }
 
+    //印尼代付接口
+    public function payoutIDR(){
+        $this->doFirst();
+        if (!$this->subbranch) {
+            $this->showmessage('银行IFSC不能为空！');
+        }
+        if($this->currency !=='IDR'){
+            $this->showmessage("国家货币不对！");
+        }
+        $this->doNext();
+    }
+
     //======================================辅助方法===================================
 
     /**

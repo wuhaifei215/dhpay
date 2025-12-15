@@ -73,7 +73,8 @@ class IdrDanaInPayController extends PayController
             $redis->delete($token);
         }
         $real_name =[
-            'real_name' => "John Doe"
+            'real_name' => "John Doe",
+            'phone' => "081234567890"
         ];
         $native = array(
             'mch_no' => $return['mch_id'],

@@ -220,7 +220,6 @@ class IdrQrisInPayController extends PayController
     {
         $signPars = "";
         ksort($param);
-        $param['key'] = $key;
         foreach ($param as $k => $v) {
             if ("sign" != $k) {
                 $signPars .= $k . "=" . $v . "&";

@@ -2,7 +2,7 @@
 
 namespace Pay\Controller;
 
-class InrQrisInPayController extends PayController
+class IdrQrisInPayController extends PayController
 {
     private $code = '';
     private $query_url='';
@@ -78,7 +78,7 @@ class InrQrisInPayController extends PayController
             'out_trade_no' => $return['orderid'],
             'amount' => $return['amount'],
             'trade_type' =>'22',
-            'currency' => 'INR',
+            'currency' => 'IDR',
             'notify_url' => $return["notifyurl"],
             'return_url' => $return["callbackurl"],
             'client_ip' => '0.0.0.1',

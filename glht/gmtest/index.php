@@ -293,6 +293,20 @@ $product_name = "Vip基础服务";
                     </li>
                 </label>
             </ul>
+            <ul style="border-bottom: 1px dashed #000; ">
+                <label for="IdrQris">
+                    <li class="pay_li" data_power_id="3000000016" data_product_id="3000000016">
+                        <input value="7730" name="channel" id="IdrQris" type="radio">
+                        <span>印尼Qris</span>
+                    </li>
+                </label>
+                <label for="IdrDana">
+                    <li class="pay_li" data_power_id="3000000017" data_product_id="3000000017">
+                        <input value="7731" name="channel" id="IdrDana" type="radio">
+                        <span>印尼Dana</span>
+                    </li>
+                </label>
+            </ul>
         </div>
     </div>
     <!--立即支付-->

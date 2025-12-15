@@ -76,7 +76,7 @@ class IdrQrisInPayController extends PayController
         $native = array(
             'mch_no' => $return['mch_id'],
             'out_trade_no' => $return['orderid'],
-            'amount' => $return['amount'],
+            'amount' => sprintf('%.2f', $return['amount']),
             'trade_type' =>'22',
             'currency' => 'IDR',
             'notify_url' => $return["notifyurl"],

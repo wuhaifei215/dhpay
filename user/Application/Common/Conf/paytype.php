@@ -26,7 +26,7 @@ return [
         ['id'=>'22','currency'=>'VND','name'=>'VN-DIRECT'],
         ['id'=>'23','currency'=>'VND','name'=>'VN-BANK-QR'],
         ['id'=>'24','currency'=>'VND','name'=>'VN-VN-PERPAID'],
-        ['id'=>'25','currency'=>'INR','name'=>'QRIS'],
-        ['id'=>'26','currency'=>'INR','name'=>'DANA'],
+        ['id'=>'25','currency'=>'IDR‌','name'=>'QRIS'],
+        ['id'=>'26','currency'=>'IDR‌','name'=>'DANA'],
     ],
 ];

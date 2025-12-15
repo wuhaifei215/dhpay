@@ -226,8 +226,8 @@ class IdrQrisInPayController extends PayController
                 $signPars .= $k . "=" . $v . "&";
             }
         }
-        $sign =strtoupper(md5(rtrim($signPars,'&')));
-         log_place_order($this->code, "----签名", rtrim($signPars,'&'));    //日志
+        $sign =hash_hmac('sha256', rtrim($signPars,'&'), $key);
+        log_place_order($this->code, "----签名", rtrim($signPars,'&'));    //日志
         return $sign; //最终的签名
     }
 }

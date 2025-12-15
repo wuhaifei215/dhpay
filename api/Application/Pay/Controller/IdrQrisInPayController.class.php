@@ -186,25 +186,17 @@ class IdrQrisInPayController extends PayController
     //发送post请求，提交json字符串
     private function http_post_json($url, $postData)
     {
-        $json = json_encode($postData, JSON_UNESCAPED_UNICODE);
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => $json,
-            CURLOPT_HTTPHEADER => array(
-                'Content-Type: application/json',
-                'Content-Length:'.strlen($json)
-            ),
-        ));
-        $response = curl_exec($curl);
-        curl_close($curl);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        $response = curl_exec($ch);
+//        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
         return $response;
     }
 

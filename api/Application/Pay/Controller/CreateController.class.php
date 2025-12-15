@@ -127,7 +127,7 @@ class CreateController extends PayController
     public function payinIDR(){
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
-        if($this->currency !=='IDR'){
+        if($this->currency !=='IDR‌'){
             $this->showmessage("国家货币不对！");
         }
 

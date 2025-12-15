@@ -270,6 +270,7 @@ class CreateController extends PayController
         $product = json_decode($product_redis,true);
         if(!$product_redis || empty($product)){
             $product = M('Product')->where(['id' => $this->bankcode, 'currency'=>$this->currency, 'status' => 1])->field('id,paytype')->find();
+            log_place_order('productIsOpen', "Product_sql", M('Product')->getLastSql());    //日志
             $redis->set('Product_'. $this->bankcode, json_encode($product, JSON_UNESCAPED_UNICODE));
             $redis->expire('Product_'. $this->bankcode, 60);
         }

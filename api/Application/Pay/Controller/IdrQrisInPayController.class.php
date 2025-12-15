@@ -122,11 +122,11 @@ class IdrQrisInPayController extends PayController
     public function notifyurl()
     {
         //获取报文信息
-        $json = file_get_contents("php://input");
-        $re_data = json_decode($json, true);
-        $orderid = $re_data['mer_no'];
+//        $json = file_get_contents("php://input");
+        $re_data = $_REQUEST;
+        $orderid = $re_data['out_trade_no'];
         //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
-        log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", $json);    //日志
+        log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", $re_data);    //日志
         if (!$orderid) return;
         $result = $re_data;
         //过滤数据，防SQL注入
@@ -225,7 +225,7 @@ class IdrQrisInPayController extends PayController
                 $signPars .= $k . "=" . $v . "&";
             }
         }
-        $sign =hash_hmac('sha256', rtrim($signPars,'&'), $key);
+        $sign = hash_hmac('sha256', rtrim($signPars,'&'), $key);
         log_place_order($this->code, "----签名", rtrim($signPars,'&'));    //日志
         return $sign; //最终的签名
     }

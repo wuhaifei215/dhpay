@@ -72,7 +72,9 @@ class IdrQrisInPayController extends PayController
         }else{
             $redis->delete($token);
         }
-        
+        $real_name =[
+            'real_name' => "John Doe"
+        ];
         $native = array(
             'mch_no' => $return['mch_id'],
             'out_trade_no' => $return['orderid'],
@@ -82,7 +84,7 @@ class IdrQrisInPayController extends PayController
             'notify_url' => $return["notifyurl"],
             'return_url' => $return["callbackurl"],
             'client_ip' => '0.0.0.1',
-            'attach' => '{"real_name":"John Doe"}',
+            'attach' => json_encode($real_name),
         );
         $native['sign'] = $this->sign($native, $return['signkey']);
         log_place_order($this->code, $return['orderid'] . "----提交", json_encode($native, JSON_UNESCAPED_UNICODE));    //日志

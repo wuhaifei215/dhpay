@@ -2,7 +2,7 @@
 
 namespace Pay\Controller;
 
-class InrInPayController extends PayController
+class InrQrisInPayController extends PayController
 {
     private $code = '';
     private $query_url='';
@@ -23,7 +23,7 @@ class InrInPayController extends PayController
         $pay_callbackurl = I('request.pay_callbackurl', '');
         $parameter = [
             'code' => $this->code,
-            'title' => 'INR-InPay',
+            'title' => 'InrQris-InPay',
             'exchange' => 1, // 金额比例
             'gateway' => "",
             'orderid' => '',
@@ -77,7 +77,7 @@ class InrInPayController extends PayController
             'mch_no' => $return['mch_id'],
             'out_trade_no' => $return['orderid'],
             'amount' => $return['amount'],
-            'trade_type' =>'ViettelPay',
+            'trade_type' =>'22',
             'currency' => 'INR',
             'notify_url' => $return["notifyurl"],
             'return_url' => $return["callbackurl"],
@@ -137,12 +137,29 @@ class InrInPayController extends PayController
         if (!$orderList) return;
 
         //验证IP白名单
-        $check_re = check_IP($orderList['channel_id'], getIP(), $orderid);
-        if ($check_re !== true) return;
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        } else {
+            $ip = getRealIp();
+        }
+
+        $check_re = check_IP($orderList['channel_id'], $ip, $orderid);
+        if ($check_re !== true) {
+            log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $ip);    //日志
+            $json_result = "IP异常:" . $ip;
+            try{
+                logApiAddNotify($orderid, 0, $_REQUEST, $json_result);
+            }catch (\Exception $e) {
+                // var_dump($e);
+            }
+            return;
+        }
 
         $sign = $this->sign($result, $orderList['key']);
         if ($sign == $result["sign"]) {
-            if($result['returncode'] == '00'){     //状态 00成功 01失败
+            if($result['code'] == 'success'){     //状态 00成功 01失败
                 $re = $this->EditMoney($orderList['pay_orderid'], $this->code, 0);
                 if ($re !== false) {
                     log_place_order($this->code . '_notifyurl', $orderid . "----回调上游", "成功");    //日志
@@ -150,12 +167,13 @@ class InrInPayController extends PayController
                     log_place_order($this->code . '_notifyurl', $orderid . "----回调上游", "失败");    //日志
                 }
             }else{
-                log_place_order($this->code . '_notifyurl', $orderid . "----订单状态异常", $result['returncode']);    //日志
+                log_place_order($this->code . '_notifyurl', $orderid . "----订单状态异常", $result['code']);    //日志
             }
+            $json_result = "success";
         } else {
             log_place_order($this->code . '_notifyurl', $orderid . "----签名错误，加密后", $sign);    //日志
+            $json_result = "sign fail";
         }
-        $json_result = "OK";
         echo $json_result;
         try{
             logApiAddNotify($orderid, 0, $re_data, $json_result);
@@ -164,24 +182,6 @@ class InrInPayController extends PayController
         }
     }
 
-    //订单查询
-    public function queryOrder($orderid, $memberid, $key)
-    {
-        $native = [
-            'custId' => $memberid,
-            'merchantOrderId' => $orderid,
-        ];
-        $native['sign'] = $this->sign($native, $key);
-        // log_place_order($this->code. '_queryOrder', $orderid . "----查单提交", json_encode($native));    //日志
-        $returnContent = $this->http_post_json($this->query_url, $native);
-        log_place_order($this->code. '_queryOrder', $orderid . "----查单返回", $returnContent);    //日志
-        $ans = json_decode($returnContent, true);
-        if ($ans['code'] == "200") {
-            return 1;
-        } else {
-            return $returnContent;
-        }
-    }
 
     //发送post请求，提交json字符串
     private function http_post_json($url, $postData)
@@ -219,7 +219,7 @@ class InrInPayController extends PayController
         ksort($param);
         $param['key'] = $key;
         foreach ($param as $k => $v) {
-            if ("" != $v && "sign" != $k) {
+            if ("sign" != $k) {
                 $signPars .= $k . "=" . $v . "&";
             }
         }

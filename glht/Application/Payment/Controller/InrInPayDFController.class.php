@@ -17,15 +17,18 @@ class InrInPayDFController extends PaymentController
     public function PaymentExec($data, $config)
     {
         $post_data = array(
-            "mer_id" => $config['mch_id'], //商户号
-            "mer_no" => $data['orderid']?$data['orderid']:$data['out_trade_no'], //订单号
-            "amount" => intval($data['money']),  //提现金额
-            "bank_name" => $data['bankname'],       //银行卡名称
-            "accountname" => $data['bankfullname'],  //户名，仅支持英文，不支持越南语
-            "cardnumber" => $data['banknumber'],    //账号
-            "notifyurl" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
+            "mch_no" => $config['mch_id'], //商户号
+            "out_trade_no" => $data['orderid'], //订单号
+            "amount" => sprintf("%.2f", $data['money']),  //提现金额
+            "bank" => $data['bankname'],       //银行卡名称
+            "sub_branch" => $data['bankzhiname'],
+            "account_name" => $data['bankfullname'],  //户名，仅支持英文，不支持越南语
+            "card_number" => $data['banknumber'],    //账号
+            "currency" => 'IDR',
+            'client_ip' => '0.0.0.1',
+            "notify_url" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
         );
-        $post_data["pay_md5sign"] = $this->get_sign($post_data, $config['signkey']);
+        $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code, $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
         log_place_order($this->code, $data['orderid'] . "----提交地址", $config['exec_gateway']);    //日志
                 
@@ -53,25 +56,21 @@ class InrInPayDFController extends PaymentController
         }
 
         // log_place_order($this->code, $data['orderid'] . "----状态：", $result['status']);    //日志
-        switch ($result['code']) {
-            case 0:
-                $return = ['status' => 1, 'msg' => '申请正常'];
-                break;
-            default:
-                $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
-                break;
+        if ($result['code'] === 'success') {
+            $return = ['status' => 1, 'msg' => '申请正常'];
+        }else{
+            $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
         }
         return $return;
     }
 
     public function notifyurl()
     {
-        $json = file_get_contents("php://input");
-        $re_data = json_decode($json, true);
+        $re_data = $_REQUEST;
         //获取报文信息
-        $orderid = $re_data['mer_no'];
+        $orderid = $re_data['out_trade_no'];
         //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
-        log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", $json);    //日志
+        log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", json_encode($re_data, JSON_UNESCAPED_UNICODE));    //日志
         
         $tableName ='';
         $Wttklistmodel = D('Wttklist');
@@ -89,7 +88,7 @@ class InrInPayDFController extends PaymentController
 
         $sign = $this->get_sign($re_data, $config['signkey']);
         if ($sign === $re_data["sign"]) {
-            if ($re_data['returncode'] === "00") {
+            if ($re_data['code'] === "success") {
                 //代付成功 更改代付状态 完善代付逻辑
                 $data = [
                     'memo' => '代付成功',
@@ -97,31 +96,18 @@ class InrInPayDFController extends PaymentController
                 $this->changeStatus($Order['id'], 2, $data, $tableName);
                 // $this->handle($Order['id'], 2, $data, $tableName);
                 log_place_order($this->code . '_notifyurl', $orderid, "----代付成功");    //日志
-            } elseif ($re_data['returncode'] === "01") {
-                $data['orderid'] = $orderid;
-                $query_re = $this->PaymentQuery($data, $config);
-                if($query_re['status'] ===3){
-                    //代付失败
-                    $data = [
-                        'memo' => '代付失败-' . $query_re['remark'],
-                    ];
-                    $this->changeStatus($Order['id'], 3, $data, $tableName);
-                    // $this->handle($Order['id'], 3, $data, $tableName);
-                    log_place_order($this->code . '_notifyurl', $orderid, "----代付失败");    //日志
-                }else{
-                    log_place_order($this->code . '_notifyurl', $orderid, "----失败订单。查询状态异常" . $query_re['status']);    //日志
-                }
+            } else {
+                $data = [
+                    'memo' => '代付失败-' . $re_data['msg'],
+                ];
+                $this->changeStatus($Order['id'], 3, $data, $tableName);
+                // $this->handle($Order['id'], 3, $data, $tableName);
+                log_place_order($this->code . '_notifyurl', $orderid, "----代付失败");    //日志
             }
-            $json_result =  "OK";
+            $json_result =  "success";
         } else {
             log_place_order($this->code . '_notifyurl', $orderid . '----签名错误: ', $sign);
-            $data = [
-                'memo' => '签名错误',
-            ];
-            
-            $this->changeStatus($Order['id'], 0, $data, $tableName);
-            // $this->handle($Order['id'], 0, $data, $tableName);
-            $json_result = "fail";
+            $json_result = "sign fail";
         }
         echo $json_result;
         try{
@@ -138,17 +124,15 @@ class InrInPayDFController extends PaymentController
             $id = I('post.id', 1);
             $config = M('pay_for_another')->where(['id' => $id,'code' => $this->code])->find();
             $post_data = array(
-                "custId" => $config['mch_id'], //商户号
-                "payCode" => 'VN',
+                "mch_no" => $config['mch_id'], //商户号
             );
             $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
             log_place_order($this->code . '_queryBalance', "提交", json_encode($post_data));    //日志
             $returnContent = $this->http_post_json($config['serverreturn'], $post_data);
             log_place_order($this->code . '_queryBalance', "返回", $returnContent);    //日志
             $result = json_decode($returnContent, true);
-            $currencyCode = $result['data']['currencyCode'];
-            $balance = $result['data']['avlBalance'];  //可用金额
-            $freezeBalance = $result['data']['freezeBalance'];  //冻结金额
+            $currencyCode = $result['currency'];
+            $balance = $result['balance'];  //可用金额
             $html = <<<AAA
 <!-- CSS goes in the document HEAD or added to your external stylesheet -->
 <style type="text/css">
@@ -160,7 +144,6 @@ table.hovertable td {border-width: 1px;padding: 8px;border-style: solid;border-c
 <table class="hovertable">
 <tr><th>说明</th><th>值</th></tr>
 <tr onmouseout="this.style.backgroundColor='#f5f5f5';" onmouseover="this.style.backgroundColor='#009688';"><td>可用金额</td><td><b>$balance $currencyCode</b></td></tr>
-<tr onmouseout="this.style.backgroundColor='#f5f5f5';" onmouseover="this.style.backgroundColor='#009688';"><td>冻结金额</td><td><b>$freezeBalance $currencyCode</b></td></tr>
 </table>
 AAA;
             $this->ajaxReturn(['status' => 1, 'msg' => '成功', 'data' => $html]);
@@ -170,99 +153,35 @@ AAA;
     //代付订单查询
     public function PaymentQuery($data, $config)
     {
-        $post_data = [
-            'custId' => $config['mch_id'],
-            'merchantOrderId' => $data['orderid'],
-            'payCode' => 'VN',
-        ];
+        $post_data = array(
+            "mch_no" => $config['mch_id'], //商户号
+        );
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code . '_PaymentQuery', $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
-        $returnContent = $this->http_post_json($config['query_gateway'], $post_data);
-        log_place_order($this->code . '_PaymentQuery', $data['orderid'] . "----返回", $returnContent);    //日志
+        $returnContent = $this->http_post_json($config['serverreturn'], $post_data);
         $result = json_decode($returnContent, true);
-        if ($result['status'] === "success") {
-            switch ($result['data']['orderStatus']) {       //处理中状态：（1或者3或者21） ；成功状态=（8或者9或者10或者11）； 失败状态=（12或者13或者19或者20）；
-                case 1:
-                case 3:
-                case 21:
+        log_place_order($this->code . '_PaymentQuery', $data['orderid'] . "----返回", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
+        if ($result['code'] === "success") {
+            switch ($result['status']) {       //PENDING,SUCCESS,FAIL（状态对应付款中，付款成功，付款失败）
+                case 'wait':
                     $return = ['status' => 1, 'msg' => '处理中'];
                     break;
-                case 8:
-                case 9:
-                case 10:
-                case 11:
-                    $remark_arr = explode('/',$result['data']['remark']);
-                    $remark_arr[0] = 'https:';
-                    $remark_arr[1] = '';
-                    $remark_arr[2] = 'down.sqpay77.com';
-                    $remark = implode('/',$remark_arr);
-                    $return = ['status' => 2, 'msg' => '成功','remark' => $remark];
+                case 'success':
+                    $return = ['status' => 2, 'msg' => '成功'];
                     break;
-                case 12:
-                case 13:
-                case 19:
-                case 20:
-                    $return = ['status' => 3, 'msg' => '失败','remark' => $result['data']['remark']];
+                case 'fail':
+                    $return = ['status' => 3, 'msg' => '失败','remark' => $result['msg']];
                     break;
             }
         } else {
-            $return = ['status' => 7, 'msg' => "查询接口失败:".$result['data']['remark']];
+            $return = ['status' => 7, 'msg' => "查询接口失败:".$result['code']];
         }
-        return $return;
-    }
-    
-    //代付订单查询
-    public function PaymentQuery2()
-    {
-        $config = M('pay_for_another')->where(['code' => $this->code])->find();
-        $post_data = [
-            'custId' => $config['mch_id'],
-            'merchantOrderId' => 'O2024110523595922399578599',
-            'payCode' => 'VN',
-        ];
-        $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
-        log_place_order($this->code . '_PaymentQuery2', $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
-        $returnContent = $this->http_post_json($config['query_gateway'], $post_data);
-        log_place_order($this->code . '_PaymentQuery2', $data['orderid'] . "----返回", $returnContent);    //日志
-        $result = json_decode($returnContent, true);
-        if ($result['status'] === "success") {
-            switch ($result['data']['orderStatus']) {       //处理中状态：（1或者3或者21） ；成功状态=（8或者9或者10或者11）； 失败状态=（12或者13或者19或者20）；
-                case 1:
-                case 3:
-                case 21:
-                    $return = ['status' => 1, 'msg' => '处理中'];
-                    break;
-                case 8:
-                case 9:
-                case 10:
-                case 11:
-                    $return = ['status' => 2, 'msg' => '成功','remark' => $result['data']['remark']];
-                    break;
-                case 12:
-                case 13:
-                case 19:
-                case 20:
-                    $return = ['status' => 3, 'msg' => '失败','remark' => $result['data']['remark']];
-                    break;
-            }
-        } else {
-            $return = ['status' => 7, 'msg' => "查询接口失败:".$result['data']['remark']];
-        }
-        
-        $remark_arr = explode('/',$return['remark']);
-        $remark_arr[0] = 'https:';
-        $remark_arr[1] = '';
-        $remark_arr[2] = 'down.sqpay77.com';
-        $remark = implode('/',$remark_arr);
-        var_dump($remark_arr);
-        var_dump($remark);
         return $return;
     }
 
     //发送post请求，提交json字符串
-    private function http_post_json($url, $postData, $options = array())
+    private function http_post_json($url, $postData)
     {
-        
         $json = json_encode($postData, JSON_UNESCAPED_UNICODE);
         $curl = curl_init();
         curl_setopt_array($curl, array(
@@ -295,15 +214,13 @@ AAA;
     {
         $signPars = "";
         ksort($param);
-        $param['key'] = $key;
         foreach ($param as $k => $v) {
-            if ("" != $v && "sign" != $k && "pay_md5sign" != $k) {
+            if ("sign" != $k) {
                 $signPars .= $k . "=" . $v . "&";
             }
         }
-        $sign =strtoupper(md5(rtrim($signPars,'&')));
-        log_place_order($this->code, $orderid . "----签名", rtrim($signPars,'&'));    //日志
+        $sign = hash_hmac('sha256', rtrim($signPars,'&'), $key);
+        log_place_order($this->code, "----签名", rtrim($signPars,'&'));    //日志
         return $sign; //最终的签名
-
     }
 }

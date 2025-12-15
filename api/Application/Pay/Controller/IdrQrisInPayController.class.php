@@ -85,7 +85,7 @@ class IdrQrisInPayController extends PayController
         );
         $native['sign'] = $this->sign($native, $return['signkey']);
         log_place_order($this->code, $return['orderid'] . "----提交", json_encode($native, JSON_UNESCAPED_UNICODE));    //日志
-        log_place_order($this->code, $return['orderid'] . "----提交地址", $return['gateway'] . '/vn/ds_api');    //日志
+        log_place_order($this->code, $return['orderid'] . "----提交地址", $return['gateway']);    //日志
 
         // 记录初始执行时间
         $beginTime = microtime(TRUE);

@@ -25,28 +25,30 @@ class InrInPayDFController extends PaymentController
             "account_name" => $data['bankfullname'],  //户名，仅支持英文，不支持越南语
             "card_number" => $data['banknumber'],    //账号
             "currency" => 'IDR',
-            'client_ip' => '0.0.0.1',
+            "province" => '',
+            "city" => '',
+            "client_ip" => '0.0.0.1',
             "notify_url" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
         );
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code, $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
         log_place_order($this->code, $data['orderid'] . "----提交地址", $config['exec_gateway']);    //日志
-                
+
         // 记录初始执行时间
         $beginTime = microtime(TRUE);
-        
+
         $returnContent = $this->http_post_json($config['exec_gateway'], $post_data);
         $result = json_decode($returnContent, true);
         log_place_order($this->code, $data['orderid'] . "----返回", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
-        
+
         try{
-                
+
 //            $redis = $this->redis_connect();
 //            $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
 //            $userdfpost = json_decode($userdfpost,true);
 //
 //            logApiAddPayment('商户提交', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
-            
+
             // 结束并输出执行时间
             $endTime = microtime(TRUE);
             $doTime = floor(($endTime-$beginTime)*1000);
@@ -71,19 +73,19 @@ class InrInPayDFController extends PaymentController
         $orderid = $re_data['out_trade_no'];
         //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
         log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", json_encode($re_data, JSON_UNESCAPED_UNICODE));    //日志
-        
+
         $tableName ='';
         $Wttklistmodel = D('Wttklist');
         $date = date('Ymd',strtotime(substr($orderid, 1, 8)));  //获取订单日期
         $tableName = $Wttklistmodel->getRealTableName($date);
         $Order = $Wttklistmodel->table($tableName)->where(['orderid' => $orderid])->find();
-        
+
         // $Order = $this->selectOrder(['orderid' => $orderid]);
         if (!$Order) {
             log_place_order($this->code . '_notifyurl', $orderid . '----没有查询到Order！ ', $orderid);
             exit;
         }
-        
+
         $config = M('pay_for_another')->where(['code' => $this->code,'id'=>$Order['df_id']])->find();
 
         $sign = $this->get_sign($re_data, $config['signkey']);
@@ -116,7 +118,7 @@ class InrInPayDFController extends PaymentController
             // var_dump($e);
         }
     }
-    
+
     //账户余额查询
     public function queryBalance()
     {

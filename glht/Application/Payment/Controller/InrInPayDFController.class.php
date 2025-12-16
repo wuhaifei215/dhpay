@@ -25,7 +25,9 @@ class InrInPayDFController extends PaymentController
             "account_name" => $data['bankfullname'],  //户名，仅支持英文，不支持越南语
             "card_number" => $data['banknumber'],    //账号
             "currency" => 'IDR',
-            'client_ip' => '0.0.0.1',
+            "province" => '',
+            "city" => '',
+            "client_ip" => '0.0.0.1',
             "notify_url" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
         );
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);

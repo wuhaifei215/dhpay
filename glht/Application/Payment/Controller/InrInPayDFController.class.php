@@ -28,6 +28,7 @@ class InrInPayDFController extends PaymentController
             "province" => '',
             "city" => '',
             "client_ip" => '0.0.0.1',
+            "attach" => '',
             "notify_url" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
         );
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);

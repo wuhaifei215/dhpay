@@ -481,7 +481,7 @@ class WithdrawalController extends BaseController
         $count = $Wttklist->getCount($where);
         $page = new Page($count, $rows);
         $list = $Wttklist->getOrderByDateRange($field, $where, $page->firstRow . ',' . $page->listRows, 'id desc');
-        // echo $Wttklist->getLastSql();
+         echo $Wttklist->getLastSql();
         foreach ($list as $k => $v){
             foreach ($banklist as $kk => $vv){
                 if($v['bankcode'] === $vv['id']){

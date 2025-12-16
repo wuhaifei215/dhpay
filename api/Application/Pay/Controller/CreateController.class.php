@@ -131,6 +131,18 @@ class CreateController extends PayController
             $this->showmessage("国家货币不对！");
         }
 
+        $extends = I("request.pay_extends", '');
+        if (!$extends) {
+            $this->showmessage('pay_extends cannot be empty');
+        }
+        $extend_fields_array = json_decode(base64_decode($extends), true);
+        $fields = ['real_name', 'phone'];    //扩展字段
+        foreach($fields as $k => $v) {
+            if(!isset($extend_fields_array[$v]) || $extend_fields_array[$v]=='') {
+                $this->showmessage('The secondary parameter of the extends field 【' . $v . '】 cannot be empty');
+            }
+        }
+
         $this->productIsOpen(); //判断通道是否开启
 
         $this->judgeRepeatOrder(); //验证是否可以提交重复订单

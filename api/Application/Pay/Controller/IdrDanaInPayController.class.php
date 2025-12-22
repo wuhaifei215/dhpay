@@ -52,7 +52,7 @@ class IdrDanaInPayController extends PayController
                 'pay_orderid' => $orderid,
                 'out_trade_id' => $return['orderid'],
                 'amount' => $return['amount'],
-                'datetime' => date('Y-m-d', $return['datetime'])
+                'datetime' => date('Y-m-d')
             ];
             echo json_encode($return_arr);
         } else {

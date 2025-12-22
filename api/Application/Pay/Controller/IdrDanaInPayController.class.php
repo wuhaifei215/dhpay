@@ -58,7 +58,7 @@ class IdrDanaInPayController extends PayController
         } else {
             echo '<script type="text/javascript">window.location.href="' . $url . '"</script>';
         }
-    }
+    } 
 
     public function Orderpay()
     {

@@ -135,7 +135,9 @@ class HiPayDFGcash222Controller extends PaymentController
         $sign = $this->get_sign($re_data,$config['signkey']);
         if ($sign === $re_data["sign"]) {
             if ($re_data['state'] === "2") {     //支付订单状态:0-订单生成 1-转账中 2-转账成功 3-转账失败 4-转账关闭
-                $re_save = $Wttklistmodel->table($tableName)->where(['orderid' => $orderid])->save(['billno'=>$re_data['invoiceNo'],'additional'=>$re_data['channelName']]);
+                if($re_data['invoiceNo']){
+                    $re_save = $Wttklistmodel->table($tableName)->where(['orderid' => $orderid])->save(['billno'=>$re_data['invoiceNo'],'additional'=>$re_data['channelName']]);
+                }
                 //代付成功 更改代付状态 完善代付逻辑
                 $data = [
                     'memo' => '代付成功',

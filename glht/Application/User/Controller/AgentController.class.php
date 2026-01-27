@@ -1373,7 +1373,7 @@ class AgentController extends UserController
         $OrderModel = D('Order');
         $stat_total = $OrderModel->getSum('pay_amount',$where);
         $sum['success_count'] = $OrderModel->getCount($where);
-        // echo $OrderModel->getLastSql();
+         echo $OrderModel->getLastSql();
         $sum['pay_amount'] = round($stat_total['pay_amount'], 2);
 
 

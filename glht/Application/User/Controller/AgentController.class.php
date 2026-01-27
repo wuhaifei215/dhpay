@@ -850,14 +850,14 @@ class AgentController extends UserController
         foreach ($userlist as $key => $value) {
             $where_zj[] = $value['id'];
         }
-        $currency = I("request.currency");
-        if($currency ==='INR'){
-            $where['paytype'] = ['eq', 4];
-        }else{
-            $currency ='PHP';
-            $where['paytype'] = ['between', [1,3]];
-        }
-        $this->assign('currency', $currency);
+//        $currency = I("request.currency");
+//        if($currency ==='INR'){
+//            $where['paytype'] = ['eq', 4];
+//        }else{
+//            $currency ='PHP';
+//            $where['paytype'] = ['between', [1,3]];
+//        }
+//        $this->assign('currency', $currency);
         
         $memberid = I("request.memberid", '', 'string,strip_tags,htmlspecialchars');
         $this->assign("memberid", $memberid);

@@ -225,15 +225,15 @@ class AgentController extends UserController
         foreach ($list as $key => $value) {
             $list[$key]['pname'] = M('member')->where(array('id' => $value['parentid']))->getField('username');
             $product_list = M('ProductUser')
-            ->join('LEFT JOIN __PRODUCT__ ON __PRODUCT__.id = __PRODUCT_USER__.pid')
-            ->where(['pay_product_user.userid'=>$value['id'],'pay_product_user.status'=>1,'pay_product.isdisplay'=>1])
-            ->field('pay_product.name,pay_product.id,pay_product.t0defaultrate,pay_product.t0fengding,pay_product.defaultrate,pay_product.fengding,pay_product_user.status')
-            ->select();
+                ->join('LEFT JOIN __PRODUCT__ ON __PRODUCT__.id = __PRODUCT_USER__.pid')
+                ->where(['pay_product_user.userid'=>$value['id'],'pay_product_user.status'=>1,'pay_product.isdisplay'=>1])
+                ->field('pay_product.name,pay_product.id,pay_product.t0defaultrate,pay_product.t0fengding,pay_product.defaultrate,pay_product.fengding,pay_product_user.status')
+                ->select();
             if(!empty($product_list)) {
                 foreach ($product_list as $k => $item) {
                     $_userrate = M('Userrate')->where(['userid' => $value['id'], 'payapiid' => $item['id']])->find();
                     $list[$key]['rate'][$item['id']] = $item;
-                    
+
                     $feilv = $_userrate['feilv'];
                     if ($this->fans['groupid'] != 4) {
                         $list[$key]['rate'][$item['id']]['feilv'] = $_userrate['feilv'] ? $_userrate['feilv']*100 : $item['defaultrate']*100;
@@ -578,7 +578,7 @@ class AgentController extends UserController
         $paltform_amount = $statistic['pay_amount'] - $statistic['pay_actualamount'] - $statistic['cost'] - $pay_poundage;
 //        $poundage_cost = $pay_poundage + $statistic['cost'];
         $this->assign('pay_amount', number_format($statistic['pay_amount'], 2));
-         $this->assign('pay_poundage', number_format($pay_poundage, 2));
+        $this->assign('pay_poundage', number_format($pay_poundage, 2));
 //        $this->assign('pay_poundage', number_format($poundage_cost, 2));
         $this->assign('pay_actualamount', number_format($statistic['pay_actualamount'], 2));
         $this->assign('paltform_amount', number_format($paltform_amount, 2));
@@ -843,22 +843,23 @@ class AgentController extends UserController
         //查询下级
         $where = array();
 
-         //查询下级
+        //查询下级
         $pwhere['parentid'] = $this->fans['uid'];
 
         $userlist = M('Member')->where($pwhere)->field('id')->select();
         foreach ($userlist as $key => $value) {
             $where_zj[] = $value['id'];
         }
-        $currency = I("request.currency");
-        if($currency ==='INR'){
-            $where['paytype'] = ['eq', 4];
-        }else{
-            $currency ='PHP';
-            $where['paytype'] = ['between', [1,3]];
-        }
-        $this->assign('currency', $currency);
-        
+
+//        $currency = I("request.currency");
+//        if($currency ==='INR'){
+//            $where['paytype'] = ['eq', 4];
+//        }else{
+//            $currency ='PHP';
+//            $where['paytype'] = ['between', [1,3]];
+//        }
+//        $this->assign('currency', $currency);
+
         $memberid = I("request.memberid", '', 'string,strip_tags,htmlspecialchars');
         $this->assign("memberid", $memberid);
         if ($memberid) {
@@ -871,7 +872,7 @@ class AgentController extends UserController
         } else {
             $where['userid'] = ['in', $where_zj];
         }
-        
+
         //U下发
         $type = I("request.type",  0, 'intval');
         if($type === 2){
@@ -880,13 +881,13 @@ class AgentController extends UserController
             $where['df_type'] = ['neq', 2];
         }
         $this->assign('type', $type);
-        
+
         // $dfid = I("get.dfid", '', 'string,strip_tags,htmlspecialchars');
         // if ($dfid != '') {
         //     $where['df_id'] = array('eq', $dfid);
         // }
         // $this->assign("dfid", $dfid);
-        
+
         $successtime = urldecode(I("request.successtime", '', 'string,strip_tags,htmlspecialchars'));
         if ($successtime) {
             list($sstime, $setime) = explode('|', $successtime);
@@ -898,7 +899,7 @@ class AgentController extends UserController
         }
         $this->assign("successtime", $successtime);
 
-        
+
         $cstime =  date('Y-m-d 00:00:00' ,strtotime($sstime)- 3600 * 24 * 7);
         $cetime = $setime;
         $where['sqdatetime']   = ['between', [$cstime, $cetime]];
@@ -922,12 +923,12 @@ class AgentController extends UserController
         foreach ($stat as $k => $v) {
             $stat[$k] += 0;
         }
-        
+
         $this->assign('stat', $stat);
         $this->assign("df_list", $df_list);
         $this->display();
-        
-        
+
+
 
 
         // $Wttklist = D('Wttklist');
@@ -1064,18 +1065,18 @@ class AgentController extends UserController
     //         $userarray[0] = 1;
     //     }
     //     $where['userid'] = array('in', $userarray);
-        
+
     //     $size = 15;
     //     if (!$rows) {
     //         $rows = $size;
     //     }
     //     $rows = I('get.rows', $size, 'intval');
-        
+
     //     $Wttklist = D('Wttklist');
     //     $count = $Wttklist->getCount($where);
     //     $page = new Page($count, $rows);
     //     $list = $Wttklist->getOrderByDateRange('*', $where, $page->firstRow . ',' . $page->listRows, 'id desc');
-        
+
     //     // $wttklist = M('wttklist');
     //     // $count = $wttklist->where($where)->count();
     //     // $page = new Page($count, $rows);
@@ -1321,22 +1322,22 @@ class AgentController extends UserController
         //查询下级
         $where = array();
 
-         //查询下级
+        //查询下级
         $pwhere['parentid'] = $this->fans['uid'];
 
         $userlist = M('Member')->where($pwhere)->field('id')->select();
         foreach ($userlist as $key => $value) {
             $where_zj[] = $value['id'] + 10000;
         }
-        $currency = I("request.currency");
-        if($currency ==='INR'){
-            $where['paytype'] = ['eq', 4];
-        }else{
-            $currency ='PHP';
-            $where['paytype'] = ['between', [1,3]];
-        }
-        $this->assign('currency', $currency);
-        
+//        $currency = I("request.currency");
+//        if($currency ==='INR'){
+//            $where['paytype'] = ['eq', 4];
+//        }else{
+//            $currency ='PHP';
+//            $where['paytype'] = ['between', [1,3]];
+//        }
+//        $this->assign('currency', $currency);
+
         $memberid = I("request.memberid", '', 'string,strip_tags,htmlspecialchars');
         $this->assign("memberid", $memberid);
         if ($memberid) {
@@ -1348,7 +1349,7 @@ class AgentController extends UserController
         } else {
             $where['pay_memberid'] = ['in', $where_zj];
         }
-        
+
         $successtime = urldecode(I("request.successtime", '', 'string,strip_tags,htmlspecialchars'));
         if ($successtime) {
             list($sstime, $setime) = explode('|', $successtime);
@@ -1373,7 +1374,7 @@ class AgentController extends UserController
         $OrderModel = D('Order');
         $stat_total = $OrderModel->getSum('pay_amount',$where);
         $sum['success_count'] = $OrderModel->getCount($where);
-        // echo $OrderModel->getLastSql();
+//         echo $OrderModel->getLastSql();
         $sum['pay_amount'] = round($stat_total['pay_amount'], 2);
 
 
@@ -1391,226 +1392,226 @@ class AgentController extends UserController
         $this->display();
     }
 
-    // public function agorder()
-    // {
-    //     // $status = I("request.status", '');
-    //     // if ($status != '') {
-    //     //     $status = intval($status);
-    //     // }
-        
-    //     $memberid = I("request.memberid", '', 'intval');
-    //     $this->assign("memberid", $memberid);
-        
-    //     $down_user = M('member')->where(array('parentid' => $this->fans['uid']))->field('id')->select();
+    public function agorder2()
+    {
+        // $status = I("request.status", '');
+        // if ($status != '') {
+        //     $status = intval($status);
+        // }
 
-    //     if($down_user){
-    //         foreach ($down_user as $key => $value) {
-    //             $where_zj[] = $value['id'];
-    //         }
-    //         //查询下级--下下级
-    //         $pwhere1['parentid'] = array('in', $where_zj);
-    //         $zj_userlist = M('Member')->where($pwhere1)->field('id')->select();
-    //         $all_userlist = array_merge($down_user, $zj_userlist);
+        $memberid = I("request.memberid", '', 'intval');
+        $this->assign("memberid", $memberid);
 
-    //         $down_array1='';
-    //         if ($memberid) {
-                
-    //             foreach ($all_userlist as $key => $value) {
-    //                 $all_userlist1[] =  $value['id'];
-    //             }
-    //             if (in_array($memberid - 10000, $all_userlist1)) {
-    //                 $down_array[] = $memberid;
-    //                 $down_array1 .= $memberid . ',';
-    //             } else {
-    //                 $down_array[]= 1;
-    //                 $down_array1 .= '1,';
-    //             }
-    //         } else {
-    //             foreach ($all_userlist as $key => $value) {
-    //                 $value['id'] = 10000 + $value['id'];
-    //                 $down_array[] = $value['id'];
-    //                 $down_array1 .= $value['id'] . ',';
-    //             }
-    //         }
-    //     }else{
-    //         $down_array[0]=1;
-    //         $down_array1 = 1;
-    //     }
+        $down_user = M('member')->where(array('parentid' => $this->fans['uid']))->field('id')->select();
 
-    //     // switch ($status) {
-    //     //     case '0':
-    //     //         $title = '未支付订单';
-    //     //         break;
-    //     //     case '1':
-    //     //         $title = '手工补发订单';
-    //     //         break;
-    //     //     case '2':
-    //     //         $title = '成功订单';
-    //     //         break;
-    //     //     default:
-    //     //         $title = '所有订单';
-    //     //         break;
-    //     // }
-    //     UserLogService::write(1, '访问' . $title . '列表页面', '访问' . $title . '订单列表页面');
-    //     // //通道
-    //     // $products = M('ProductUser')
-    //     //     ->join('LEFT JOIN __PRODUCT__ ON __PRODUCT__.id = __PRODUCT_USER__.pid')
-    //     //     ->where(['pay_product_user.status' => 1, 'pay_product_user.userid' => $this->fans['uid']])
-    //     //     ->field('pay_product.name,pay_product.id,pay_product.code')
-    //     //     ->select();
-    //     // $this->assign("banklist", $products);
+        if($down_user){
+            foreach ($down_user as $key => $value) {
+                $where_zj[] = $value['id'];
+            }
+            //查询下级--下下级
+            $pwhere1['parentid'] = array('in', $where_zj);
+            $zj_userlist = M('Member')->where($pwhere1)->field('id')->select();
+            $all_userlist = array_merge($down_user, $zj_userlist);
 
+            $down_array1='';
+            if ($memberid) {
 
-    //     $where = array();
-    //     // $orderid = I("request.orderid", '', 'string,strip_tags,htmlspecialchars');
-    //     // if ($orderid) {
-    //     //     $where['out_trade_id'] = $orderid;
-    //     //     $where1['O.out_trade_id'] = $orderid;
-    //     // }
-    //     // $this->assign("orderid", $orderid);
-    //     // $ddlx = I("request.ddlx", '', 'string,strip_tags,htmlspecialchars');
-    //     // if ($ddlx != "") {
-    //     //     $where['ddlx'] = array('eq', $ddlx);
-    //     //     $where1['O.ddlx'] = array('eq', $ddlx);
-    //     // }
-    //     // $this->assign("ddlx", $ddlx);
+                foreach ($all_userlist as $key => $value) {
+                    $all_userlist1[] =  $value['id'];
+                }
+                if (in_array($memberid - 10000, $all_userlist1)) {
+                    $down_array[] = $memberid;
+                    $down_array1 .= $memberid . ',';
+                } else {
+                    $down_array[]= 1;
+                    $down_array1 .= '1,';
+                }
+            } else {
+                foreach ($all_userlist as $key => $value) {
+                    $value['id'] = 10000 + $value['id'];
+                    $down_array[] = $value['id'];
+                    $down_array1 .= $value['id'] . ',';
+                }
+            }
+        }else{
+            $down_array[0]=1;
+            $down_array1 = 1;
+        }
+
+        // switch ($status) {
+        //     case '0':
+        //         $title = '未支付订单';
+        //         break;
+        //     case '1':
+        //         $title = '手工补发订单';
+        //         break;
+        //     case '2':
+        //         $title = '成功订单';
+        //         break;
+        //     default:
+        //         $title = '所有订单';
+        //         break;
+        // }
+        UserLogService::write(1, '访问' . $title . '列表页面', '访问' . $title . '订单列表页面');
+        // //通道
+        // $products = M('ProductUser')
+        //     ->join('LEFT JOIN __PRODUCT__ ON __PRODUCT__.id = __PRODUCT_USER__.pid')
+        //     ->where(['pay_product_user.status' => 1, 'pay_product_user.userid' => $this->fans['uid']])
+        //     ->field('pay_product.name,pay_product.id,pay_product.code')
+        //     ->select();
+        // $this->assign("banklist", $products);
 
 
-    //     // $tongdaolist = M("Channel")->field('id,code,title')->select();
-    //     // $this->assign("tongdaolist", $tongdaolist);
-    //     // $tongdao = I("request.tongdao", '', 'trim,string,strip_tags,htmlspecialchars');
-    //     // if ($tongdao) {
-    //     //     $where['channel_id'] = array('eq', $tongdao);
-    //     //     $where1['O.channel_id'] = array('eq', $tongdao);
-
-    //     //     $accountlist = M('channel_account')->where(['channel_id' => $tongdao])->select();
-    //     //     $this->assign('accountlist', $accountlist);
-    //     // }
-    //     // $this->assign('tongdao', $tongdao);
-    //     // $account = I("request.account", '', 'trim,string,strip_tags,htmlspecialchars');
-    //     // if ($account) {
-    //     //     $where['account_id'] = array('eq', $account);
-    //     //     $where1['O.account_id'] = array('eq', $account);
+        $where = array();
+        // $orderid = I("request.orderid", '', 'string,strip_tags,htmlspecialchars');
+        // if ($orderid) {
+        //     $where['out_trade_id'] = $orderid;
+        //     $where1['O.out_trade_id'] = $orderid;
+        // }
+        // $this->assign("orderid", $orderid);
+        // $ddlx = I("request.ddlx", '', 'string,strip_tags,htmlspecialchars');
+        // if ($ddlx != "") {
+        //     $where['ddlx'] = array('eq', $ddlx);
+        //     $where1['O.ddlx'] = array('eq', $ddlx);
+        // }
+        // $this->assign("ddlx", $ddlx);
 
 
-    //     // }
-    //     // $this->assign('account', $account);
-    //     // $bank = I("request.bank", '', 'trim,string,strip_tags,htmlspecialchars');
-    //     // if ($bank) {
-    //     //     $where['pay_bankcode'] = array('eq', $bank);
-    //     //     $where1['O.pay_bankcode'] = array('eq', $bank);
-    //     // }
-    //     // $this->assign('bank', $bank);
+        // $tongdaolist = M("Channel")->field('id,code,title')->select();
+        // $this->assign("tongdaolist", $tongdaolist);
+        // $tongdao = I("request.tongdao", '', 'trim,string,strip_tags,htmlspecialchars');
+        // if ($tongdao) {
+        //     $where['channel_id'] = array('eq', $tongdao);
+        //     $where1['O.channel_id'] = array('eq', $tongdao);
+
+        //     $accountlist = M('channel_account')->where(['channel_id' => $tongdao])->select();
+        //     $this->assign('accountlist', $accountlist);
+        // }
+        // $this->assign('tongdao', $tongdao);
+        // $account = I("request.account", '', 'trim,string,strip_tags,htmlspecialchars');
+        // if ($account) {
+        //     $where['account_id'] = array('eq', $account);
+        //     $where1['O.account_id'] = array('eq', $account);
 
 
-    //     // $tongdao = I("request.tongdao", '', 'string,strip_tags,htmlspecialchars');
-    //     // if ($tongdao) {
-    //     //     $where['pay_bankcode'] = array('eq', $tongdao);
-    //     // }
-    //     // $this->assign("tongdao", $tongdao);
-    //     // $body = I("request.body", '', 'string,strip_tags,htmlspecialchars');
-    //     // if ($body) {
-    //     //     $where['pay_productname'] = array('like', '%' . $body . '%');
-    //     //     $where1['O.pay_productname'] = array('like', '%' . $body . '%');
-    //     // }
-    //     // $this->assign("body", $body);
-    //     // if ($status != '') {
-    //     //     $where['pay_status'] = array('eq', $status);
-    //     //     $where1['O.pay_status'] = array('eq', $status);
-    //     // }
-    //     // $this->assign("status", $status);
-    //     $successtime = urldecode(I("request.successtime", '', 'string,strip_tags,htmlspecialchars'));
-    //     if ($successtime) {
-    //         list($sstime, $setime) = explode('|', $successtime);
-    //         $where['pay_successdate'] = $sumMap['pay_successdate'] = $failMap['pay_successdate'] = $map['create_at'] = ['between', [strtotime($sstime), strtotime($setime) ? strtotime($setime) : time()]];
-    //         $where1['O.pay_successdate'] = $sumMap['pay_successdate'] = $failMap['pay_successdate'] = $map['create_at'] = ['between', [strtotime($sstime), strtotime($setime) ? strtotime($setime) : time()]];
-    //     }
-    //     $this->assign("successtime", $successtime);
-    //     $createtime = urldecode(I("request.createtime", '', 'string,strip_tags,htmlspecialchars'));
-    //     if ($createtime) {
-    //         list($cstime, $cetime) = explode('|', $createtime);
-    //         $where['pay_applydate'] = $sumMap['pay_applydate'] = $failMap['pay_applydate'] = $map['create_at'] = ['between', [strtotime($cstime), strtotime($cetime) ? strtotime($cetime) : time()]];
-    //         $where1['O.pay_applydate'] = $sumMap['pay_applydate'] = $failMap['pay_applydate'] = $map['create_at'] = ['between', [strtotime($cstime), strtotime($cetime) ? strtotime($cetime) : time()]];
-    //     }
-    //     if (!$createtime && !$successtime && !$payOrderid && !$orderid) {
-    //         $todayBegin = date('Y-m-d') . ' 00:00:00';
-    //         $todyEnd = date('Y-m-d') . ' 23:59:59';
-    //         $where['pay_applydate'] = $sumMap['pay_applydate'] = $failMap['pay_applydate'] = $map['create_at'] = ['between', [strtotime($todayBegin), strtotime($todyEnd)]];
-    //         $where1['O.pay_applydate'] = $sumMap['pay_applydate'] = $failMap['pay_applydate'] = $map['create_at'] = ['between', [strtotime($todayBegin), strtotime($todyEnd)]];
-    //         $createtime = $todayBegin . ' | ' . $todyEnd;
-    //     }
-    //     $this->assign("createtime", $createtime);
-        
-    //     $where['isdel'] = 0;
-    //     // $where1['O.isdel'] = 0;
-    //     $where['pay_memberid'] = array('in', $down_array);
-    //     $where1['O.pay_memberid'] = array('in', $down_array1 . '0');
-                
-    //     // $size = 15;
-    //     // $rows = I('get.rows', $size, 'intval');
-    //     // if (!$rows) {
-    //     //     $rows = $size;
-    //     // }
-    //     $OrderModel = D('Order');
-    //     // $count = $OrderModel->getCount($where);
-    //     // $page = new Page($count, $rows);
-    //     // $list = $OrderModel->getOrderByDateRange($field, $where, $page->firstRow . ',' . $page->listRows, 'id desc');
-            
-    //     // //统计今日交易数据
-    //     // if ($status == '2') {
-    //     //     //今日成功交易总额
-    //     //     $todayBegin = date('Y-m-d') . ' 00:00:00';
-    //     //     $todyEnd = date('Y-m-d') . ' 23:59:59';
-    //     //     $t_where = [
-    //     //         'pay_memberid' => 10000 + $this->fans['uid'], 
-    //     //         'pay_successdate' => ['between', [strtotime($todayBegin), strtotime($todyEnd)]], 
-    //     //         'pay_status' => ['between', ["1", "2"]],
-    //     //         ];
-    //     //     $taodaypay_amount = $OrderModel->getSum('pay_amount,pay_actualamount', $t_where);
-    //     //     $stat['todaysum'] = $taodaypay_amount['pay_amount'];
-    //     //     //今日实际到账笔数
-    //     //     $stat['taodayactualamount'] = $taodaypay_amount['pay_actualamount'];
-    //     //     //今日成功笔数
-    //     //     $stat['todaysuccesscount'] = $OrderModel->getCount($t_where);
-    //     //     //今日失败笔数
-    //     //     $t_where['pay_status'] = ['eq',0];
-    //     //     $stat['todayfailcount'] = $OrderModel->getCount($t_where);
-    //     //     foreach ($stat as $k => $v) {
-    //     //         $stat[$k] = $v + 0;
-    //     //     }
-    //     //     $this->assign('stat', $stat);
-    //     // }
+        // }
+        // $this->assign('account', $account);
+        // $bank = I("request.bank", '', 'trim,string,strip_tags,htmlspecialchars');
+        // if ($bank) {
+        //     $where['pay_bankcode'] = array('eq', $bank);
+        //     $where1['O.pay_bankcode'] = array('eq', $bank);
+        // }
+        // $this->assign('bank', $bank);
 
-    //     //如果指定时间范围则按搜索条件做统计
-    //     // if ($createtime || $successtime) {
-    //     $sumMap = $failMap = $where;
-    //     $all_count = $OrderModel->getCount($sumMap);
-    //     $field = 'sum(`pay_amount`) pay_amount, sum(`pay_actualamount`) pay_actualamount, sum(`cost`) cost, count(`id`) success_count';
-    //     if (empty($where['pay_status'])) {
-    //         $sumMap['pay_status'] = ['in', '1, 2'];
-    //         $where1['O.pay_status'] = ['in', '1, 2'];
-    //     }
-    //     $sum_arr = $OrderModel->getOrderByDateRange($field, $sumMap);
-    //     $sum = $sum_arr[0];
-    //     foreach ($sum as $k => $v) {
-    //         $sum[$k] += 0;
-    //     }
-    //     $where1['C.lx'] = 9;
-    //     $sum['memberprofit'] = M('moneychange')->alias('as C')->join('LEFT JOIN __ORDER__ AS O ON C.transid=O.pay_orderid')
-    //         ->where($where1)->sum('money');
 
-    //     // $sum['pay_feilv'] = sprintf("%.3f", $sum['pay_amount'] - $sum['pay_actualamount']);
-    //     $sum['memberprofit'] = sprintf("%.3f", $sum['memberprofit']);
-    //     // $sum['pay_poundage'] = sprintf("%.3f", $sum['pay_feilv'] - $sum['memberprofit'] - $sum['costcost']);
-    //     $sum['success_lv'] = sprintf("%.3f", $sum['success_count'] / $all_count)*100;
+        // $tongdao = I("request.tongdao", '', 'string,strip_tags,htmlspecialchars');
+        // if ($tongdao) {
+        //     $where['pay_bankcode'] = array('eq', $tongdao);
+        // }
+        // $this->assign("tongdao", $tongdao);
+        // $body = I("request.body", '', 'string,strip_tags,htmlspecialchars');
+        // if ($body) {
+        //     $where['pay_productname'] = array('like', '%' . $body . '%');
+        //     $where1['O.pay_productname'] = array('like', '%' . $body . '%');
+        // }
+        // $this->assign("body", $body);
+        // if ($status != '') {
+        //     $where['pay_status'] = array('eq', $status);
+        //     $where1['O.pay_status'] = array('eq', $status);
+        // }
+        // $this->assign("status", $status);
+        $successtime = urldecode(I("request.successtime", '', 'string,strip_tags,htmlspecialchars'));
+        if ($successtime) {
+            list($sstime, $setime) = explode('|', $successtime);
+            $where['pay_successdate'] = $sumMap['pay_successdate'] = $failMap['pay_successdate'] = $map['create_at'] = ['between', [strtotime($sstime), strtotime($setime) ? strtotime($setime) : time()]];
+            $where1['O.pay_successdate'] = $sumMap['pay_successdate'] = $failMap['pay_successdate'] = $map['create_at'] = ['between', [strtotime($sstime), strtotime($setime) ? strtotime($setime) : time()]];
+        }
+        $this->assign("successtime", $successtime);
+        $createtime = urldecode(I("request.createtime", '', 'string,strip_tags,htmlspecialchars'));
+        if ($createtime) {
+            list($cstime, $cetime) = explode('|', $createtime);
+            $where['pay_applydate'] = $sumMap['pay_applydate'] = $failMap['pay_applydate'] = $map['create_at'] = ['between', [strtotime($cstime), strtotime($cetime) ? strtotime($cetime) : time()]];
+            $where1['O.pay_applydate'] = $sumMap['pay_applydate'] = $failMap['pay_applydate'] = $map['create_at'] = ['between', [strtotime($cstime), strtotime($cetime) ? strtotime($cetime) : time()]];
+        }
+        if (!$createtime && !$successtime && !$payOrderid && !$orderid) {
+            $todayBegin = date('Y-m-d') . ' 00:00:00';
+            $todyEnd = date('Y-m-d') . ' 23:59:59';
+            $where['pay_applydate'] = $sumMap['pay_applydate'] = $failMap['pay_applydate'] = $map['create_at'] = ['between', [strtotime($todayBegin), strtotime($todyEnd)]];
+            $where1['O.pay_applydate'] = $sumMap['pay_applydate'] = $failMap['pay_applydate'] = $map['create_at'] = ['between', [strtotime($todayBegin), strtotime($todyEnd)]];
+            $createtime = $todayBegin . ' | ' . $todyEnd;
+        }
+        $this->assign("createtime", $createtime);
 
-    //     $this->assign('sum', $sum);
-    //     // $this->assign('rows', $rows);
-    //     // $this->assign("list", $list);
-    //     // $this->assign('page', $page->show());
-    //     C('TOKEN_ON', false);
-    //     $this->display();
-    // }
+        $where['isdel'] = 0;
+        // $where1['O.isdel'] = 0;
+        $where['pay_memberid'] = array('in', $down_array);
+        $where1['O.pay_memberid'] = array('in', $down_array1 . '0');
+
+        // $size = 15;
+        // $rows = I('get.rows', $size, 'intval');
+        // if (!$rows) {
+        //     $rows = $size;
+        // }
+        $OrderModel = D('Order');
+        // $count = $OrderModel->getCount($where);
+        // $page = new Page($count, $rows);
+        // $list = $OrderModel->getOrderByDateRange($field, $where, $page->firstRow . ',' . $page->listRows, 'id desc');
+
+        // //统计今日交易数据
+        // if ($status == '2') {
+        //     //今日成功交易总额
+        //     $todayBegin = date('Y-m-d') . ' 00:00:00';
+        //     $todyEnd = date('Y-m-d') . ' 23:59:59';
+        //     $t_where = [
+        //         'pay_memberid' => 10000 + $this->fans['uid'],
+        //         'pay_successdate' => ['between', [strtotime($todayBegin), strtotime($todyEnd)]],
+        //         'pay_status' => ['between', ["1", "2"]],
+        //         ];
+        //     $taodaypay_amount = $OrderModel->getSum('pay_amount,pay_actualamount', $t_where);
+        //     $stat['todaysum'] = $taodaypay_amount['pay_amount'];
+        //     //今日实际到账笔数
+        //     $stat['taodayactualamount'] = $taodaypay_amount['pay_actualamount'];
+        //     //今日成功笔数
+        //     $stat['todaysuccesscount'] = $OrderModel->getCount($t_where);
+        //     //今日失败笔数
+        //     $t_where['pay_status'] = ['eq',0];
+        //     $stat['todayfailcount'] = $OrderModel->getCount($t_where);
+        //     foreach ($stat as $k => $v) {
+        //         $stat[$k] = $v + 0;
+        //     }
+        //     $this->assign('stat', $stat);
+        // }
+
+        //如果指定时间范围则按搜索条件做统计
+        // if ($createtime || $successtime) {
+        $sumMap = $failMap = $where;
+        $all_count = $OrderModel->getCount($sumMap);
+        $field = 'sum(`pay_amount`) pay_amount, sum(`pay_actualamount`) pay_actualamount, sum(`cost`) cost, count(`id`) success_count';
+        if (empty($where['pay_status'])) {
+            $sumMap['pay_status'] = ['in', '1, 2'];
+            $where1['O.pay_status'] = ['in', '1, 2'];
+        }
+        $sum_arr = $OrderModel->getOrderByDateRange($field, $sumMap);
+        $sum = $sum_arr[0];
+        foreach ($sum as $k => $v) {
+            $sum[$k] += 0;
+        }
+        $where1['C.lx'] = 9;
+        $sum['memberprofit'] = M('moneychange')->alias('as C')->join('LEFT JOIN __ORDER__ AS O ON C.transid=O.pay_orderid')
+            ->where($where1)->sum('money');
+
+        // $sum['pay_feilv'] = sprintf("%.3f", $sum['pay_amount'] - $sum['pay_actualamount']);
+        $sum['memberprofit'] = sprintf("%.3f", $sum['memberprofit']);
+        // $sum['pay_poundage'] = sprintf("%.3f", $sum['pay_feilv'] - $sum['memberprofit'] - $sum['costcost']);
+        $sum['success_lv'] = sprintf("%.3f", $sum['success_count'] / $all_count)*100;
+
+        $this->assign('sum', $sum);
+        // $this->assign('rows', $rows);
+        // $this->assign("list", $list);
+        // $this->assign('page', $page->show());
+        C('TOKEN_ON', false);
+        $this->display();
+    }
 
     //设置订单为已支付
     public function setOrderPaid()
@@ -1742,11 +1743,11 @@ class AgentController extends UserController
             $m_Order    = D("Order");
             $date = date('Ymd',strtotime(substr($orderid, 0, 8)));  //获取订单日期
             $order = $m_Order->table($m_Order->getRealTableName($date))
-            ->alias('as pay_order')
-            ->join('LEFT JOIN pay_member ON (pay_member.id + 10000) = pay_order.pay_memberid')
-            ->field('pay_member.id as userid,pay_member.username,pay_member.realname,pay_order.*')
-            ->where(['pay_order.pay_orderid' => $orderid])
-            ->find();
+                ->alias('as pay_order')
+                ->join('LEFT JOIN pay_member ON (pay_member.id + 10000) = pay_order.pay_memberid')
+                ->field('pay_member.id as userid,pay_member.username,pay_member.realname,pay_order.*')
+                ->where(['pay_order.pay_orderid' => $orderid])
+                ->find();
             $this->assign('order', $order);
         }
         $this->display();

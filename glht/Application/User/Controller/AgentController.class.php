@@ -850,6 +850,7 @@ class AgentController extends UserController
         foreach ($userlist as $key => $value) {
             $where_zj[] = $value['id'];
         }
+
 //        $currency = I("request.currency");
 //        if($currency ==='INR'){
 //            $where['paytype'] = ['eq', 4];

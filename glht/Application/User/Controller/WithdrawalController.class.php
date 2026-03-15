@@ -625,7 +625,15 @@ class WithdrawalController extends UserController
                         }
                     }
                     //计算手续费
-                    $sxfmoney = $tkConfig['tktype'] ? $tkConfig['sxffixed'] : bcdiv(bcmul($v['tkmoney'], $tkConfig['sxfrate'], 4), 100, 4);
+                    //计算手续费
+                    if ($tkConfig['tktype'] == 1) { //按单笔计算
+                        $sxfmoney = $tkConfig['sxffixed'];
+                    } elseif ($tkConfig['tktype'] == 2) {   //按单笔加比例计算
+                        $sxfmoney = $tkConfig['sxffixed'] + bcdiv(bcmul($v['tkmoney'], $tkConfig['sxfrate'], 4), 100, 4);
+                    } else {    //按比例计算
+                        $sxfmoney = bcdiv(bcmul($v['tkmoney'], $tkConfig['sxfrate'], 4), 100, 4);
+                    }
+
                     if($tkConfig['tk_charge_type']) {
                         //实际提现的金额
                         $money = $v['tkmoney'];
@@ -1092,7 +1100,14 @@ class WithdrawalController extends UserController
                         }
                     }
                     //计算手续费
-                    $sxfmoney = $tkConfig['tktype'] ? $tkConfig['sxffixed'] : bcdiv(bcmul($v['tkmoney'], $tkConfig['sxfrate'], 4), 100, 4);
+                    //计算手续费
+                    if ($tkConfig['tktype'] == 1) { //按单笔计算
+                        $sxfmoney = $tkConfig['sxffixed'];
+                    } elseif ($tkConfig['tktype'] == 2) {   //按单笔加比例计算
+                        $sxfmoney = $tkConfig['sxffixed'] + bcdiv(bcmul($v['tkmoney'], $tkConfig['sxfrate'], 4), 100, 4);
+                    } else {    //按比例计算
+                        $sxfmoney = bcdiv(bcmul($v['tkmoney'], $tkConfig['sxfrate'], 4), 100, 4);
+                    }
                     if($tkConfig['tk_charge_type']) {
                         //实际提现的金额
                         $money = $v['tkmoney'];
@@ -1472,7 +1487,14 @@ class WithdrawalController extends UserController
 //                        }
 //                    }
 //                    //计算手续费
-//                    // $sxfmoney = $tkConfig['tktype'] ? $tkConfig['sxffixed'] : bcdiv(bcmul($v['tkmoney'], $tkConfig['sxfrate'], 4), 100, 4);
+//                    // //计算手续费
+//                    if ($tkConfig['tktype'] == 1) { //按单笔计算
+//                        $sxfmoney = $tkConfig['sxffixed'];
+//                    } elseif ($tkConfig['tktype'] == 2) {   //按单笔加比例计算
+//                        $sxfmoney = $tkConfig['sxffixed'] + bcdiv(bcmul($v['tkmoney'], $tkConfig['sxfrate'], 4), 100, 4);
+//                    } else {    //按比例计算
+//                        $sxfmoney = bcdiv(bcmul($v['tkmoney'], $tkConfig['sxfrate'], 4), 100, 4);
+//                    }
 //                    if ($tkConfig['tktype'] == 1) { //按比例计算
 //                        $sxfmoney = $tkConfig['sxffixed'];
 //                    } elseif ($tkConfig['tktype'] == 2) {   //按单笔加比例计算
@@ -2165,7 +2187,14 @@ class WithdrawalController extends UserController
                         $errorTxt = "超出当日提款额度！";
                     }
                     //计算手续费
-                    $sxfmoney = $tkConfig['tktype'] ? $tkConfig['sxffixed'] : bcdiv(bcmul($withdraw['money'], $tkConfig['sxfrate'], 4), 100, 4);
+                    //计算手续费
+                    if ($tkConfig['tktype'] == 1) { //按单笔计算
+                        $sxfmoney = $tkConfig['sxffixed'];
+                    } elseif ($tkConfig['tktype'] == 2) {   //按单笔加比例计算
+                        $sxfmoney = $tkConfig['sxffixed'] + bcdiv(bcmul($v['tkmoney'], $tkConfig['sxfrate'], 4), 100, 4);
+                    } else {    //按比例计算
+                        $sxfmoney = bcdiv(bcmul($v['tkmoney'], $tkConfig['sxfrate'], 4), 100, 4);
+                    }
                     if($tkConfig['tk_charge_type']) {
                         //实际提现的金额
                         $money = $withdraw['money'];

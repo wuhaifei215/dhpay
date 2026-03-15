@@ -440,9 +440,9 @@ class ExportController extends Controller
     //导出委托提款记录
     public function exportweituo($where,$uid='', $type='')
     {
-        if(!$where['type'] || $where['type']!=2){
-            $where['type'] = ['neq',2];
-        }
+//        if(!$where['type'] || $where['type']!=2){
+//            $where['type'] = ['neq',2];
+//        }
         if($where['memberid']){
             $where['userid'] = $where['memberid']-10000;
             unset($where['memberid']);

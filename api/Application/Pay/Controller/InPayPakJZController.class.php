@@ -54,6 +54,15 @@ class InPayPakJZController extends PayController
                 'amount' => $return['amount'],
                 'datetime' => date('Y-m-d')
             ];
+            try{
+                $redis = $this->redis_connect();
+                $userpost = $redis->get('userpost_' . $return['orderid']);
+                $userpost = json_decode($userpost,true);
+
+                logApiAddReceipt('商户提交', __METHOD__, $return['orderid'], $orderid, '/', $userpost, $return_arr, '0', '0', '1', '2');
+            }catch (\Exception $e) {
+                // var_dump($e);
+            }
             echo json_encode($return_arr);
         } else {
             echo '<script type="text/javascript">window.location.href="' . $url . '"</script>';
@@ -98,12 +107,12 @@ class InPayPakJZController extends PayController
         $ans = json_decode($returnContent, true);
         
         try{
-            $redis = $this->redis_connect();
-            $userpost = $redis->get('userpost_' . $return['out_trade_id']);
-            $userpost = json_decode($userpost,true);
-            
-            logApiAddReceipt('商户提交', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, [], '0', '0', '1', '2');
-    
+//            $redis = $this->redis_connect();
+//            $userpost = $redis->get('userpost_' . $return['out_trade_id']);
+//            $userpost = json_decode($userpost,true);
+//
+//            logApiAddReceipt('商户提交', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, [], '0', '0', '1', '2');
+//
             // 结束并输出执行时间
             $endTime = microtime(TRUE);
             $doTime = floor(($endTime-$beginTime)*1000);

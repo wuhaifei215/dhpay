@@ -231,82 +231,82 @@ class LoginController extends BaseController
         $this->success('正在退出...', $url);
     }
 
-    /**
-     * 注册
-     */
-    public function register()
-    {
-        $this->display();
-    }
+//    /**
+//     * 注册
+//     */
+//    public function register()
+//    {
+//        $this->display();
+//    }
 
-    /**
-     * 注册表单
-     */
-    public function checkRegister()
-    {
-        if (IS_POST) {
-            $username        = I('post.username', '', 'trim,string,strip_tags,htmlspecialchars');
-            $password        = I('post.password', '', 'trim,string');
-            $confirmpassword = I('post.confirmpassword', '', 'trim,string');
-            $email           = I('post.email', '', 'trim,string,strip_tags,htmlspecialchars');
-            $invitecode      = I('post.invitecode', '', 'trim,string,strip_tags,htmlspecialchars');
-
-            if ($password != $confirmpassword) {
-                $this->ajaxReturn(['errono' => 10002, 'msg' => '密码输入不一致!']);
-            }
-
-            //邀请码验证
-            if ($this->siteconfig['invitecode']) {
-                $verifycode = M('Invitecode')
-                    ->where(['invitecode' => $invitecode, 'status' => 1, 'yxdatetime' => array('egt', time())])
-                    ->find();
-                if (!$verifycode) {
-                    $this->ajaxReturn(array('errorno' => 10001, 'msg' => '邀请码无效!'));
-                }
-            }
-            $isuserid = M("Member")->where(['username' => $username])->getField("id");
-            if ($isuserid) {
-                $this->ajaxReturn(array('errorno' => 10005, 'msg' => '用户名重复!'));
-            }
-
-            $user = [
-                'username'   => $username,
-                'password'   => $password,
-                'email'      => $email,
-                'verifycode' => $verifycode,
-            ];
-            $userdata = generateUser($user, $this->siteconfig);
-
-            $newuid = M('Member')->add($userdata);
-            //添加用户组权限
-            /**
-             * 不需要使用用户权限
-             * author: feng
-             * create: 2017/10/21 10:47
-             */
-            //M('AuthGroupAccess')->add(['uid'=>$newuid,'group_id'=>$_verfycode['regtype'] ? $_verfycode['regtype'] :4]);
-
-            //失效邀请码
-            $_failinvitecode = array('syusernameid' => $newuid, 'sydatetime' => time(), 'status' => 2);
-            M('Invitecode')->where(['invitecode' => $invitecode])->save($_failinvitecode);
-            if($this->siteconfig['register_need_activate']) {
-                //发送注册激活邮件
-                $returnEmail = sendRegemail($username, $email, $userdata['activate'], $this->siteconfig);
-                if ($returnEmail) {
-                    $tel    = $this->siteconfig["tel"];
-                    $qqlist = $this->siteconfig['qq'];
-                    $mail   = explode('@', $email)[1];
-                    $this->ajaxReturn(array('errorno' => 0, 'need_activate'=>1,'msg' => array('tel' => $tel, 'qq' => $qqlist, 'email' => $email, 'mail' => 'http://mail.' . $mail)));
-                } else {
-                    $this->ajaxReturn(['errorno' => 10003, 'msg' => $returnEmail]);
-                }
-            } else {
-                $this->ajaxReturn(['errorno' => 0, 'need_activate'=>0,'msg' => '注册成功！']);
-            }
-        } else {
-            $this->ajaxReturn(array('errorno' => 10004, 'msg' => '注册失败'));
-        }
-    }
+//    /**
+//     * 注册表单
+//     */
+//    public function checkRegister()
+//    {
+//        if (IS_POST) {
+//            $username        = I('post.username', '', 'trim,string,strip_tags,htmlspecialchars');
+//            $password        = I('post.password', '', 'trim,string');
+//            $confirmpassword = I('post.confirmpassword', '', 'trim,string');
+//            $email           = I('post.email', '', 'trim,string,strip_tags,htmlspecialchars');
+//            $invitecode      = I('post.invitecode', '', 'trim,string,strip_tags,htmlspecialchars');
+//
+//            if ($password != $confirmpassword) {
+//                $this->ajaxReturn(['errono' => 10002, 'msg' => '密码输入不一致!']);
+//            }
+//
+//            //邀请码验证
+//            if ($this->siteconfig['invitecode']) {
+//                $verifycode = M('Invitecode')
+//                    ->where(['invitecode' => $invitecode, 'status' => 1, 'yxdatetime' => array('egt', time())])
+//                    ->find();
+//                if (!$verifycode) {
+//                    $this->ajaxReturn(array('errorno' => 10001, 'msg' => '邀请码无效!'));
+//                }
+//            }
+//            $isuserid = M("Member")->where(['username' => $username])->getField("id");
+//            if ($isuserid) {
+//                $this->ajaxReturn(array('errorno' => 10005, 'msg' => '用户名重复!'));
+//            }
+//
+//            $user = [
+//                'username'   => $username,
+//                'password'   => $password,
+//                'email'      => $email,
+//                'verifycode' => $verifycode,
+//            ];
+//            $userdata = generateUser($user, $this->siteconfig);
+//
+//            $newuid = M('Member')->add($userdata);
+//            //添加用户组权限
+//            /**
+//             * 不需要使用用户权限
+//             * author: feng
+//             * create: 2017/10/21 10:47
+//             */
+//            //M('AuthGroupAccess')->add(['uid'=>$newuid,'group_id'=>$_verfycode['regtype'] ? $_verfycode['regtype'] :4]);
+//
+//            //失效邀请码
+//            $_failinvitecode = array('syusernameid' => $newuid, 'sydatetime' => time(), 'status' => 2);
+//            M('Invitecode')->where(['invitecode' => $invitecode])->save($_failinvitecode);
+//            if($this->siteconfig['register_need_activate']) {
+//                //发送注册激活邮件
+//                $returnEmail = sendRegemail($username, $email, $userdata['activate'], $this->siteconfig);
+//                if ($returnEmail) {
+//                    $tel    = $this->siteconfig["tel"];
+//                    $qqlist = $this->siteconfig['qq'];
+//                    $mail   = explode('@', $email)[1];
+//                    $this->ajaxReturn(array('errorno' => 0, 'need_activate'=>1,'msg' => array('tel' => $tel, 'qq' => $qqlist, 'email' => $email, 'mail' => 'http://mail.' . $mail)));
+//                } else {
+//                    $this->ajaxReturn(['errorno' => 10003, 'msg' => $returnEmail]);
+//                }
+//            } else {
+//                $this->ajaxReturn(['errorno' => 0, 'need_activate'=>0,'msg' => '注册成功！']);
+//            }
+//        } else {
+//            $this->ajaxReturn(array('errorno' => 10004, 'msg' => '注册失败'));
+//        }
+//    }
 
     /**
      * 用户名验证

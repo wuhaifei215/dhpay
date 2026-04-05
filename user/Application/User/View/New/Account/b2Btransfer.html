@@ -15,50 +15,50 @@
                         </h5>
                     </div>
                     <div class="table-responsive m-t-10">
-                        <div class="layui-tab">
-                        </div>
-                        <blockquote class="layui-elem-quote">
-                            余额：<span class="text-danger"><{$info['balance']}></span> PHP
-                        </blockquote>
+    				<div class="layui-tab">
+    				</div>
+                    <blockquote class="layui-elem-quote">
+                        余额：<span class="text-danger"><{$info['balance']}></span> PHP
+                    </blockquote>
                     </div>
                     <form class="layui-form layui-table-body" id="df_form" style="min-height: 550px;">
-
-                        <table class="layui-table">
+                    
+                    <table class="layui-table">
                             <thead id="container">
-                            <tr>
-                                <td style="width:150px;fload:right;">货币类型</td>
-                                <td>
-                                    <select name="currency" class="layui-select df_item" lay-search lay-verify="required">
+                                <tr>
+                                    <td style="width:150px;fload:right;">货币类型</td>
+                                    <td>
+                                        <select name="currency" class="layui-select df_item" lay-search lay-verify="required">
                                         <option value="">请直接选择</option>
                                         <option value="PHP">PHP</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="width:150px;fload:right;">转出金额</td>
-                                <td>
-                                    <input type="text" name="money" id="money" lay-verify="required"  autocomplete="off" class="layui-input df_item" style="width:200px">
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>目标商户</td>
-                                <td>
-                                    <input type="text" name="toUsername" id="toUsername" lay-verify="required"  autocomplete="off" class="layui-input df_item" style="width:200px">
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>谷歌安全码</td>
-                                <td>
-                                    <input type="text" name="google_code" lay-verify="required" autocomplete="off" placeholder="请输入谷歌安全码" class="layui-input" value="" style="width:200px">
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>目标谷歌安全码</td>
-                                <td>
-                                    <input type="text" name="google_code2" lay-verify="required" autocomplete="off" placeholder="请输入谷歌安全码" class="layui-input" value="" style="width:200px">
-                                </td>
-                            </tr>
-
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width:150px;fload:right;">转出金额</td>
+                                    <td>
+                                        <input type="text" name="money" id="money" lay-verify="required"  autocomplete="off" class="layui-input df_item" style="width:200px">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>目标商户</td>
+                                    <td>
+                                        <input type="text" name="toUsername" id="toUsername" lay-verify="required"  autocomplete="off" class="layui-input df_item" style="width:200px">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>谷歌安全码</td>
+                                    <td>
+                                        <input type="text" name="google_code" lay-verify="required" autocomplete="off" placeholder="请输入谷歌安全码" class="layui-input" value="" style="width:200px">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>目标谷歌安全码</td>
+                                    <td>
+                                        <input type="text" name="google_code2" lay-verify="required" autocomplete="off" placeholder="请输入谷歌安全码" class="layui-input" value="" style="width:200px">
+                                    </td>
+                                </tr>
+    
                             </thead>
                         </table>
                         <div class="layui-form-item">

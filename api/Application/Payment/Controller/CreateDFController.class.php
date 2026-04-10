@@ -131,7 +131,7 @@ class CreateDFController extends Controller
         if ($this->userid == 0) {
             $this->showmessage('不存在的商户编号!');
         }else{
-            $this->userid = $this->userid - 10000;
+            $this->userid = $this->userid-10000;
         }
         
         $this->bankcode = I("request.bankcode", 0, 'intval');
@@ -500,7 +500,7 @@ class CreateDFController extends Controller
                 }
                 $chargeData = [
                     "userid" => $this->userid,
-                    'ymoney' => $ymoney - $money,
+                    'ymoney' => $ymoney-$money,
                     "money" => $sxfmoney,
                     'gmoney' => $balance,
                     "datetime" => $time,
@@ -652,7 +652,7 @@ class CreateDFController extends Controller
             $result = [
                 '提醒' => '请比对拼接顺序及签名',
                 'POST数据' => $_POST,
-                '拼接顺序' => substr($md5str, 0, strlen($md5str) - 1),
+                '拼接顺序' => substr($md5str, 0, strlen($md5str)-1),
                 // '签名' => $result_sign,
             ];
             $this->showmessage('签名验证失败', $result);
@@ -667,7 +667,7 @@ class CreateDFController extends Controller
     public function getOrderId()
     {
         $year_code = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z');
-        $i = intval(date('Y')) - 2010;
+        $i = intval(date('Y'))-2010;
 
         return $year_code[$i] . date('YmdHis') . substr(time(), -5) . str_pad(mt_rand(1, 99), 2, '0', STR_PAD_LEFT) . rand(1000,9999);
     }
@@ -736,13 +736,13 @@ class CreateDFController extends Controller
 			case 1:
 				//提交代付成功
 			   $data['status'] = 1;
-			   $data['memo']  = '申请成功！ - '. $return['memo']. date('Y-m-d H:i:s').' - '.$memo;
+			   $data['memo']  = '申请成功！-'. $return['memo']. date('Y-m-d H:i:s').'-'.$memo;
 			   break;
 			case 2:
 				 //支付成功
 			   $data['status'] = 2;
 			   $data['cldatetime'] = date('Y-m-d H:i:s', time());
-			   $data['memo']  = '代付成功！ - '. $return['memo']. date('Y-m-d H:i:s').' - '.$memo;
+			   $data['memo']  = '代付成功！-'. $return['memo']. date('Y-m-d H:i:s').'-'.$memo;
 			   break;
 			case 3:
                     // log_place_order( 'DFadd_error', $withdraw['orderid'],  json_encode($withdraw, JSON_UNESCAPED_UNICODE));    //日志
@@ -801,7 +801,7 @@ class CreateDFController extends Controller
                         }
                     }
     				$message = isset($return['memo'])?$return['memo']:'代付失败！';
-    				$message = $message .' - '.date('Y-m-d H:i:s').' - '.$memo;
+    				$message = $message .'-'.date('Y-m-d H:i:s').'-'.$memo;
     				
     			    $data['status'] = 4;
     			    $data['cldatetime'] = date('Y-m-d H:i:s', time());
@@ -825,7 +825,7 @@ class CreateDFController extends Controller
 				 //订单状态不改变
 				 $sta = $Wttklist->table($table)->where(['id' => $id])->getField('status');
 				 $data['status'] = $sta;
-				 $data['memo']  = '状态不改变！ - '. $return['memo']. date('Y-m-d H:i:s').' - '.$memo;
+				 $data['memo']  = '状态不改变！-'. $return['memo']. date('Y-m-d H:i:s').'-'.$memo;
 				 break;
 		}
         $where = ['id'=>$id, 'status'=>['in', '0,1']];

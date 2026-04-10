@@ -210,7 +210,7 @@ class PaymentController extends Controller
 			case 1:
 				//提交代付成功
 			   $data['status'] = 1;
-			   $data['memo']  = '申请成功！ - '. $return['memo']. date('Y-m-d H:i:s');
+			   $data['memo']  = '申请成功！-'. $return['memo']. date('Y-m-d H:i:s');
 			   break;
 			case 2:
 				 //支付成功
@@ -296,7 +296,7 @@ class PaymentController extends Controller
 				 //订单状态不改变
 				 $sta = $Wttklist->table($table)->where(['id' => $id])->getField('status');
 				 $data['status'] = $sta;
-				 $data['memo']  = '状态不改变！ - '. $return['memo']. date('Y-m-d H:i:s');
+				 $data['memo']  = '状态不改变！-'. $return['memo']. date('Y-m-d H:i:s');
 				 break;
 		}
         $ad = $Wttklist->table($table)->where($where)->save($data);
@@ -336,20 +336,20 @@ class PaymentController extends Controller
     //         case 1:
     //             //提交代付成功
     //             $data['status'] = 1;
-    //             $data['memo']  = '申请成功！ - '. $return['memo']. date('Y-m-d H:i:s').' - '.$memo;
+    //             $data['memo']  = '申请成功！-'. $return['memo']. date('Y-m-d H:i:s').'-'.$memo;
     //             break;
     //         case 2:
     //             //支付成功
     //             //  if($Wttklist["status"] != 0 && $Wttklist["status"] != 1){return;}
     //             $data['status'] = 2;
     //             $data['cldatetime'] = date('Y-m-d H:i:s', time());
-    //             $data['memo']  = '代付成功！ - '. $return['memo']. date('Y-m-d H:i:s').' - '.$memo;
+    //             $data['memo']  = '代付成功！-'. $return['memo']. date('Y-m-d H:i:s').'-'.$memo;
     //             break;
     //         case 3:
     //             // if($Wttklist["status"] != 0 && $Wttklist["status"] != 1){return;}
     //             //各种失败未返回 并退回金额
     //             $message = isset($return['memo'])?$return['memo']:'代付失败！';
-    //             $message = $message .' - '.date('Y-m-d H:i:s').' - '.$memo;
+    //             $message = $message .'-'.date('Y-m-d H:i:s').'-'.$memo;
     //             M()->startTrans();
 				// $Reject_re = Reject(['id' => $id, 'status' => '4','message'=> $message],$return);
 				// if($Reject_re ===false){
@@ -364,7 +364,7 @@ class PaymentController extends Controller
     //             //订单状态不改变
     //             $sta = $Wttklistmodel->table($tableName)->where(['id' => $id])->getField('status');
     //             $data['status'] = $sta;
-    //             $data['memo']  = '状态不改变！ - '. $return['memo']. date('Y-m-d H:i:s').' - '.$memo;
+    //             $data['memo']  = '状态不改变！-'. $return['memo']. date('Y-m-d H:i:s').'-'.$memo;
     //     }
     //     if(in_array($status, [0,1,2])){
     //         $data = array_merge($data, $return);

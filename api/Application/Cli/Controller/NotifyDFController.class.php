@@ -64,9 +64,9 @@ class NotifyDFController extends Controller
             "msg" => $wttklist['memo'], // 交易时间
         ];
         //判断状态
-        if($wttklist['status'] == 2){
+        if($wttklist['status'] == 2 || $wttklist['status'] == 3){
             $return_array['returncode'] = '00';
-        }elseif ($wttklist['status'] == 4 || $wttklist['status'] == 6){
+        }elseif ($wttklist['status'] == 4 || $wttklist['status'] == 5 || $wttklist['status'] == 6){
             $return_array['returncode'] = '11';
         }
     

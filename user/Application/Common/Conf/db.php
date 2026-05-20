@@ -22,6 +22,11 @@ return array(
     'DB_PORT'   => isset($env['DB_PORT']) ? $env['DB_PORT'] : '3306',
     'DB_PREFIX' => isset($env['DB_PREFIX']) ? $env['DB_PREFIX'] : 'pay_',
 
+    'DB_DEPLOY_TYPE'   => isset($env['DB_DEPLOY_TYPE']) ? intval($env['DB_DEPLOY_TYPE']) : 0,
+    'DB_RW_SEPARATE'   => isset($env['DB_RW_SEPARATE']) ? ($env['DB_RW_SEPARATE'] === 'true' || $env['DB_RW_SEPARATE'] === '1') : false,
+    'DB_MASTER_NUM'    => isset($env['DB_MASTER_NUM']) ? intval($env['DB_MASTER_NUM']) : 1,
+    'DB_SLAVE_NO'      => isset($env['DB_SLAVE_NO']) ? intval($env['DB_SLAVE_NO']) : 0,
+
     'REDIS_HOST'   => isset($env['REDIS_HOST']) ? $env['REDIS_HOST'] : '127.0.0.1',
     'REDIS_PORT'   => isset($env['REDIS_PORT']) ? $env['REDIS_PORT'] : '6379',
     'REDIS_PWD'    => isset($env['REDIS_PWD']) ? $env['REDIS_PWD'] : '',

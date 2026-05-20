@@ -6,16 +6,34 @@ namespace Common\Model;
 use Think\Model;
 
 class MoneychangeModel extends Model {
-    protected $expire_date = 20251016;
+    protected $expire_date;
     protected $tablePrefix = 'pay_'; // 分表前缀
     protected $tableName = 'moneychange'; // 默认表名
     protected $orderTables=[];      //订单分表表名
     // 数据库表达式
     protected $exp = array('eq' => '=', 'neq' => '<>', 'gt' => '>', 'egt' => '>=', 'lt' => '<', 'elt' => '<=', 'notlike' => 'NOT LIKE', 'like' => 'LIKE', 'in' => 'IN', 'notin' => 'NOT IN', 'not in' => 'NOT IN', 'between' => 'BETWEEN', 'not between' => 'NOT BETWEEN', 'notbetween' => 'NOT BETWEEN');
 
+    protected function loadEnv()
+    {
+        $envFile = dirname(__FILE__) . '/../../../.env';
+        if (file_exists($envFile)) {
+            $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($lines as $line) {
+                if (strpos(trim($line), '#') === 0) continue;
+                if (strpos($line, '=') !== false) {
+                    list($key, $value) = explode('=', $line, 2);
+                    $env[trim($key)] = trim($value);
+                }
+            }
+            return isset($env['EXPIRE_DATE']) ? $env['EXPIRE_DATE'] : 20251016;
+        }
+        return 20251016;
+    }
+
     public function __construct()
     {
         parent::__construct();
+        $this->expire_date = $this->loadEnv();
         //获取所有订单分表表名
         $orderTable_arr = $this->query("SHOW TABLES LIKE '". $this->tablePrefix . $this->tableName ."%'");
         $orderTable_array=[];

@@ -1,4 +1,5 @@
 /.idea
+/api/.env
 /api/.well-known
 /api/.user.ini
 /api/Data/
@@ -6,18 +7,21 @@
 /api/Uploads/
 /api/Application/Common/Conf/db.php
 /api/notifyurl.log
+/glht/.env
 /glht/.well-known
 /glht/.user.ini
 /glht/Data/
 /glht/Runtime/
 /glht/Uploads/
 /glht/Application/Common/Conf/db.php
+/user/.env
 /user/.well-known
 /user/.user.ini
 /user/Data/
 /user/Runtime/
 /user/Uploads/
 /user/Application/Common/Conf/db.php
+/open/.env
 /open/.well-known
 /open/.user.ini
 /open/Data/

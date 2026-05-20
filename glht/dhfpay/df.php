@@ -2,6 +2,24 @@
 /* *
  * 功能：代付调试入口页面
  */
+
+// 加载 .env 配置
+$envFile = dirname(__FILE__) . '/../.env';
+$env = array();
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $env[trim($key)] = trim($value);
+        }
+    }
+}
+
+$http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
+$glht_domain = isset($env['DOMAIN']) ? $env['DOMAIN'] : 'pglht.i8pay.com';
+$default_notifyurl = $http_type . $glht_domain . "/dhfpay/notify.php";
 ?>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
@@ -50,7 +68,7 @@
 				</li>
 				<li>
 					<label>回调地址</label>
-					<input type="text" name="notifyurl" value="https://pglht.i8pay.com/dhfpay/notify.php"  />
+					<input type="text" name="notifyurl" value="<?php echo $default_notifyurl; ?>"  />
 				</li>
 				<li style="margin-top: 50px">
 					<label></label>

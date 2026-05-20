@@ -1,6 +1,21 @@
 <?php
 error_reporting(0);
 header("Content-type: text/html; charset=utf-8");
+
+// 加载 .env 配置
+$envFile = dirname(__FILE__) . '/../.env';
+$env = array();
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $env[trim($key)] = trim($value);
+        }
+    }
+}
+
 $pay_memberid = "10002";//商户ID
 $pay_orderid = $_POST["orderid"];    //订单号
 $pay_amount = $_POST["amount"];    //交易金额
@@ -10,11 +25,15 @@ if (empty($pay_memberid) || empty($pay_amount) || empty($pay_bankcode)) {
 }
 $pay_applydate = date("Y-m-d H:i:s");  //订单时间
 $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
-$pay_notifyurl = $http_type . "pglht.i8pay.com/gmtest/server.php";   //服务端返回地址
-$pay_callbackurl = $http_type . "pglht.i8pay.com/gmtest/page.php";  //页面跳转返回地址
+
+$glht_domain = isset($env['DOMAIN']) ? $env['DOMAIN'] : 'pglht.i8pay.com';
+$api_domain = isset($env['API_DOMAIN']) ? $env['API_DOMAIN'] : 'papi.i8pay.com';
+
+$pay_notifyurl = $http_type . $glht_domain . "/gmtest/server.php";   //服务端返回地址
+$pay_callbackurl = $http_type . $glht_domain . "/gmtest/page.php";  //页面跳转返回地址
 $Md5key = "1ni0s1x77i94vusp4m0ssq0dsk3rrlu2";   //密钥
 
-$apidomain = $http_type . "papi.i8pay.com";
+$apidomain = $http_type . $api_domain;
 if (in_array($pay_bankcode, [7710, 7711, 7712])) {
     $pay_currency = 'BRL';
     $tjurl = $apidomain . "/Pay_Create_payinBRL.html";   //巴西
@@ -28,7 +47,7 @@ if (in_array($pay_bankcode, [7710, 7711, 7712])) {
     $pay_currency = 'VND';
     $tjurl = $apidomain . "/Pay_Create_payinVND.html";   //越南
 }elseif (in_array($pay_bankcode, [7730, 7731])) {
-    $pay_currency = 'IDR‌';
+    $pay_currency = 'IDR';
     $tjurl = $apidomain . "/Pay_Create_payinIDR.html";   //印尼
 }
 

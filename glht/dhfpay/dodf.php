@@ -1,7 +1,22 @@
 <?php
 error_reporting(0);
-header("Content-type: text/html; charset=utf-8");	
-$mchid = "10002";  
+header("Content-type: text/html; charset=utf-8");
+
+// 加载 .env 配置
+$envFile = dirname(__FILE__) . '/../.env';
+$env = array();
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $env[trim($key)] = trim($value);
+        }
+    }
+}
+
+$mchid = "10002";
 $Md5key = "1ni0s1x77i94vusp4m0ssq0dsk3rrlu2";
 $out_trade_no = date("YmdHis").mt_rand(1000,9999);    //订单号
 $_POST['out_trade_no'] = $out_trade_no;
@@ -14,7 +29,9 @@ if(empty($mchid)||empty($_POST['money']) || empty($_POST['accountname']) || empt
 
 $http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
 
-$apidomain = $http_type . "papi.i8pay.com";
+$api_domain = isset($env['API_DOMAIN']) ? $env['API_DOMAIN'] : 'papi.i8pay.com';
+
+$apidomain = $http_type . $api_domain;
 if (in_array($_POST['bankcode'], [7710, 7711, 7712])) {
     $pay_currency = 'BRL';
     $tjurl = $apidomain . "/Payment_CreateDF_payoutBRL.html";   //巴西

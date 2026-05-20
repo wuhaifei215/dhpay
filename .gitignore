@@ -6,6 +6,7 @@
 /api/Runtime/
 /api/Uploads/
 /api/Application/Common/Conf/db.php
+/api/Application/Common/Conf/website.php
 /api/notifyurl.log
 /glht/.env
 /glht/.well-known
@@ -14,6 +15,7 @@
 /glht/Runtime/
 /glht/Uploads/
 /glht/Application/Common/Conf/db.php
+/glht/Application/Common/Conf/website.php
 /user/.env
 /user/.well-known
 /user/.user.ini
@@ -21,6 +23,7 @@
 /user/Runtime/
 /user/Uploads/
 /user/Application/Common/Conf/db.php
+/user/Application/Common/Conf/website.php
 /open/.env
 /open/.well-known
 /open/.user.ini
@@ -28,6 +31,7 @@
 /open/Runtime/
 /open/Uploads/
 /open/Application/Common/Conf/db.php
+/open/Application/Common/Conf/website.php
 /log/.well-known
 /log/.user.ini
 /log/Data/

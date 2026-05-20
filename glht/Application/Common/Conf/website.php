@@ -1,13 +1,25 @@
-<?php 
-	return array(
-		'WEB_TITLE' => 'i8 国际支付',
-		'DOMAIN' => 'pglht.i8pay.com',
-        'MODULE_ALLOW_LIST'   => array('Home','User','i8admin','Install', 'Weixin','Pay','Cashier','Agent','Payment','Cli'),
-        'URL_MODULE_MAP'  => array('i8admin'=>'admin', 'agent'=>'user', 'user'=>'user'),
-		'LOGINNAME' => 'user',
-		'HOUTAINAME' => 'i8admin',
-		'API_DOMAIN' => 'papi.i8pay.com',
-        'NOTIFY_DOMAIN' => 'pnapi.i8pay.com',
-        'LOG_API_URL' => 'http://plog.i8pay.com',
-    );
-?>
+<?php
+$envFile = dirname(__FILE__) . '/../../../.env';
+$env = array();
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $env[trim($key)] = trim($value);
+        }
+    }
+}
+
+return array(
+    'WEB_TITLE' => isset($env['WEB_TITLE']) ? $env['WEB_TITLE'] : '',
+    'DOMAIN' => isset($env['DOMAIN']) ? $env['DOMAIN'] : '',
+    'NOTIFY_DOMAIN' => isset($env['NOTIFY_DOMAIN']) ? $env['NOTIFY_DOMAIN'] : '',
+    'MODULE_ALLOW_LIST'   => array('Home','User','i8admin','Install', 'Weixin','Pay','Cashier','Agent','Payment','Cli'),
+    'URL_MODULE_MAP'  => array('i8admin'=>'admin', 'agent'=>'user', 'user'=>'user'),
+    'LOGINNAME' => isset($env['LOGINNAME']) ? $env['LOGINNAME'] : 'user',
+    'HOUTAINAME' => isset($env['HOUTAINAME']) ? $env['HOUTAINAME'] : 'i8admin',
+    'API_DOMAIN' => isset($env['API_DOMAIN']) ? $env['API_DOMAIN'] : '',
+    'LOG_API_URL' => isset($env['LOG_API_URL']) ? $env['LOG_API_URL'] : '',
+);

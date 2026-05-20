@@ -28,7 +28,6 @@
 /open/Runtime/
 /open/Uploads/
 /open/Application/Common/Conf/db.php
-/log/.env
 /log/.well-known
 /log/.user.ini
 /log/Data/

@@ -12,6 +12,8 @@
 /glht/.well-known
 /glht/.user.ini
 /glht/Data/
+/glht/gmtest/
+/glht/dhfpay/
 /glht/Runtime/
 /glht/Uploads/
 /glht/Application/Common/Conf/db.php

@@ -70,7 +70,7 @@ class ApiController extends Controller
         $where=[];
         $this->memberid = I("post.memberid");
         if (!empty($this->memberid)) {
-            $where['user_id'] = $this->memberid;
+//            $where['user_id'] = $this->memberid;
         }
         $this->order_id = I('post.order_id', '');
         if ($this->order_id) {
@@ -258,7 +258,7 @@ class ApiController extends Controller
     
     protected function getReceiptLog() {
         $where = [
-            'user_id' =>$this->memberid,
+//            'user_id' =>$this->memberid,
             'order_id' => $this->order_id
         ];
         $this->getReceipt();
@@ -329,7 +329,7 @@ class ApiController extends Controller
     
     protected function getPaymentLog() {
         $where = [
-            'user_id' =>$this->memberid,
+//            'user_id' =>$this->memberid,
             'order_id' => $this->order_id
         ];
         $this->getPayment();
@@ -413,7 +413,7 @@ class ApiController extends Controller
             $this->getDFNotify();
         }
         $where = [
-            'user_id' =>$this->memberid,
+//            'user_id' =>$this->memberid,
             'order_id' => $this->order_id
         ];
         $log_data = $this->NotifyLogmodel->table($this->tableName)->where($where)->select();

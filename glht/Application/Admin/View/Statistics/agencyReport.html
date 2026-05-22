@@ -10,304 +10,27 @@
         display: none;
         z-index: 10;
     }
-    /* 页面容器优化 */
-    .report-wrapper {
-        padding: 20px;
-        background: #f5f7fa;
-        min-height: calc(100vh - 60px);
-    }
-    /* Ibox优化 */
-    .report-wrapper .ibox {
-        border-radius: 8px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-        margin-bottom: 20px;
-        border: none;
-    }
-    .report-wrapper .ibox-title {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: #fff;
-        padding: 16px 20px;
-        border-radius: 8px 8px 0 0;
-        border-bottom: none;
-    }
-    .report-wrapper .ibox-title h5 {
-        color: #fff;
-        font-weight: 600;
-        font-size: 16px;
-        margin: 0;
-    }
-    .report-wrapper .ibox-tools {
-        margin-top: -2px;
-    }
-    .report-wrapper .ibox-tools .layui-icon {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 18px;
-        transition: all 0.3s ease;
-    }
-    .report-wrapper .ibox-tools .layui-icon:hover {
-        color: #fff;
-        transform: rotate(180deg);
-    }
-    .report-wrapper .ibox-content {
-        background: #fff;
-        padding: 20px;
-        border-radius: 0 0 8px 8px;
-    }
-    /* 表单优化 */
-    .report-wrapper .layui-form-item {
-        margin-bottom: 15px;
-        display: inline-flex;
-        margin-right: 15px;
-        vertical-align: middle;
-    }
-    .report-wrapper .layui-form-label {
-        padding: 9px 12px;
-        width: auto;
-        min-width: 80px;
-        font-weight: 500;
-        color: #495057;
-        background: #f8f9fa;
-        border-radius: 6px 0 0 6px;
-        border: 1px solid #dee2e6;
-        border-right: none;
-    }
-    .report-wrapper .layui-input-inline {
-        width: auto !important;
-    }
-    .report-wrapper .layui-input {
-        border-radius: 0 6px 6px 0;
-        border: 1px solid #dee2e6;
-        height: 38px;
-        transition: all 0.3s ease;
-    }
-    .report-wrapper .layui-input:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
-    }
-    .report-wrapper .layui-form-select .layui-input {
-        padding-right: 30px;
-    }
-    .report-wrapper .layui-form-select dl {
-        border-radius: 6px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    /* 搜索按钮优化 */
-    .report-wrapper .layui-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        border-radius: 6px;
-        padding: 0 24px;
-        height: 38px;
-        line-height: 38px;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    }
-    .report-wrapper .layui-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-    .report-wrapper .layui-btn:active {
-        transform: translateY(0);
-    }
-    /* 引用块优化 */
-    .report-wrapper .layui-elem-quote {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-left: 4px solid #667eea;
-        border-radius: 0 6px 6px 0;
-        padding: 12px 16px;
-        margin: 15px 0;
-        font-size: 13px;
-        color: #495057;
-    }
-    /* 表格优化 */
-    .report-wrapper .layui-table {
-        width: 100%;
-        margin: 15px 0;
-        border-radius: 6px;
-        overflow: hidden;
-        border: 1px solid #e9ecef;
-    }
-    .report-wrapper .layui-table thead tr {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: #fff;
-    }
-    .report-wrapper .layui-table thead th {
-        font-weight: 600;
-        font-size: 13px;
-        text-align: center !important;
-        padding: 12px 8px;
-        border: none !important;
-        white-space: nowrap;
-    }
-    .report-wrapper .layui-table thead th::before {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: rgba(255, 255, 255, 0.3);
-    }
-    .report-wrapper .layui-table tbody tr {
-        transition: all 0.2s ease;
-    }
-    .report-wrapper .layui-table tbody tr:nth-child(even) {
-        background: #f8f9fa;
-    }
-    .report-wrapper .layui-table tbody tr:hover {
-        background: rgba(102, 126, 234, 0.08);
-    }
-    .report-wrapper .layui-table td {
-        text-align: center;
-        padding: 10px 8px;
-        font-size: 13px;
-        border: 1px solid #e9ecef !important;
-        color: #495057;
-    }
-    .report-wrapper .layui-table th,
-    .report-wrapper .layui-table td {
-        position: relative;
-    }
-    /* 表格成功数据高亮 */
-    .report-wrapper .layui-table td[data-highlight="success"] {
-        background: rgba(40, 167, 69, 0.08);
-        color: #28a745;
-        font-weight: 500;
-    }
-    /* 表格失败数据警告 */
-    .report-wrapper .layui-table td[data-highlight="fail"] {
-        color: #dc3545;
-        font-weight: 500;
-    }
-    /* 分页优化 */
-    .report-wrapper .page {
-        margin-top: 20px;
-        padding: 15px;
-        background: #f8f9fa;
-        border-radius: 6px;
-        text-align: center;
-    }
-    .report-wrapper .page .layui-laypage {
-        display: inline-flex;
-        gap: 5px;
-    }
-    .report-wrapper .page .layui-laypage a,
-    .report-wrapper .page .layui-laypage span {
-        border-radius: 6px;
-        transition: all 0.3s ease;
-    }
-    .report-wrapper .page .layui-laypage .layui-laypage-curr .layui-laypage-em {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 6px;
-    }
-    /* 响应式优化 */
-    @media (max-width: 1200px) {
-        .report-wrapper .layui-form-item {
-            display: flex;
-            flex-wrap: wrap;
-            width: 100%;
-            margin-right: 0;
-        }
-        .report-wrapper .layui-form-label {
-            min-width: 100px;
-            border-radius: 6px 6px 0 0;
-            border-right: 1px solid #dee2e6;
-            border-bottom: none;
-        }
-        .report-wrapper .layui-input {
-            border-radius: 0 0 6px 6px;
-            width: 100%;
-        }
-    }
-    /* 搜索表单布局 */
-    .report-wrapper .search-form {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 12px;
-        padding: 15px;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 8px;
-        margin-bottom: 15px;
-    }
-    .report-wrapper .search-form .layui-form-item {
-        margin: 0;
-        flex-shrink: 0;
-    }
-    .report-wrapper .search-form .layui-input {
-        min-width: 160px;
-    }
-    .report-wrapper .search-form .btn-search {
-        margin-left: auto;
-        flex-shrink: 0;
-    }
-    /* 信息卡片 */
-    .report-wrapper .info-card {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 20px;
-        padding: 14px 18px;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 8px;
-        margin-bottom: 15px;
-        border-left: 4px solid #667eea;
-    }
-    .report-wrapper .info-card .info-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 13px;
-    }
-    .report-wrapper .info-card .info-label {
-        color: #6c757d;
-        font-weight: 500;
-    }
-    .report-wrapper .info-card .info-value {
-        color: #495057;
-        font-weight: 600;
-    }
-    .report-wrapper .info-card .info-time {
-        margin-left: auto;
-        color: #6c757d;
-        font-size: 12px;
-    }
-    /* 表格包装器 */
-    .report-wrapper .table-wrapper {
-        overflow-x: auto;
-        border-radius: 8px;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-    }
-    /* 表格列分组标题 */
-    .report-wrapper .col-group {
-        background: rgba(0, 0, 0, 0.3) !important;
-        font-size: 12px;
-        letter-spacing: 1px;
-    }
 </style>
-<div class="row report-wrapper">
+<div class="row">
     <div class="overlay" id="overlay"></div>
+</div>
 
 <div class="row">
     <div class="col-md-12">
         <div class="ibox float-e-margins">
             <!--条件查询-->
             <div class="ibox-title">
-                <div style="display:flex;align-items:center;justify-content:space-between;">
-                    <h5><i class="layui-icon layui-icon-chart" style="margin-right:8px;"></i>包网通道报表</h5>
-                    <div class="ibox-tools">
-                        <i class="layui-icon" onclick="location.replace(location.href);" title="刷新"
-                           style="cursor:pointer;">ဂ</i>
-                    </div>
+                <h5>包网通道报表</h5>
+                <div class="ibox-tools">
+                    <i class="layui-icon" onclick="location.replace(location.href);" title="刷新"
+                       style="cursor:pointer;">ဂ</i>
                 </div>
             </div>
             <!--条件查询-->
             <div class="ibox-content">
-                <form class="layui-form search-form" action="" method="get" autocomplete="off" id="dataform">
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">所属国家</label>
+                <form class="layui-form" action="" method="get" autocomplete="off" id="dataform">
+                    <div class="layui-form-item layui-inline">
+                        <label class="layui-form-label">所属国家：</label>
                         <div class="layui-input-inline">
                             <select name="currency">
                                 <option value="">全部国家</option>
@@ -317,8 +40,8 @@
                             </select>
                         </div>
                     </div>
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">包网</label>
+                    <div class="layui-form-item layui-inline">
+                        <label class="layui-form-label">包网：</label>
                         <div class="layui-input-inline">
                             <select name="agency_id">
                                 <option value="">全部包网</option>
@@ -328,25 +51,21 @@
                             </select>
                         </div>
                     </div>
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">日期</label>
-                        <div class="layui-input-inline">
-                            <input type="text" class="layui-input" name="date" id="date" placeholder="日期" value="<{$date}>">
+                    <div class="layui-form-item layui-inline">
+                        <label class="layui-form-label">日期：</label>
+                        <div class="layui-input-inline" style="width:300px;">
+                            <input type="text" class="layui-input" name="date" id="date" placeholder="日期"  value="<{$date}>">
                         </div>
                     </div>
-                    <div class="layui-form-item btn-search">
-                        <button type="submit" class="layui-btn"><i class="layui-icon layui-icon-search"></i> 搜索</button>
+                    <div class="layui-form-item layui-inline">
+                        <div class="layui-inline">
+                            <button type="submit" class="layui-btn"><span
+                                    class="glyphicon glyphicon-search"></span> 搜索
+                            </button>
+                        </div>
                     </div>
                 </form>
-                <div class="info-card">
-                    <div class="info-item">
-                        <i class="layui-icon layui-icon-time" style="color:#667eea;"></i>
-                        <span class="info-label">报告生成时间：</span>
-                        <span class="info-value"><{:date('Y-m-d H:i:s')}></span>
-                    </div>
-                </div>
-                </div>
-                <div class="table-wrapper">
+                <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">报告生成时间：<{:date('Y-m-d H:i:s')}></blockquote>
                 <table class="layui-table" lay-data="{width:'100%',limit:<{$rows}>,id:'userData'}">
                     <thead>
                     <tr>
@@ -354,9 +73,9 @@
                         <th lay-data="{field:'username',width:110,style:'text-align:center;',fixed: true}">包网名</th>
                         <volist name="channel" id="cho">
                             <th lay-data="{field:'pay_amount<{$cho.id}>',style:'text-align:center;',width:180}"><{$cho.title}>--总金额</th>
-                            <th lay-data="{field:'countSuccess<{$cho.id}>',style:'text-align:center;',width:180}"><{$cho.title}>--成功笔数</th>
+                            <th lay-data="{field:'countSuccess<{$cho.id}>',style:'text-align:center;background-color:#b8c7eb;',width:180}"><{$cho.title}>--成功笔数</th>
                             <th lay-data="{field:'countFail<{$cho.id}>',style:'text-align:center;',width:180}"><{$cho.title}>--失败笔数</th>
-                            <th lay-data="{field:'successRate<{$cho.id}>',style:'text-align:center;',width:180}"><{$cho.title}>--成功率</th>
+                            <th lay-data="{field:'successRate<{$cho.id}>',style:'text-align:center;background-color:#b8c7eb;',width:180}"><{$cho.title}>--成功率</th>
                             <th lay-data="{field:'successAverage<{$cho.id}>',style:'text-align:center;',width:180}"><{$cho.title}>--总均单</th>
                         </volist>
                     </tr>
@@ -380,8 +99,6 @@
                     </volist>
                     </tbody>
                 </table>
-                </div>
-                </div>
                 <div class="page"><{$page}>
                     <!--<div class="layui-input-inline">-->
                     <!--    <form class="layui-form" action="" method="get" id="pageForm" autocomplete="off">-->

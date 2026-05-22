@@ -39,10 +39,10 @@ class ApiController extends Controller
     }
     public function getOrders()
     {
-        $this->memberid = I("post.memberid");
-        if (empty($this->memberid) || $this->memberid <= 0) {
-            $this->showmessage("请输入商户编号");
-        }
+//        $this->memberid = I("post.memberid");
+//        if (empty($this->memberid) || $this->memberid <= 0) {
+//            $this->showmessage("请输入商户编号");
+//        }
         $this->order_id = I('post.order_id', '');
         if (!$this->order_id) {
             $this->showmessage('订单号异常！');
@@ -68,10 +68,10 @@ class ApiController extends Controller
     public function getAddLog()
     {
         $where=[];
-        $this->memberid = I("post.memberid");
-        if (!empty($this->memberid)) {
+//        $this->memberid = I("post.memberid");
+//        if (!empty($this->memberid)) {
 //            $where['user_id'] = $this->memberid;
-        }
+//        }
         $this->order_id = I('post.order_id', '');
         if ($this->order_id) {
             $where['order_id'] = $this->order_id;

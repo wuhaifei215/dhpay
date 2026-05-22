@@ -63,6 +63,8 @@ class ECPayIndDFController extends PaymentController
                     $return = ['status' => 3, 'msg' => '申请失败--'. $result['data']['failReason']];
                     break;
             }
+        } elseif($result['code'] === 500){
+            $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
         } else {
             $return = ['status' => 0, 'msg' => $result['msg']];
         }
@@ -224,8 +226,8 @@ AAA;
                 $signPars .= $k . "=" . $v . "&";
             }
         }
-        $sign =strtoupper(md5($signPars));
-        log_place_order($this->code, "----签名", $signPars);    //日志
+        $sign =strtoupper(md5(rtrim($signPars,'&')));
+//        log_place_order($this->code, "----签名", rtrim($signPars,'&'));    //日志
         return $sign; //最终的签名
 
     }

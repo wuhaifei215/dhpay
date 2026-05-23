@@ -16,6 +16,7 @@ class ApiController extends Controller
     protected $token;
     protected $title;
     protected $callback = '';
+    protected $channel_url = '';
 
     public function __construct()
     {
@@ -36,6 +37,7 @@ class ApiController extends Controller
         $this->bot_name = isset($env['TELEGRAM_BOT_NAME']) ? $env['TELEGRAM_BOT_NAME'] : 'I8Pay_PHP_Bot';
         $this->token = isset($env['TELEGRAM_TOKEN']) ? $env['TELEGRAM_TOKEN'] : '8257411210:AAHCedRvktdRdubtp8UjwgTYiwOTVfXBxsI';
         $this->title = isset($env['TELEGRAM_TITLE']) ? $env['TELEGRAM_TITLE'] : 'I8Pay';
+        $this->channel_url = isset($env['TELEGRAM_CHANEL_URL']) ? $env['TELEGRAM_CHANEL_URL'] : 'https://t.me/i8Pay1';
         $this->callback = 'https://' . C('DOMAIN') . '/Telegram_Api_receive.html';
     }
 
@@ -151,7 +153,56 @@ class ApiController extends Controller
                 'parse_mode' => $parse_mode,
                 'chat_id' => $chatId
             ];
-            log_place_order($this->code . '_sendMessage_error', "错误", json_encode($errorInfo, JSON_UNESCAPED_UNICODE));
+            log_place_order($this->code . '_sendMessage_error', "发送", json_encode($data, JSON_UNESCAPED_UNICODE));    //日志
+//            log_place_order($this->code . '_sendMessage_error', "错误", json_encode($errorInfo, JSON_UNESCAPED_UNICODE));
+
+            // 尝试不带格式重新发送
+//            if (isset($result['error_code']) && $result['error_code'] == 400) {
+//                unset($data['parse_mode']);
+//                $result = $this->curlPost($url, $data);
+//                $result = json_decode($result, true);
+//                return $result['ok'] ? $result : "sendError";
+//            }
+            //清理掉官方返回 不存在的群
+            if ($result['error_code'] == 400 && $result['description'] == 'Bad Request: chat not found') {
+                $where['telegram_id'] = $chatId;
+                $re = M('Member')->where($where)->save(['telegram_id' => '']);
+            }
+            return "sendError";
+        }
+    }
+
+    // 回复用户信息
+    private function sendPhoto($chatId, $photo, $text='', $message_thread_id='')
+    {
+        $url = 'https://api.telegram.org/bot' . $this->token . '/sendPhoto';
+        $data = [
+            'chat_id' => $chatId,
+            'photo' => $photo,
+            'caption' => $text,
+        ];
+        if($message_thread_id!=''){
+            $data['reply_parameters'] = json_encode([
+                'message_id'=> $message_thread_id,
+                'chat_id'=>$chatId,
+            ], JSON_UNESCAPED_UNICODE);
+        }
+        // log_place_order($this->code . '_sendPhoto', "发送", json_encode($data, JSON_UNESCAPED_UNICODE));    //日志
+        $result = $this->curlPost($url, $data);
+        // log_place_order($this->code . '_sendPhoto', "返回", $result);    //日志
+        $result = json_decode($result, true);
+        if ($result['ok'] == true) {
+            return $result;
+        } else {
+            // 记录详细错误信息
+            $errorInfo = [
+                'error' => $result['description'] ?: 'Unknown error',
+                'text' => $text,
+                'parse_mode' => $parse_mode,
+                'chat_id' => $chatId
+            ];
+            log_place_order($this->code . '_sendPhoto_error', "发送", json_encode($data, JSON_UNESCAPED_UNICODE));    //日志
+            log_place_order($this->code . '_sendPhoto_error', "错误", json_encode($errorInfo, JSON_UNESCAPED_UNICODE));
 
             // 尝试不带格式重新发送
 //            if (isset($result['error_code']) && $result['error_code'] == 400) {
@@ -220,7 +271,8 @@ class ApiController extends Controller
                 //确认该订单为未处理订单
                 $wttkData = $Wttklist->table($table)->where(['orderid'=>$str[1], 'status'=>'0'])->find();
                 if(empty($wttkData) || !$wttkData){
-                    log_place_order($this->code . '_callback_query', "订单状态异常", $str[1]);    //日志
+//                    log_place_order($this->code . '_callback_query', "订单状态异常", $str[1]);    //日志
+//                    log_place_order($this->code . '_callback_query', "sql", $Wttklist->table($table)->getLastSql());    //日志
                     $message = '订单状态异常！请联系值班客服';
                     $this->sendMessage($chat_id, $message, $message_id);
                     return;
@@ -358,7 +410,7 @@ class ApiController extends Controller
         //根据群ID 获取用户信息
         $userInfo = self::get_user($chat_id);
         if ($userInfo['status'] !== 1 || !$userInfo['info']['id']) {
-            if($chat_id) {
+            if($chat_id){
                 $this->sendMessage($chat_id, '该群未绑定用户！请联系值班客服', $message_id);
             }
             return;
@@ -377,41 +429,45 @@ class ApiController extends Controller
 
         //查询用户余额
         if (strpos($text, '/balance@' . $this->bot_name) !== false) {
-            $uid = $userInfo['info']['id'] + 10000;
-            $statistics = $this->statistics($uid);
-            $message = '';
-            $message .= "商户数据播报\r\n--------------------------------\r\n";
-            $message .= "商户号 ：`" . $uid . "`\r\n";
-            $message .= "商户名称：`" . $userInfo['info']['username'] . "`\r\n";
-            $message .= "币种：`" . $userInfo['info']['currency'] . "`\r\n";
-            $message .= "可用余额：" . $userInfo['info']['balance'] . "\r\n";
-            $message .= "冻结余额：" . $userInfo['info']['blockedbalance'] . "\r\n";
-            $message .= "======代收数据======\r\n";
-            $message .= "订单金额：" . $statistics['all_o_sum'] . "  ";
-            $message .= "笔数：" . $statistics['all_o_num'] . "\r\n";
-            $message .= "成功金额：" . $statistics['o_sum'] . "  ";
-            $message .= "笔数：" . $statistics['o_num'] . "\r\n";
-            $message .= "成功率：" . $statistics['o_success_rate'] . "%\r\n";
-            $message .= "======代付数据======\r\n";
-            $message .= "订单金额：" . $statistics['all_w_amount'] . "  ";
-            $message .= "笔数：" . $statistics['all_w_i'] . "\r\n";
-            $message .= "成功金额：" . $statistics['w_sum_done'] . "  ";
-            $message .= "笔数：" . $statistics['wi_done'] . "\r\n";
-            $message .= "代付中金额：" . $statistics['w_sum_do'] . "  ";
-            $message .= "笔数：" . $statistics['wi_do'] . "\r\n";
-            $message .= "--------------------------------\r\n";
-            $message .= "查询时间：" . date('Y-m-d H:i:s', time()) . "\r\n";
-            $message .= "当前余额及时核对以此为准，如有疑问联系值班客服\r\n";
+            //获取集团账号下的用户余额信息
+            if($userInfo['info']['groupid'] == 5 ){
+                $this->getGroup5User($userInfo['info']['id'],$chat_id, $message_id);
+            }else{
+                $uid = $userInfo['info']['id'] + 10000;
+                $statistics = $this->statistics($uid);
+                $message = '';
+                $message .= "商户数据播报\r\n--------------------------------\r\n";
+                $message .= "商户号 ：`" . $uid . "`\r\n";
+                $message .= "商户名称：`" . $userInfo['info']['username'] . "`\r\n";
+                $message .= "可用余额：" . $userInfo['info']['balance_php'] . "\r\n";
+                $message .= "冻结余额：" . $userInfo['info']['blockedbalance_php'] . "\r\n";
+                $message .= "======代收数据======\r\n";
+                $message .= "订单金额：" . $statistics['all_o_sum'] . "  ";
+                $message .= "笔数：" . $statistics['all_o_num'] . "\r\n";
+                $message .= "成功金额：" . $statistics['o_sum'] . "  ";
+                $message .= "笔数：" . $statistics['o_num'] . "\r\n";
+                $message .= "成功率：" . $statistics['o_success_rate'] . "%\r\n";
+                $message .= "======代付数据======\r\n";
+                $message .= "订单金额：" . $statistics['all_w_amount'] . "  ";
+                $message .= "笔数：" . $statistics['all_w_i'] . "\r\n";
+                $message .= "成功金额：" . $statistics['w_sum_done'] . "  ";
+                $message .= "笔数：" . $statistics['wi_done'] . "\r\n";
+                $message .= "代付中金额：" . $statistics['w_sum_do'] . "  ";
+                $message .= "笔数：" . $statistics['wi_do'] . "\r\n";
+                $message .= "--------------------------------\r\n";
+                $message .= "查询时间：" . date('Y-m-d H:i:s', time()) . "\r\n";
+                $message .= "当前余额及时核对以此为准，如有疑问联系值班客服\r\n";
 
-            $btn['text'] = 'I8Pay官方频道，点击进入';
-            $btn['url'] = 'https://t.me/i8Pay1';
-            $markup = [
-                'inline_keyboard'=>[[
-                    $btn
-                ]],
-            ];
+                $btn['text'] = $this->title . '官方频道，点击进入';
+                $btn['url'] = $this->channel_url;
+                $markup = [
+                    'inline_keyboard'=>[[
+                        $btn
+                    ]],
+                ];
 
-            $this->sendMessage($chat_id, $message, $message_id, 'Markdown',$markup);
+                $this->sendMessage($chat_id, $message, $message_id, 'Markdown',$markup);
+            }
             return;
         }
 
@@ -470,6 +526,8 @@ class ApiController extends Controller
             $where=[];
             $where['telegram_id'] = $chat_id;
             $is_re = M('TelegramApi')->where($where)->find();
+            // log_place_order($this->code . '_qunfaSql', "sql", M('TelegramApi')->getLastSql());    //日志
+            // log_place_order($this->code . '_qunfaSql', "re", json_encode($is_re, JSON_UNESCAPED_UNICODE));    //日志
             if($is_re){
                 if($is_re['is_open'] === 1){
                     $this->sendMessage($chat_id, "此群已开启群发功能\r\n");
@@ -518,13 +576,19 @@ class ApiController extends Controller
             $where['telegram_id'] = $chat_id;
             $where['is_open'] = 1;
             $is_re = M('TelegramApi')->where($where)->find();
+
+            // log_place_order($this->code . '_qunfaSql', "sql", M('TelegramApi')->getLastSql());    //日志
+            // log_place_order($this->code . '_qunfaSql', "re", json_encode($is_re, JSON_UNESCAPED_UNICODE));    //日志
             if($is_re){
                 $text = str_replace('/qunfa', "", $text);
                 $data['text'] = $text;
                 $url = 'https://' . C('DOMAIN') . '/Telegram_Api_qunfa.html';
-                if($photo){
+
+                if($photo && !empty($photo)){
                     $data['photo'] = 1;
                     $data['file_id'] = $photo[0]['file_id'];
+                }else{
+                    $data['photo'] = 0;
                 }
                 $data['row']=0;
                 $ch = curl_init();
@@ -538,12 +602,40 @@ class ApiController extends Controller
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
                 curl_setopt($ch, CURLOPT_HEADER, false);
 
-                $file_contents = curl_exec($ch);
+                $mh = curl_multi_init();
+                curl_multi_add_handle($mh, $ch);
+
+                // 执行curl_multi
+                do {
+                    $status = curl_multi_exec($mh, $active);
+                    if ($active) {
+                        curl_multi_select($mh); // 等待所有句柄的活动
+                    }
+                } while ($active && $status == CURLM_OK);
+
+                // 关闭句柄
+                curl_multi_remove_handle($mh, $ch);
+                curl_multi_close($mh);
                 //获取错误编码
                 $curlErrno = curl_errno($ch);
+                if($curlErrno){
+                    log_place_order($this->code . '_qunfaSql', "curlcode", $curlErrno);    //日志
+                    log_place_order($this->code . '_qunfaSql', "curlErrno", curl_error($ch));    //日志
+                }
                 curl_close($ch);
 
+
+                // $file_contents = curl_exec($ch);
+                // //获取错误编码
+                // $curlErrno = curl_errno($ch);
+                // if($curlErrno){
+                //     log_place_order($this->code . '_qunfaSql', "curlcode", $curlErrno);    //日志
+                //     log_place_order($this->code . '_qunfaSql', "curlErrno", curl_error($ch));    //日志
+                // }
+                // curl_close($ch);
+
                 // $result = $this->curlPost($url, $data);
+                return true;
             }
             return true;
         }
@@ -585,11 +677,28 @@ class ApiController extends Controller
             $this->doDS($order_info, $chat_id, $message, $message_id);
             return;
         }
+
+        //查询代收订单每小时成功率
+        if (strpos($text, '/rate') !== false) {
+            $uid = $userInfo['info']['id'] + 10000;
+            $this->sendHourlySuccessRate($uid, $chat_id, $message_id);
+            return;
+        }
+
+        //查询代收订单每小时成功率（简化版）
+        if (strpos($text, '/r') !== false) {
+            $uid = $userInfo['info']['id'] + 10000;
+            $this->sendHourlySuccessRateSimple($uid, $chat_id, $message_id);
+            return;
+        }
+
         return;
     }
 
     //执行群发操作
     public function qunfa(){
+        ini_set('max_execution_time', 0); // 5分钟
+
         $text = trim($_REQUEST['text']);
         $row = $_REQUEST['row'];
         if($text!=''){
@@ -599,10 +708,14 @@ class ApiController extends Controller
             $member_list = M('Member')->field('telegram_id')->where($where)->order('id asc')->limit($row * 50,50)->select();
             if(isset($member_list) && !empty($member_list)){
                 foreach ($member_list as $mv){
-                    if(isset($_REQUEST['photo']) && $photo==1){
-                        $this->sendPhoto($mv['telegram_id'], $_REQUEST['file_id'],$text);
+                    if($mv['telegram_id']){
+                        if(isset($_REQUEST['photo']) && $_REQUEST['photo']==1){
+                            $this->sendPhoto($mv['telegram_id'], $_REQUEST['file_id'],$text);
+                        }else{
+                            $this->sendMessage($mv['telegram_id'], $text);
+                        }
                     }else{
-                        $this->sendMessage($mv['telegram_id'], $text);
+                        continue;
                     }
                 }
 
@@ -620,10 +733,37 @@ class ApiController extends Controller
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
                 curl_setopt($ch, CURLOPT_HEADER, false);
 
-                $file_contents = curl_exec($ch);
+                $mh = curl_multi_init();
+                curl_multi_add_handle($mh, $ch);
+
+                // 执行curl_multi
+                do {
+                    $status = curl_multi_exec($mh, $active);
+                    if ($active) {
+                        curl_multi_select($mh); // 等待所有句柄的活动
+                    }
+                } while ($active && $status == CURLM_OK);
+
+                // 关闭句柄
+                curl_multi_remove_handle($mh, $ch);
+                curl_multi_close($mh);
                 //获取错误编码
                 $curlErrno = curl_errno($ch);
+                if($curlErrno){
+                    log_place_order($this->code . '_qunfaSql', "curlcode", $curlErrno);    //日志
+                    log_place_order($this->code . '_qunfaSql', "curlErrno", curl_error($ch));    //日志
+                }
                 curl_close($ch);
+
+                // $file_contents = curl_exec($ch);
+                // //获取错误编码
+                // $curlErrno = curl_errno($ch);
+                // if($curlErrno){
+                //     log_place_order($this->code . '_qunfaSql', "curlcode", $curlErrno);    //日志
+                //     log_place_order($this->code . '_qunfaSql', "curlErrno", curl_error($ch));    //日志
+                // }
+                // curl_close($ch);
+                return true;
             }
         }
         return true;
@@ -794,7 +934,7 @@ class ApiController extends Controller
         } else {
             $message = "没有查询到代付订单，三种情况\r\n--------------------------------\r\n1.单号输入不正确，请确认单号；\r\n2.不是我们的订单，请确认收付款方是不是我们；\r\n3.订单没有提交到我们这里，请联系群里运营人员。";
         }
-        $this->sendMessage($chat_id, $message, $message_id, $parse_mode='Markdown');
+        $this->sendMessage($chat_id, $message, $message_id, $parse_mode);
     }
 
     //代收处理
@@ -847,6 +987,24 @@ class ApiController extends Controller
             $message = "没有查询到订单，三种情况\r\n--------------------------------\r\n 1.单号输入不正确，请确认单号；\r\n 2.不是我们的订单，请确认收付款方是不是我们；\r\n 3.订单没有提交到我们这里，请联系群里运营人员。";
         }
         return $this->sendMessage($chat_id, $message, $message_id, $parse_mode);
+    }
+
+    //获取集团账号下的用户余额信息
+    public function getGroup5User($uid,$chat_id, $message_id){
+        $all_balance_php=0;
+        $message='';
+        $message .= "余额播报时间：" . date('Y-m-d H:i:s')  . "\r\n";
+        $where=[];
+        $where['parentid'] = $uid;
+        $info = M('Member')->field('id, username, balance_php')->where($where)->select();
+        if(!empty($info)){
+            foreach($info as $v){
+                $message .= "[" . $v['username'] . "]余额：" . $v['balance_php']  . "\r\n";
+                $all_balance_php += $v['balance_php'];
+            }
+        }
+        $message .= "合计余额：" . $all_balance_php  . "\r\n";
+        return $this->sendMessage($chat_id, $message, $message_id);
     }
 
 
@@ -1020,6 +1178,197 @@ class ApiController extends Controller
         return $data;
     }
 
+
+    /**
+     * 用户代收订单每小时成功率统计
+     * @param int $uid 用户ID（带10000前缀的商户号）
+     * @return array 每小时统计数据
+     */
+    private function getHourlySuccessRate($uid){
+        $data = [];
+        $todayBegin = date('Y-m-d') . ' 00:00:00';
+        $todyEnd = date('Y-m-d') . ' 23:59:59';
+
+        // 获取今天的开始时间戳
+        $todayStart = strtotime($todayBegin);
+
+        // 初始化24小时数据
+        for ($hour = 0; $hour < 24; $hour++) {
+            $data[$hour] = [
+                'hour' => $hour,
+                'total_count' => 0,
+                'success_count' => 0,
+                'fail_count' => 0,
+                'success_amount' => 0,
+                'success_rate' => 0,
+            ];
+        }
+
+        // 查询订单
+        $where = [
+            'pay_memberid' => $uid,
+            'pay_applydate' => ['between', [$todayStart, strtotime($todyEnd)]],
+        ];
+
+        $OrderModel = D('Order');
+        $orderList = $OrderModel->getOrderByDateRange('id, pay_amount, pay_status, pay_applydate', $where);
+
+        // 按小时统计
+        foreach ($orderList as $order) {
+            $hour = date('H', $order['pay_applydate']); // 0-23
+            $data[$hour]['total_count']++;
+
+            if ($order['pay_status'] == 1 || $order['pay_status'] == 2) {
+                $data[$hour]['success_count']++;
+                $data[$hour]['success_amount'] += $order['pay_amount'];
+            } else {
+                $data[$hour]['fail_count']++;
+            }
+        }
+
+        // 计算每小时成功率
+        foreach ($data as $hour => &$item) {
+            if ($item['total_count'] > 0) {
+                $item['success_rate'] = sprintf("%.2f", ($item['success_count'] / $item['total_count']) * 100);
+            }
+            $item['success_amount'] = sprintf("%.2f", $item['success_amount']);
+        }
+
+        return $data;
+    }
+
+    /**
+     * 格式化每小时成功率统计数据
+     * @param int $uid 商户号
+     * @return array 格式化后的统计数据
+     */
+    private function formatHourlySuccessRate($uid){
+        $hourlyData = $this->getHourlySuccessRate($uid);
+
+        $result = [
+            'date' => date('Y-m-d'),
+            'hours' => [],
+            'summary' => [
+                'total_count' => 0,
+                'success_count' => 0,
+                'fail_count' => 0,
+                'total_amount' => 0,
+                'success_rate' => 0,
+            ],
+        ];
+
+        foreach ($hourlyData as $hour => $data) {
+            $hourLabel = sprintf("%02d", $hour);
+            $result['hours'][$hour] = [
+                'label' => $hourLabel,
+                'total_count' => $data['total_count'],
+                'success_count' => $data['success_count'],
+                'fail_count' => $data['fail_count'],
+                'success_amount' => $data['success_amount'],
+                'success_rate' => $data['success_rate'],
+            ];
+
+            // 累加汇总
+            $result['summary']['total_count'] += $data['total_count'];
+            $result['summary']['success_count'] += $data['success_count'];
+            $result['summary']['fail_count'] += $data['fail_count'];
+            $result['summary']['total_amount'] += $data['success_amount'];
+        }
+
+        // 计算总体成功率
+        if ($result['summary']['total_count'] > 0) {
+            $result['summary']['success_rate'] = sprintf("%.2f",
+                ($result['summary']['success_count'] / $result['summary']['total_count']) * 100);
+        }
+        $result['summary']['total_amount'] = sprintf("%.2f", $result['summary']['total_amount']);
+
+        return $result;
+    }
+
+    /**
+     * 发送每小时成功率统计数据（详细版）
+     * @param int $uid 商户号
+     * @param int $chat_id 聊天ID
+     * @param int $message_id 消息ID
+     */
+    private function sendHourlySuccessRate($uid, $chat_id, $message_id){
+        $stats = $this->formatHourlySuccessRate($uid);
+
+        $message = "";
+        $message .= "代收实时数据\r\n\r\n";
+        $message .= "小时 | 总笔数 | 成功笔数 | 成功金额 | 成功率\r\n";
+        $message .= "---------------------------------------------\r\n";
+
+        // 显示有数据的时段
+        $hasData = false;
+        foreach ($stats['hours'] as $hour => $data) {
+            if ($data['total_count'] > 0) {
+                $hasData = true;
+                $message .= sprintf("%s | %d | %d | R$%s | %s%%\r\n",
+                    str_pad($hour, 2, '0', STR_PAD_LEFT),
+                    $data['total_count'],
+                    $data['success_count'],
+                    $data['success_amount'],
+                    $data['success_rate']
+                );
+            }
+        }
+
+        if (!$hasData) {
+            $message .= "今日暂无代收订单数据\r\n";
+        }
+
+        $message .= "---------------------------------------------\r\n";
+        $message .= "查询时间：" . date('Y-m-d H:i:s') . "\r\n";
+
+        $this->sendMessage($chat_id, $message, $message_id, 'Markdown');
+    }
+
+    /**
+     * 发送每小时成功率统计数据（简化版，只显示非零数据）
+     * @param int $uid 商户号
+     * @param int $chat_id 聊天ID
+     * @param int $message_id 消息ID
+     */
+    private function sendHourlySuccessRateSimple($uid, $chat_id, $message_id){
+        $stats = $this->formatHourlySuccessRate($uid);
+
+        $message = "";
+        $message .= "代收统计 [" . $stats['date'] . "]\r\n\r\n";
+        $message .= "小时 | 总笔数 | 成功笔数 | 成功率\r\n";
+        $message .= "---------------------------------------------\r\n";
+
+        // 显示有数据的时段
+        $hasData = false;
+        foreach ($stats['hours'] as $hour => $data) {
+            if ($data['total_count'] > 0) {
+                $hasData = true;
+                $arrow = '';
+                $rate = floatval($data['success_rate']);
+                if ($rate >= 80) {
+                    $arrow = '↑';
+                } elseif ($rate >= 50) {
+                    $arrow = '→';
+                } else {
+                    $arrow = '↓';
+                }
+                $message .= sprintf("%s %s | %d | %d | %s%%\r\n",
+                    str_pad($hour, 2, '0', STR_PAD_LEFT),
+                    $arrow,
+                    $data['total_count'],
+                    $data['success_count'],
+                    $data['success_rate']
+                );
+            }
+        }
+
+        if (!$hasData) {
+            $message .= "今日暂无订单数据\r\n";
+        }
+
+        $this->sendMessage($chat_id, $message, $message_id, 'Markdown');
+    }
+
     private function sanitizeText($text, $parse_mode) {
         if ($parse_mode == 'Markdown') {
             // 确保Markdown标记成对出现
@@ -1054,7 +1403,6 @@ class ApiController extends Controller
         curl_setopt($ch, CURLOPT_HEADER, false);
 
         $file_contents = curl_exec($ch);
-        //获取错误编码
         //获取错误编码
         $curlErrno = curl_errno($ch);
         if($curlErrno){

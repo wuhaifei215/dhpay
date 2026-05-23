@@ -869,7 +869,7 @@ class ApiController extends Controller
             }
 
             if($info['status'] == 2 || $info['status'] == 3){
-                $remark = 'https://' . C('DOMAIN') . '/Payment_Index_voucher.html?casOrdNo=' . $info['orderid'];
+//                $remark = 'https://' . C('DOMAIN') . '/Payment_Index_voucher.html?casOrdNo=' . $info['orderid'];
 
                 // $where['id'] = $info['df_id'];
                 // $pfa_list = M('PayForAnother')->where($where)->find();
@@ -905,7 +905,7 @@ class ApiController extends Controller
             }
             $message .= "开户名 ：`" . $info['bankfullname'] . "`\r\n";
             $message .= "账号 ：`" . $info['banknumber'] . "`\r\n";
-            if(isset($remark) || $remark!=''){
+            if(isset($remark) && $remark!=''){
                 $message .= "凭证地址 ：" . $remark . "\r\n";
             }
 

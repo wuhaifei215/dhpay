@@ -12,14 +12,17 @@ use Think\Log;
 class ApiController extends Controller
 {
     protected $code = 'Tel_Api';
-    protected $bot_name = 'I8Pay_PHP_Bot';
-    protected $token = '8257411210:AAHCedRvktdRdubtp8UjwgTYiwOTVfXBxsI';
+    protected $bot_name;
+    protected $token;
+    protected $title;
     protected $callback = '';
-    protected $title='I8Pay';
 
     public function __construct()
     {
         parent::__construct();
+        $this->bot_name = C('TELEGRAM_BOT_NAME');
+        $this->token = C('TELEGRAM_TOKEN');
+        $this->title = C('TELEGRAM_TITLE');
         $this->callback = 'https://' . C('DOMAIN') . '/Telegram_Api_receive.html';
     }
 

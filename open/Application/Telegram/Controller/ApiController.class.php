@@ -665,7 +665,7 @@ class ApiController extends Controller
         //查询代付订单
         if (strpos($text, '/df') !== false) {
             $order_info = self:: get_dforder($str[1], $userInfo['info']['id']);
-            $this->doDF($order_info, $chat_id, $message, $message_id);
+            $this->doDF($order_info, $chat_id, $message_id);
             return;
         }
 
@@ -674,7 +674,7 @@ class ApiController extends Controller
             // log_place_order($this->code . '_get_order', $message_id . "用户", $userInfo['info']['id']);    //日志
             $order_info = self:: get_order($str[1], $userInfo['info']['id']);
             // log_place_order($this->code . '_get_order', $message_id . "订单", json_encode($order_info, JSON_UNESCAPED_UNICODE));    //日志
-            $this->doDS($order_info, $chat_id, $message, $message_id);
+            $this->doDS($order_info, $chat_id, $message_id);
             return;
         }
 
@@ -847,7 +847,7 @@ class ApiController extends Controller
     }
 
     //代付处理
-    public function doDF($order_info, $chat_id, $message, $message_id, $parse_mode='Markdown'){
+    public function doDF($order_info, $chat_id, $message_id, $parse_mode='Markdown'){
         if ($order_info && $order_info['status'] === 1) {
             $info = $order_info['info'];
             $message = '';
@@ -869,7 +869,7 @@ class ApiController extends Controller
             }
 
             if($info['status'] == 2 || $info['status'] == 3){
-                $remark = 'https://' . C('DOMAIN') . '/Payment\_Index\_voucher.html?casOrdNo=' . $info['orderid'];
+                $remark = 'https://' . C('DOMAIN') . '/Payment_Index_voucher.html?casOrdNo=' . $info['orderid'];
 
                 // $where['id'] = $info['df_id'];
                 // $pfa_list = M('PayForAnother')->where($where)->find();
@@ -938,7 +938,7 @@ class ApiController extends Controller
     }
 
     //代收处理
-    public function doDS($order_info, $chat_id, $message, $message_id, $parse_mode='Markdown'){
+    public function doDS($order_info, $chat_id, $message_id, $parse_mode='Markdown'){
 
         if ($order_info && $order_info['status'] === 1) {
             $info = $order_info['info'];

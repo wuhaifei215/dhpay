@@ -19,10 +19,23 @@ class ApiController extends Controller
 
     public function __construct()
     {
+        // 数据库配置
+        $envFile = dirname(__FILE__) . '/../../../.env';
+        $env = array();
+        if (file_exists($envFile)) {
+            $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($lines as $line) {
+                if (strpos(trim($line), '#') === 0) continue;
+                if (strpos($line, '=') !== false) {
+                    list($key, $value) = explode('=', $line, 2);
+                    $env[trim($key)] = trim($value);
+                }
+            }
+        }
         parent::__construct();
-        $this->bot_name = C('TELEGRAM_BOT_NAME');
-        $this->token = C('TELEGRAM_TOKEN');
-        $this->title = C('TELEGRAM_TITLE');
+        $this->bot_name = isset($env['TELEGRAM_BOT_NAME']) ? $env['TELEGRAM_BOT_NAME'] : 'I8Pay_PHP_Bot';
+        $this->token = isset($env['TELEGRAM_TOKEN']) ? $env['TELEGRAM_TOKEN'] : '8257411210:AAHCedRvktdRdubtp8UjwgTYiwOTVfXBxsI';
+        $this->title = isset($env['TELEGRAM_TITLE']) ? $env['TELEGRAM_TITLE'] : 'I8Pay';
         $this->callback = 'https://' . C('DOMAIN') . '/Telegram_Api_receive.html';
     }
 

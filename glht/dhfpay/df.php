@@ -47,6 +47,10 @@ $default_notifyurl = $http_type . $glht_domain . "/dhfpay/notify.php";
 					<input type="text" name="bankcode" value="7710" />
 				</li>
                 <li>
+                    <label>账户类型</label>
+                    <input type="text" name="type" value="" />
+                </li>
+                <li>
                     <label>开户行</label>
                     <input type="text" name="bankname" value="" />
                 </li>

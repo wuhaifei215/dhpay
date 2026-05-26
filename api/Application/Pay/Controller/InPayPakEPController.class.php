@@ -85,17 +85,15 @@ class InPayPakEPController extends PayController
             'real_name' => "John Doe"
         ];
         $native = array(
-            'mch_no' => $return['mch_id'],
+            'mch_id' => $return['mch_id'],
             'out_trade_no' => $return['orderid'],
-            'amount' => sprintf('%.2f', $return['amount']),
-            'trade_type' =>'37',
-            'currency' => 'PKR',
+            'total_fee' => intval(sprintf('%.2f', $return['amount'])*100),
+            'pay_type' =>'092011',
+            'consumerNumber' =>"03" . randpw(9,'NUMBER'),
             'notify_url' => $return["notifyurl"],
-            'return_url' => $return["callbackurl"],
-            'client_ip' => '0.0.0.1',
-            'attach' => json_encode($real_name),
         );
-        $native['sign'] = $this->sign($native, $return['signkey']);
+        $signPars = $native['out_trade_no'] . $native['total_fee'] . $native['mch_id'] . $return['signkey'];
+        $native['sign'] =strtolower(md5($signPars));
         log_place_order($this->code, $return['orderid'] . "----提交", json_encode($native, JSON_UNESCAPED_UNICODE));    //日志
         log_place_order($this->code, $return['orderid'] . "----提交地址", $return['gateway']);    //日志
 
@@ -120,10 +118,10 @@ class InPayPakEPController extends PayController
         }catch (\Exception $e) {
             // var_dump($e);
         }
-        if($ans['code'] === 'success'){
-            echo '<script type="text/javascript">window.location.href="' . $ans['pay_url'] . '"</script>';
+        if($ans['result_code'] === 0){
+            echo '<script type="text/javascript">window.location.href="' . $ans['code_url'] . '"</script>';
         }else{
-            die($ans['msg']);
+            die($ans['err_msg']);
         }
     }
 
@@ -149,29 +147,21 @@ class InPayPakEPController extends PayController
         if (!$orderList) return;
 
         //验证IP白名单
-        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
-            $ip = $_SERVER['REMOTE_ADDR'];
-        } else {
-            $ip = getRealIp();
-        }
-
-        $check_re = check_IP($orderList['channel_id'], $ip, $orderid);
-        if ($check_re !== true) {
-            log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $ip);    //日志
-            $json_result = "IP异常:" . $ip;
+        if ($this->verifyIpWhitelist($orderList['channel_id'], $orderid) !== true) {
+            log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $this->getClientIp());    //日志
+            $json_result = "IP异常:" . $this->getClientIp();
             try{
-                logApiAddNotify($orderid, 0, $_REQUEST, $json_result);
+                logApiAddNotify($orderid, 0, $result, $json_result);
             }catch (\Exception $e) {
                 // var_dump($e);
             }
             return;
         }
 
-        $sign = $this->sign($result, $orderList['key']);
+        $signPars = $result['out_trade_no'] . $result['transaction_id'] . $result['time_end'] . $result['mch_id'] . $orderList['key'];
+        $sign =strtolower(md5($signPars));
         if ($sign == $result["sign"]) {
-            if($result['code'] == 'success'){     //状态 00成功 01失败
+            if($result['status'] === "0"){     //0:支付成功;1:未付款
                 $re = $this->EditMoney($orderList['pay_orderid'], $this->code, 0);
                 if ($re !== false) {
                     log_place_order($this->code . '_notifyurl', $orderid . "----回调上游", "成功");    //日志
@@ -198,44 +188,14 @@ class InPayPakEPController extends PayController
     //发送post请求，提交json字符串
     private function http_post_json($url, $postData)
     {
-        $json = json_encode($postData, JSON_UNESCAPED_UNICODE);
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => $json,
-            CURLOPT_HTTPHEADER => array(
-                'Content-Type: application/json',
-                'Content-Length:'.strlen($json)
-            ),
-        ));
-        $response = curl_exec($curl);
-        curl_close($curl);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded; charset=utf-8'));
+        $response = curl_exec($ch);
+        curl_close($ch);
         return $response;
-    }
-
-    /**
-     * 签名验证
-     * $param 数据数组
-     * $key 密钥
-     */
-    private function sign($param, $key)
-    {
-        $signPars = "";
-        ksort($param);
-        foreach ($param as $k => $v) {
-            if ("sign" != $k) {
-                $signPars .= $k . "=" . $v . "&";
-            }
-        }
-        $sign = hash_hmac('sha256', rtrim($signPars,'&'), $key);
-        log_place_order($this->code, "----签名", rtrim($signPars,'&'));    //日志
-        return $sign; //最终的签名
     }
 }

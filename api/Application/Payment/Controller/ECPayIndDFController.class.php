@@ -64,7 +64,11 @@ class ECPayIndDFController extends PaymentController
                     break;
             }
         } elseif($result['code'] === 500){
-            $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
+            if (strpos($result['msg'], 'order already exists') !== false) {
+                $return = ['status' => 1, 'msg' => '申请正常'];
+            }else{
+                $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
+            }
         } else {
             $return = ['status' => 0, 'msg' => $result['msg']];
         }

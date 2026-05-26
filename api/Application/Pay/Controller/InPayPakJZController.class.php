@@ -45,7 +45,7 @@ class InPayPakJZController extends PayController
         $redis->set($token, json_encode($return),600);
 
         $url = $site . 'Pay_' . $this->code . '_Orderpay?token=' . $token;
-        if ($array['userid'] != 2) {
+//        if ($array['userid'] != 2) {
             $return_arr = [
                 'status' => 'success',
                 'H5_url' => $url,
@@ -64,9 +64,9 @@ class InPayPakJZController extends PayController
                 // var_dump($e);
             }
             echo json_encode($return_arr);
-        } else {
-            echo '<script type="text/javascript">window.location.href="' . $url . '"</script>';
-        }
+//        } else {
+//            echo '<script type="text/javascript">window.location.href="' . $url . '"</script>';
+//        }
     }
 
     public function Orderpay()

@@ -439,8 +439,8 @@ class ApiController extends Controller
                 $message .= "商户数据播报\r\n--------------------------------\r\n";
                 $message .= "商户号 ：`" . $uid . "`\r\n";
                 $message .= "商户名称：`" . $userInfo['info']['username'] . "`\r\n";
-                $message .= "可用余额：" . $userInfo['info']['balance_php'] . "\r\n";
-                $message .= "冻结余额：" . $userInfo['info']['blockedbalance_php'] . "\r\n";
+                $message .= "可用余额：" . $userInfo['info']['balance'] . "\r\n";
+                $message .= "冻结余额：" . $userInfo['info']['blockedbalance'] . "\r\n";
                 $message .= "======代收数据======\r\n";
                 $message .= "订单金额：" . $statistics['all_o_sum'] . "  ";
                 $message .= "笔数：" . $statistics['all_o_num'] . "\r\n";
@@ -992,19 +992,19 @@ class ApiController extends Controller
 
     //获取集团账号下的用户余额信息
     public function getGroup5User($uid,$chat_id, $message_id){
-        $all_balance_php=0;
+        $all_balance=0;
         $message='';
         $message .= "余额播报时间：" . date('Y-m-d H:i:s')  . "\r\n";
         $where=[];
         $where['parentid'] = $uid;
-        $info = M('Member')->field('id, username, balance_php')->where($where)->select();
+        $info = M('Member')->field('id, username, balance')->where($where)->select();
         if(!empty($info)){
             foreach($info as $v){
-                $message .= "[" . $v['username'] . "]余额：" . $v['balance_php']  . "\r\n";
-                $all_balance_php += $v['balance_php'];
+                $message .= "[" . $v['username'] . "]余额：" . $v['balance']  . "\r\n";
+                $all_balance += $v['balance'];
             }
         }
-        $message .= "合计余额：" . $all_balance_php  . "\r\n";
+        $message .= "合计余额：" . $all_balance  . "\r\n";
         return $this->sendMessage($chat_id, $message, $message_id);
     }
 

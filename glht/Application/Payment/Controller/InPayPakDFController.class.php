@@ -17,29 +17,34 @@ class InPayPakDFController extends PaymentController
     public function PaymentExec($data, $config)
     {
         if($data['bankname']=='JAZZCASH'){
-            $bankCode = 'H038';     //JazzCash	H038    JazzCash
+            $bankCode = '097';
         }elseif($data['bankname']=='EASYPAISA'){
-            $bankCode = 'H001';     //Easypaisa	H001	Easypaisa Bank Limited巴基斯坦数字银行
+            $bankCode = '096';
         }else{
             $return = ['status' => 3, 'msg' => '支付类型错误'];
             return $return;
         }
         $post_data = array(
-            "mch_no" => $config['mch_id'], //商户号
+            "mch_id" => $config['mch_id'], //商户号
             "out_trade_no" => $data['orderid'], //订单号
-            "amount" => sprintf("%.2f", $data['money']),  //提现金额
-            "bank" => $bankCode,       //银行卡名称
-            "sub_branch" => $data['bankzhiname'],
-            "account_name" => $data['bankfullname'],  //户名，仅支持英文，不支持越南语
-            "card_number" => $data['banknumber'],    //账号
-            "currency" => 'PKR',
-            "province" => '',
-            "city" => '',
-            "client_ip" => '0.0.0.1',
-            "attach" => '',
+            "total_fee" => intval(sprintf("%.2f", $data['money']) * 100),  //提现金额
+            "pay_type" => '869201',
+            "body" => 'pk',
+            "bank_account" => $data['banknumber'],    //账号
+            "account_holder" => $data['bankfullname'],  //户名
+            "deposit_bank_code" => $bankCode,
+            "deposit_bank" => $bankCode,
+            "acct_type" => 'bank',
+            "province" => 'pk',
+            "city" => 'pk',
+            "sub_branch" => 'pk',
+            "account_holder_id" => 'pk',
             "notify_url" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
         );
-        $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
+        $attach = json_decode($data['extends'],true);
+        $post_data['account_holder_mobile'] = $attach['phone'];
+        $signPars = $post_data['out_trade_no'] . $post_data['total_fee'] . $post_data['bank_account'] . $post_data['account_holder'] . $post_data['deposit_bank'] . $post_data['account_holder_mobile'] . $post_data['mch_id'] . $config['signkey'];
+        $post_data['sign'] =strtolower(md5($signPars));
         log_place_order($this->code, $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
         log_place_order($this->code, $data['orderid'] . "----提交地址", $config['exec_gateway']);    //日志
 
@@ -67,10 +72,10 @@ class InPayPakDFController extends PaymentController
         }
 
         // log_place_order($this->code, $data['orderid'] . "----状态：", $result['status']);    //日志
-        if ($result['code'] === 'success') {
+        if ($result['result_code'] === 0) {
             $return = ['status' => 1, 'msg' => '申请正常'];
         }else{
-            $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
+            $return = ['status' => 3, 'msg' => '申请失败--'. $result['err_msg']];
         }
         return $return;
     }
@@ -89,17 +94,28 @@ class InPayPakDFController extends PaymentController
         $tableName = $Wttklistmodel->getRealTableName($date);
         $Order = $Wttklistmodel->table($tableName)->where(['orderid' => $orderid])->find();
 
-        // $Order = $this->selectOrder(['orderid' => $orderid]);
         if (!$Order) {
             log_place_order($this->code . '_notifyurl', $orderid . '----没有查询到Order！ ', $orderid);
             exit;
         }
 
         $config = M('pay_for_another')->where(['code' => $this->code,'id'=>$Order['df_id']])->find();
+        //验证IP白名单
+        if ($this->verifyNotifyIp($config['notifyip'], $orderid) !== true) {
+            log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $this->getClientIp().'==='.$config['notifyip']);    //日志
+            $json_result = "IP异常:" . $this->getClientIp().'==='.$config['notifyip'];
+            try{
+                logApiAddNotify($orderid, 1, $re_data, $json_result);
+            }catch (\Exception $e) {
+                // var_dump($e);
+            }
+            return;
+        }
 
-        $sign = $this->get_sign($re_data, $config['signkey']);
+        $signPars = $re_data['out_trade_no'] . $re_data['transaction_id'] . $re_data['time_end'] . $re_data['mch_id'] . $config['signkey'];
+        $sign =strtolower(md5($signPars));
         if ($sign === $re_data["sign"]) {
-            if ($re_data['code'] === "success") {
+            if ($re_data['status'] === "0") {
                 //代付成功 更改代付状态 完善代付逻辑
                 $data = [
                     'memo' => '代付成功',
@@ -107,9 +123,9 @@ class InPayPakDFController extends PaymentController
                 $this->changeStatus($Order['id'], 2, $data, $tableName);
                 // $this->handle($Order['id'], 2, $data, $tableName);
                 log_place_order($this->code . '_notifyurl', $orderid, "----代付成功");    //日志
-            } else {
+            } elseif ($re_data['status'] === "1") {
                 $data = [
-                    'memo' => '代付失败-' . $re_data['msg'],
+                    'memo' => '代付失败',
                 ];
                 $this->changeStatus($Order['id'], 3, $data, $tableName);
                 // $this->handle($Order['id'], 3, $data, $tableName);
@@ -135,15 +151,18 @@ class InPayPakDFController extends PaymentController
             $id = I('post.id', 1);
             $config = M('pay_for_another')->where(['id' => $id,'code' => $this->code])->find();
             $post_data = array(
-                "mch_no" => $config['mch_id'], //商户号
+                "mch_id" => $config['mch_id'], //商户号
             );
-            $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
+            $signPars = $post_data['mch_id'] . $config['signkey'];
+            $post_data['sign'] =strtolower(md5($signPars));
             log_place_order($this->code . '_queryBalance', "提交", json_encode($post_data));    //日志
             $returnContent = $this->http_post_json($config['serverreturn'], $post_data);
             log_place_order($this->code . '_queryBalance', "返回", $returnContent);    //日志
             $result = json_decode($returnContent, true);
-            $currencyCode = $result['currency'];
-            $balance = $result['balance'];  //可用金额
+
+            $account_amount = $result['account_amount'] / 100;  //可用金额
+            $total_amount = $result['total_amount'] / 100;  //总余额
+            $frozen_amount = $result['frozen_amount'] / 100;  //冻结余额
             $html = <<<AAA
 <!-- CSS goes in the document HEAD or added to your external stylesheet -->
 <style type="text/css">
@@ -154,7 +173,9 @@ table.hovertable td {border-width: 1px;padding: 8px;border-style: solid;border-c
 </style>
 <table class="hovertable">
 <tr><th>说明</th><th>值</th></tr>
-<tr onmouseout="this.style.backgroundColor='#f5f5f5';" onmouseover="this.style.backgroundColor='#009688';"><td>可用金额</td><td><b>$balance $currencyCode</b></td></tr>
+<tr onmouseout="this.style.backgroundColor='#f5f5f5';" onmouseover="this.style.backgroundColor='#009688';"><td>可用金额</td><td><b>$account_amount</b></td></tr>
+<tr onmouseout="this.style.backgroundColor='#f5f5f5';" onmouseover="this.style.backgroundColor='#009688';"><td>总余额</td><td><b>$total_amount</b></td></tr>
+<tr onmouseout="this.style.backgroundColor='#f5f5f5';" onmouseover="this.style.backgroundColor='#009688';"><td>冻结余额</td><td><b>$frozen_amount</b></td></tr>
 </table>
 AAA;
             $this->ajaxReturn(['status' => 1, 'msg' => '成功', 'data' => $html]);
@@ -165,22 +186,28 @@ AAA;
     public function PaymentQuery($data, $config)
     {
         $post_data = array(
-            "mch_no" => $config['mch_id'], //商户号
+            "mch_id" => $config['mch_id'], //商户号
+            "out_trade_no" => $data['orderid'],
         );
-        $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
+        $signPars = $post_data['out_trade_no'] . $config['mch_id'] . $config['signkey'];
+        $post_data['sign'] =strtolower(md5($signPars));
         log_place_order($this->code . '_PaymentQuery', $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
         $returnContent = $this->http_post_json($config['serverreturn'], $post_data);
         $result = json_decode($returnContent, true);
         log_place_order($this->code . '_PaymentQuery', $data['orderid'] . "----返回", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
-        if ($result['code'] === "success") {
-            switch ($result['status']) {       //PENDING,SUCCESS,FAIL（状态对应付款中，付款成功，付款失败）
-                case 'wait':
+        if ($result['result_code']) {
+            switch ($result['result_code']) {
+                case 0:
+                case 1:
+                case 2:
+                case -2:
                     $return = ['status' => 1, 'msg' => '处理中'];
                     break;
-                case 'success':
+                case 3:
                     $return = ['status' => 2, 'msg' => '成功'];
                     break;
-                case 'fail':
+                case 4:
+                case 5:
                     $return = ['status' => 3, 'msg' => '失败','remark' => $result['msg']];
                     break;
             }
@@ -193,45 +220,14 @@ AAA;
     //发送post请求，提交json字符串
     private function http_post_json($url, $postData)
     {
-        $json = json_encode($postData, JSON_UNESCAPED_UNICODE);
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => $json,
-            CURLOPT_HTTPHEADER => array(
-                'Content-Type: application/json',
-                'Content-Length:'.strlen($json)
-            ),
-        ));
-        $response = curl_exec($curl);
-        curl_close($curl);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded; charset=utf-8'));
+        $response = curl_exec($ch);
+        curl_close($ch);
         return $response;
-    }
-
-
-    /**
-     * 签名算法
-     * @param $data         请求数据
-     * @param $md5Key       md5秘钥
-     */
-    private function get_sign($param, $key)
-    {
-        $signPars = "";
-        ksort($param);
-        foreach ($param as $k => $v) {
-            if ("sign" != $k) {
-                $signPars .= $k . "=" . $v . "&";
-            }
-        }
-        $sign = hash_hmac('sha256', rtrim($signPars,'&'), $key);
-        log_place_order($this->code, "----签名", rtrim($signPars,'&'));    //日志
-        return $sign; //最终的签名
     }
 }

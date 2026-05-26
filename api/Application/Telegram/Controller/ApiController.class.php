@@ -37,7 +37,7 @@ class ApiController extends Controller
         $this->bot_name = isset($env['TELEGRAM_BOT_NAME']) ? $env['TELEGRAM_BOT_NAME'] : 'I8Pay_PHP_Bot';
         $this->token = isset($env['TELEGRAM_TOKEN']) ? $env['TELEGRAM_TOKEN'] : '8257411210:AAHCedRvktdRdubtp8UjwgTYiwOTVfXBxsI';
         $this->title = isset($env['TELEGRAM_TITLE']) ? $env['TELEGRAM_TITLE'] : 'I8Pay';
-        $this->channel_url = isset($env['TELEGRAM_CHANEL_URL']) ? $env['TELEGRAM_CHANEL_URL'] : 'https://t.me/i8Pay1';
+        $this->channel_url = isset($env['TELEGRAM_CHANEL_URL']) ? $env['TELEGRAM_CHANEL_URL'] : '';
         $this->callback = 'https://' . C('DOMAIN') . '/Telegram_Api_receive.html';
     }
 
@@ -457,14 +457,15 @@ class ApiController extends Controller
                 $message .= "--------------------------------\r\n";
                 $message .= "查询时间：" . date('Y-m-d H:i:s', time()) . "\r\n";
                 $message .= "当前余额及时核对以此为准，如有疑问联系值班客服\r\n";
-
-                $btn['text'] = $this->title . '官方频道，点击进入';
-                $btn['url'] = $this->channel_url;
-                $markup = [
-                    'inline_keyboard'=>[[
-                        $btn
-                    ]],
-                ];
+                if($this->channel_url!=''){
+                    $btn['text'] = $this->title . '官方频道，点击进入';
+                    $btn['url'] = $this->channel_url;
+                    $markup = [
+                        'inline_keyboard'=>[[
+                            $btn
+                        ]],
+                    ];
+                }
 
                 $this->sendMessage($chat_id, $message, $message_id, 'Markdown',$markup);
             }

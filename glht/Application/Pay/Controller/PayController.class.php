@@ -1048,4 +1048,33 @@ class PayController extends Controller
         $orderList = $OrderModel->table($tablename)->where(['pay_orderid' => $orderid])->find();
         return $orderList;
     }
+
+    /**
+     * 获取客户端IP
+     * @return string
+     */
+    protected function getClientIp()
+    {
+        //验证IP白名单
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        } else {
+            $ip = getRealIp();
+        }
+        return $ip;
+    }
+
+    /**
+     * 验证IP白名单
+     * @param int $channelId 渠道ID
+     * @param string $orderid 订单号（用于日志记录）
+     * @return bool 验证通过返回true，否则返回false
+     */
+    protected function verifyIpWhitelist($channelId, $orderid)
+    {
+        $ip = $this->getClientIp();
+        return check_IP($channelId, $ip, $orderid);
+    }
 }

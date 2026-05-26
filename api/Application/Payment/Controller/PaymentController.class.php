@@ -386,4 +386,32 @@ class PaymentController extends Controller
         return $redis;
     }
 
+    /**
+     * 获取客户端IP
+     * @return string
+     */
+    protected function getClientIp()
+    {
+        //验证IP白名单
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        } else {
+            $ip = getRealIp();
+        }
+        return $ip;
+    }
+
+    /**
+     * 验证代付回调IP白名单
+     * @param string $notifyIp IP白名单字符串（逗号分隔）
+     * @param string $orderid 订单号（用于日志记录）
+     * @return bool 验证通过返回true，否则返回false
+     */
+    protected function verifyNotifyIp($notifyIp, $orderid = '')
+    {
+        $ip = $this->getClientIp();
+        return checkNotifyurlIp($ip, $notifyIp);
+    }
 }

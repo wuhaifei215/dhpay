@@ -57,7 +57,7 @@
                                                 <select name="strategyid" id="strategySelect">
                                                     <option value="0">-- 不启用策略（清除） --</option>
                                                     <volist name="strategies" id="s">
-                                                    <option value="<{$s.id}>"><{$s.name}> (ID: <{$s.id}>)</option>
+                                                    <option value="<{$s.id}>"><{$s.name}> (<{$s.currency}>)</option>
                                                     </volist>
                                                 </select>
                                             </div>
@@ -90,7 +90,7 @@
                                 <if condition="$k%2 eq 1"><tr></if>
                                 <td>
                                     <input type="checkbox" title="" value="<{$vo.id}>" class='checkIds' lay-skin="primary">
-                                    &nbsp; <{$vo['id']|shanghubianhao=###}> == <{$vo.username}>
+                                    &nbsp; <{$vo['id']|shanghubianhao=###}> == <{$vo.username}> (<{$vo.currency}>)
                                 </td>
                                 <if condition="$k%2 eq 0"></tr></if>
                             </volist>

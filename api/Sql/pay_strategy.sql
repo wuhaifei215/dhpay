@@ -10,12 +10,14 @@ DROP TABLE IF EXISTS `pay_strategy`;
 CREATE TABLE `pay_strategy` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL COMMENT '策略名称',
+  `currency` VARCHAR(10) NOT NULL COMMENT '国家货币',
   `type` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '1:代收 2:代付',
   `status` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '状态 0关闭 1开启',
   `createtime` DATETIME DEFAULT NULL,
   `updatetime` DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_type_status` (`type`, `status`)
+  KEY `idx_type_status` (`type`, `status`),
+  KEY `idx_currency` (`currency`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='策略主表';
 
 -- ----------------------------
@@ -70,6 +72,7 @@ CREATE TABLE `pay_strategy_log` (
   `tier_id` INT(11) UNSIGNED DEFAULT NULL COMMENT '匹配到的档位ID',
   `channel_id` INT(11) UNSIGNED DEFAULT NULL COMMENT '最终分配的通道ID',
   `match_result` VARCHAR(50) DEFAULT NULL COMMENT '匹配结果：strategy_match/tier_match/channel_found/default_fallback',
+  `currency` VARCHAR(10) DEFAULT NULL COMMENT '国家货币',
   `createtime` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_userid_type` (`userid`, `type`),
@@ -81,23 +84,50 @@ CREATE TABLE `pay_strategy_log` (
 -- 预置数据
 -- ============================================
 
--- 代收策略
-INSERT INTO `pay_strategy` (`id`, `name`, `type`, `status`, `createtime`) VALUES
-(1, '代收策略-默认', 1, 1, NOW());
+-- 代收策略（按国家）
+INSERT INTO `pay_strategy` (`id`, `name`, `currency`, `type`, `status`, `createtime`) VALUES
+(1, '代收策略-PHP', 'PHP', 1, 1, NOW()),
+(2, '代收策略-PKR', 'PKR', 1, 1, NOW()),
+(3, '代收策略-BRL', 'BRL', 1, 1, NOW()),
+(4, '代收策略-VND', 'VND', 1, 1, NOW());
 
 -- 代收金额档位
 INSERT INTO `pay_strategy_tier` (`strategyid`, `tier_name`, `tier_min`, `tier_max`, `sort`, `createtime`) VALUES
 (1, '小额档', 5.00, 100.00, 1, NOW()),
 (1, '中额档', 101.00, 4999.00, 2, NOW()),
 (1, '大额档', 5000.00, 15000.00, 3, NOW()),
-(1, '超额档', 15001.00, 50000.00, 4, NOW());
+(1, '超额档', 15001.00, 50000.00, 4, NOW()),
+(2, '小额档', 5.00, 100.00, 1, NOW()),
+(2, '中额档', 101.00, 4999.00, 2, NOW()),
+(2, '大额档', 5000.00, 15000.00, 3, NOW()),
+(2, '超额档', 15001.00, 50000.00, 4, NOW()),
+(3, '小额档', 5.00, 100.00, 1, NOW()),
+(3, '中额档', 101.00, 4999.00, 2, NOW()),
+(3, '大额档', 5000.00, 15000.00, 3, NOW()),
+(3, '超额档', 15001.00, 50000.00, 4, NOW()),
+(4, '小额档', 5.00, 100.00, 1, NOW()),
+(4, '中额档', 101.00, 4999.00, 2, NOW()),
+(4, '大额档', 5000.00, 15000.00, 3, NOW()),
+(4, '超额档', 15001.00, 50000.00, 4, NOW());
 
--- 代付策略
-INSERT INTO `pay_strategy` (`id`, `name`, `type`, `status`, `createtime`) VALUES
-(2, '代付策略-默认', 2, 1, NOW());
+-- 代付策略（按国家）
+INSERT INTO `pay_strategy` (`id`, `name`, `currency`, `type`, `status`, `createtime`) VALUES
+(5, '代付策略-PHP', 'PHP', 2, 1, NOW()),
+(6, '代付策略-PKR', 'PKR', 2, 1, NOW()),
+(7, '代付策略-BRL', 'BRL', 2, 1, NOW()),
+(8, '代付策略-VND', 'VND', 2, 1, NOW());
 
 -- 代付金额档位
 INSERT INTO `pay_strategy_tier` (`strategyid`, `tier_name`, `tier_min`, `tier_max`, `sort`, `createtime`) VALUES
-(2, '小额档', 10.00, 100.00, 1, NOW()),
-(2, '中额档', 101.00, 4999.00, 2, NOW()),
-(2, '大额档', 5000.00, 15000.00, 3, NOW());
+(5, '小额档', 10.00, 100.00, 1, NOW()),
+(5, '中额档', 101.00, 4999.00, 2, NOW()),
+(5, '大额档', 5000.00, 15000.00, 3, NOW()),
+(6, '小额档', 10.00, 100.00, 1, NOW()),
+(6, '中额档', 101.00, 4999.00, 2, NOW()),
+(6, '大额档', 5000.00, 15000.00, 3, NOW()),
+(7, '小额档', 10.00, 100.00, 1, NOW()),
+(7, '中额档', 101.00, 4999.00, 2, NOW()),
+(7, '大额档', 5000.00, 15000.00, 3, NOW()),
+(8, '小额档', 10.00, 100.00, 1, NOW()),
+(8, '中额档', 101.00, 4999.00, 2, NOW()),
+(8, '大额档', 5000.00, 15000.00, 3, NOW());

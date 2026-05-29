@@ -36,6 +36,16 @@
                         <form method="get" action="<{:U('index')}>" class="form-inline" style="margin-bottom: 15px;">
                             <input type="hidden" name="type" value="<{$type}>">
                             <div class="form-group">
+                                <label>国家：</label>
+                                <select name="currency" class="form-control">
+                                    <option value="">全部</option>
+                                    <volist name="country" id="c">
+                                    <option value="<{$c.currency}>" <if condition="$currency eq $c['currency']">selected</if>><{$c.title}> (<{$c.currency}>)</option>
+                                    </volist>
+                                </select>
+                            </div>
+                            &nbsp;&nbsp;
+                            <div class="form-group">
                                 <label>状态：</label>
                                 <select name="status" class="form-control">
                                     <option value="">全部</option>
@@ -53,6 +63,7 @@
                                     <tr>
                                         <th>编号</th>
                                         <th>策略名称</th>
+                                        <th>国家</th>
                                         <th>类型</th>
                                         <th>档位数量</th>
                                         <th>使用商户</th>
@@ -66,12 +77,13 @@
                                     <tr>
                                         <td><{$p.id}></td>
                                         <td><{$p.name}></td>
+                                        <td><{$p.currency}></td>
                                         <td><{$typeMap[$p['type']]}></td>
                                         <td><{$p.tier_count}></td>
                                         <td><{$p.member_count}></td>
                                         <td>
                                             <div class="layui-form">
-                                                <input type="checkbox" <if condition="$p['status']">checked</if> name="status" value="1" data-id="<{$p.id}>" data-name="<{$p.name}>" lay-skin="switch" lay-filter="switchStatus" lay-text="开启|关闭">
+                                                <input type="checkbox" <if condition="$p['status']">checked</if> name="status" value="1" data-id="<{$p.id}>" data-name="<{$p.name}>" data-currency="<{$p.currency}>" lay-skin="switch" lay-filter="switchStatus" lay-text="开启|关闭">
                                             </div>
                                         </td>
                                         <td><{$p.createtime}></td>
@@ -85,7 +97,7 @@
                                     </tr>
                                 </volist>
                                 <if condition="empty($list)">
-                                    <tr><td colspan="8" class="text-center">暂无数据</td></tr>
+                                    <tr><td colspan="9" class="text-center">暂无数据</td></tr>
                                 </if>
                                 </tbody>
                             </table>
@@ -111,11 +123,12 @@
         form.on('switch(switchStatus)', function(data){
             var id = $(this).attr('data-id'),
             status = this.checked ? 1 : 0,
-            name = $(this).attr('data-name');
+            name = $(this).attr('data-name'),
+            currency = $(this).attr('data-currency');
             $.ajax({
                 url:"<{:U('edit')}>",
                 type:'post',
-                data:{id: id, name: name, type: <{$type}>, status: status},
+                data:{id: id, name: name, currency: currency, type: <{$type}>, status: status},
                 success:function(res){
                     if(res.status == 1){
                         layer.tips('状态已更新', data.othis);
@@ -133,7 +146,7 @@
                 fix: false,
                 maxmin: true,
                 shadeClose: true,
-                area: ['500px', '300px'],
+                area: ['500px', '380px'],
                 shade: 0.4,
                 title: "添加策略",
                 content: "<{:U('edit?type='.$type)}>"
@@ -147,7 +160,7 @@
             fix: false,
             maxmin: true,
             shadeClose: true,
-            area: ['500px', '300px'],
+            area: ['500px', '380px'],
             shade: 0.4,
             title: "编辑策略",
             content: url

@@ -54,12 +54,21 @@ class StrategyController extends BaseController
 
         $type = I('get.type', 1, 'intval');
         $status = I('get.status', '');
+        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $typename = isset($this->typeMap[$type]) ? $this->typeMap[$type] : '代收';
 
         $where = ['type' => $type];
         if ($status !== '') {
             $where['status'] = $status;
         }
+        if ($currency !== '') {
+            $where['currency'] = $currency;
+        }
+
+        // 国家列表
+        $country = M('Country')->where(['status' => 1])->select();
+        $this->assign('country', $country);
+        $this->assign('currency', $currency);
 
         $count = M('Strategy')->where($where)->count();
         $size = 15;
@@ -99,18 +108,27 @@ class StrategyController extends BaseController
      */
     public function edit()
     {
+        // 获取国家列表
+        $country = M('Country')->where(['status' => 1])->select();
+        $this->assign('country', $country);
+
         if (IS_POST) {
             $id = I('post.id', 0, 'intval');
             $name = I('post.name', '', 'trim');
+            $currency = I('post.currency', '', 'trim');
             $type = I('post.type', 1, 'intval');
             $status = I('post.status', 1, 'intval');
 
             if (empty($name)) {
                 $this->ajaxReturn(['status' => 0, 'msg' => '策略名称不能为空']);
             }
+            if (empty($currency)) {
+                $this->ajaxReturn(['status' => 0, 'msg' => '请选择国家']);
+            }
 
             $data = [
                 'name' => $name,
+                'currency' => $currency,
                 'type' => $type,
                 'status' => $status,
             ];
@@ -392,6 +410,10 @@ class StrategyController extends BaseController
                 if ($strategy['type'] != $type) {
                     $this->ajaxReturn(['status' => 0, 'msg' => '策略类型不匹配']);
                 }
+                // 国家校验
+                if ($strategy['currency'] !== $member['currency']) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => '策略国家与商户不匹配']);
+                }
             }
 
             // 先删除旧配置
@@ -436,8 +458,8 @@ class StrategyController extends BaseController
             $this->error('商户不存在');
         }
 
-        // 获取可用的策略列表
-        $strategys = M('Strategy')->where(['type' => $type, 'status' => 1])->select();
+        // 获取可用的策略列表（仅显示与商户同国家的策略）
+        $strategys = M('Strategy')->where(['type' => $type, 'status' => 1, 'currency' => $member['currency']])->select();
 
         // 获取当前配置
         $current = M('MemberStrategy')->where(['userid' => $userid, 'type' => $type])->find();
@@ -601,11 +623,21 @@ class StrategyController extends BaseController
 
         $successCount = 0;
         $existCount = 0;
+        $skipCount = 0;
         $db = M();
         $db->startTrans();
 
         try {
             foreach ($useridArr as $userid) {
+                // 检查商户国家是否与策略匹配
+                if ($strategyid > 0) {
+                    $member = M('Member')->find($userid);
+                    if (!$member || $member['currency'] !== $strategy['currency']) {
+                        $skipCount++;
+                        continue;
+                    }
+                }
+
                 // 检查是否已存在配置
                 $exist = M('MemberStrategy')->where(['userid' => $userid, 'type' => $type])->find();
 
@@ -633,9 +665,9 @@ class StrategyController extends BaseController
 
             $db->commit();
 
-            UserLogService::HTwrite(1, '批量分配策略', "批量分配策略：类型={$type}，策略ID={$strategyid}，新增={$successCount}，更新={$existCount}");
+            UserLogService::HTwrite(1, '批量分配策略', "批量分配策略：类型={$type}，策略ID={$strategyid}，新增={$successCount}，更新={$existCount}，跳过={$skipCount}");
 
-            $this->success("操作成功：新增 {$successCount} 条，更新 {$existCount} 条");
+            $this->success("操作成功：新增 {$successCount} 条，更新 {$existCount} 条，跳过 {$skipCount} 条（国家不匹配）");
         } catch (\Exception $e) {
             $db->rollback();
             $this->error('操作失败：' . $e->getMessage());
@@ -684,6 +716,9 @@ class StrategyController extends BaseController
             $strategy = M('Strategy')->where(['id' => $strategyid, 'type' => $type, 'status' => 1])->find();
             if (!$strategy) {
                 $this->error('策略不存在或已禁用');
+            }
+            if ($strategy['currency'] !== $currency) {
+                $this->error('策略与国家不匹配');
             }
         }
 
@@ -777,12 +812,22 @@ class StrategyController extends BaseController
 
         $successCount = 0;
         $existCount = 0;
+        $skipCount = 0;
         $db = M();
         $db->startTrans();
 
         try {
             foreach ($members as $member) {
                 $userid = $member['id'];
+
+                // 检查商户国家是否与策略匹配
+                if ($strategyid > 0) {
+                    if ($member['currency'] !== $strategy['currency']) {
+                        $skipCount++;
+                        continue;
+                    }
+                }
+
                 // 检查是否已存在配置
                 $exist = M('MemberStrategy')->where(['userid' => $userid, 'type' => $type])->find();
 
@@ -810,9 +855,9 @@ class StrategyController extends BaseController
 
             $db->commit();
 
-            UserLogService::HTwrite(1, '按包网批量分配策略', "按包网批量分配策略：类型={$type}，策略ID={$strategyid}，包网数=" . count($agencyArr) . "，商户新增={$successCount}，商户更新={$existCount}");
+            UserLogService::HTwrite(1, '按包网批量分配策略', "按包网批量分配策略：类型={$type}，策略ID={$strategyid}，包网数=" . count($agencyArr) . "，商户新增={$successCount}，商户更新={$existCount}，跳过={$skipCount}");
 
-            $this->success("操作成功：新增 {$successCount} 条，更新 {$existCount} 条");
+            $this->success("操作成功：新增 {$successCount} 条，更新 {$existCount} 条，跳过 {$skipCount} 条（国家不匹配）");
         } catch (\Exception $e) {
             $db->rollback();
             $this->error('操作失败：' . $e->getMessage());

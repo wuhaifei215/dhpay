@@ -49,29 +49,41 @@ class StrategyRouteService
      * @param float $amount 交易金额
      * @param int $type 1:代收 2:代付
      * @param string $outTradeNo 订单号（可选）
+     * @param string $currency 国家货币代码（可选，默认从商户表获取）
      * @return array|null 返回通道配置或null
      */
-    public function routeChannel($userid, $amount, $type = 1, $outTradeNo = '')
+    public function routeChannel($userid, $amount, $type = 1, $outTradeNo = '', $currency = '')
     {
+        // 获取商户的国家货币
+        if (empty($currency)) {
+            $member = M('Member')->where(['id' => $userid])->find();
+            $currency = isset($member['currency']) ? $member['currency'] : '';
+        }
+
         // 获取商户策略配置
         $strategyConfig = $this->getMemberStrategy($userid, $type);
         if (!$strategyConfig || $strategyConfig['status'] != 1) {
-            // 未配置策略或策略未启用，返回null走原有逻辑
-            $this->logRoute($userid, $type, $amount, null, null, null, 'no_strategy', $outTradeNo);
+            $this->logRoute($userid, $type, $amount, null, null, null, 'no_strategy', $outTradeNo, $currency);
             return null;
         }
 
-        // 获取策略信息
+        // 获取策略信息，并校验国家匹配
         $strategy = $this->getStrategyInfo($strategyConfig['strategyid']);
         if (!$strategy || $strategy['status'] != 1) {
-            $this->logRoute($userid, $type, $amount, $strategyConfig['strategyid'], null, null, 'strategy_disabled', $outTradeNo);
+            $this->logRoute($userid, $type, $amount, $strategyConfig['strategyid'], null, null, 'strategy_disabled', $outTradeNo, $currency);
+            return null;
+        }
+
+        // 国家校验：策略的currency必须与商户一致
+        if (!empty($currency) && isset($strategy['currency']) && $strategy['currency'] !== '' && $strategy['currency'] !== $currency) {
+            $this->logRoute($userid, $type, $amount, $strategyConfig['strategyid'], null, null, 'currency_mismatch', $outTradeNo, $currency);
             return null;
         }
 
         // 查询策略的金额档位
         $tier = $this->getTierByAmount($strategyConfig['strategyid'], $amount, $type);
         if (!$tier) {
-            $this->logRoute($userid, $type, $amount, $strategyConfig['strategyid'], null, null, 'no_tier_match', $outTradeNo);
+            $this->logRoute($userid, $type, $amount, $strategyConfig['strategyid'], null, null, 'no_tier_match', $outTradeNo, $currency);
             return null;
         }
 
@@ -84,9 +96,9 @@ class StrategyRouteService
 
         // 记录日志
         if ($channel) {
-            $this->logRoute($userid, $type, $amount, $strategyConfig['strategyid'], $tier['id'], $channel['id'], 'success', $outTradeNo);
+            $this->logRoute($userid, $type, $amount, $strategyConfig['strategyid'], $tier['id'], $channel['id'], 'success', $outTradeNo, $currency);
         } else {
-            $this->logRoute($userid, $type, $amount, $strategyConfig['strategyid'], $tier['id'], null, 'no_channel_available', $outTradeNo);
+            $this->logRoute($userid, $type, $amount, $strategyConfig['strategyid'], $tier['id'], null, 'no_channel_available', $outTradeNo, $currency);
         }
 
         return $channel;
@@ -411,9 +423,8 @@ class StrategyRouteService
      * @param string $result 结果
      * @param string $outTradeNo 订单号
      */
-    private function logRoute($userid, $type, $amount, $strategyId, $tierId, $channelId, $result, $outTradeNo = '')
+    private function logRoute($userid, $type, $amount, $strategyId, $tierId, $channelId, $result, $outTradeNo = '', $currency = '')
     {
-        // 检查是否开启日志记录
         if (C('STRATEGY_LOG_ENABLED') !== true) {
             return;
         }
@@ -428,12 +439,12 @@ class StrategyRouteService
                 'channel_id' => $channelId,
                 'match_result' => $result,
                 'out_trade_no' => $outTradeNo,
+                'currency' => $currency,
                 'createtime' => date('Y-m-d H:i:s'),
             ];
 
             M('StrategyLog')->add($logData);
         } catch (\Exception $e) {
-            // 日志写入失败不影响主流程
         }
     }
 

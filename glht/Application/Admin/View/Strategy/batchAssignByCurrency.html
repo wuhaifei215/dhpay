@@ -56,8 +56,16 @@
                                                 <select name="strategyid" id="strategySelect">
                                                     <option value="0">-- 不启用策略（清除） --</option>
                                                     <volist name="strategies" id="s">
-                                                    <option value="<{$s.id}>"><{$s.name}> (ID: <{$s.id}>)</option>
+                                                    <option value="<{$s.id}>" data-currency="<{$s.currency}>"><{$s.name}> (<{$s.currency}>)</option>
                                                     </volist>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline">
+                                            <label class="layui-form-label">选择国家：</label>
+                                            <div class="layui-input-inline">
+                                                <select name="currency" id="currencySelect" class="form-control">
+                                                    <option value="">-- 请先选择策略 --</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -76,27 +84,7 @@
                         </tbody>
                     </table>
 
-                    <!--国家列表-->
-                    <table class="layui-table" lay-even="" lay-skin="line" style="margin-top:30px;" id="table">
-                        <thead>
-                            <tr>
-                                <th>选择国家</th>
-                                <th><a href="javascript:;" id="checkAll" class="layui-btn layui-btn-sm">全选</a></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <volist name="countryList" id="vo" key="k">
-                                <if condition="$k%2 eq 1"><tr></if>
-                                <td>
-                                    <input type="checkbox" title="" value="<{$vo.currency}>" class='checkIds' lay-skin="primary">
-                                    &nbsp; <{$vo.title}> (<{$vo.currency}>)
-                                </td>
-                                <if condition="$k%2 eq 0"></tr></if>
-                            </volist>
-                        </tbody>
-                    </table>
-
-                    <div class="layui-form-item">
+                    <div class="layui-form-item" style="margin-top:30px;">
                         <div class="layui-input-block">
                             <button class="layui-btn" lay-submit="submit" lay-filter="save">提交保存</button>
                         </div>
@@ -112,14 +100,7 @@
     <script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
 
     <script>
-    // 全选
-    $('#checkAll').on('click', function(){
-        var child = $('table').next().find('tbody input[type="checkbox"]');
-        child.each(function(){
-            $(this).attr('checked', true);
-        });
-        $('.layui-form-checkbox').addClass('layui-form-checked');
-    });
+    var allCountries = <php>echo json_encode($countryList);</php>;
 
     layui.use(['layer', 'form'], function(){
         var form = layui.form
@@ -130,17 +111,30 @@
             location.href = "<{:U('batchAssignByCurrency')}>?type=" + data.value;
         });
 
+        // 策略切换时过滤国家列表
+        form.on('select(strategyFilter)', function(data){
+            var selectedOption = $('#strategySelect option:selected');
+            var currency = selectedOption.attr('data-currency');
+
+            $('#currencySelect').html('<option value="">-- 请选择国家 --</option>');
+            if (currency && currency != '') {
+                $.each(allCountries, function(i, c){
+                    if (c.currency === currency) {
+                        $('#currencySelect').append('<option value="'+c.currency+'">'+c.title+' ('+c.currency+')</option>');
+                    }
+                });
+            } else {
+                // 显示所有国家
+                $.each(allCountries, function(i, c){
+                    $('#currencySelect').append('<option value="'+c.currency+'">'+c.title+' ('+c.currency+')</option>');
+                });
+            }
+            form.render('select');
+        });
+
         // 监听提交
         form.on('submit(save)', function(data){
-            var currency = '';
-            $('.checkIds').each(function () {
-                var _this = $(this);
-                if (_this.is(':checked')) {
-                    currency = _this.val();
-                    return false;
-                }
-            });
-
+            var currency = data.field.currency;
             if (currency == '') {
                 layer.msg('请选择国家', {icon: 2, time: 2000});
                 return false;
@@ -167,7 +161,7 @@
                             parent.layer.close(index);
                         });
                     } else {
-                        layer.alert(res.info || "操作失败", {icon: 5}, function () {
+                        layer.alert(res.info || res.msg || "操作失败", {icon: 5}, function () {
                             parent.location.reload();
                             var index = parent.layer.getFrameIndex(window.name);
                             parent.layer.close(index);

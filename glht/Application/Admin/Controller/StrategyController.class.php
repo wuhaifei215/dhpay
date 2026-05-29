@@ -643,6 +643,101 @@ class StrategyController extends BaseController
     }
 
     /**
+     * 按国家批量分配策略
+     */
+    public function batchAssignByCurrency()
+    {
+        $type = I('get.type', 1, 'intval');
+
+        // 获取国家列表（从商户表中提取）
+        $currencyList = M('Member')->where(['status' => 1])->distinct(true)->field('currency')->select();
+
+        // 获取策略列表
+        $strategies = M('Strategy')->where(['type' => $type, 'status' => 1])->order('id ASC')->select();
+
+        $this->assign('type', $type);
+        $this->assign('strategies', $strategies);
+        $this->assign('currencyList', $currencyList);
+        $this->display();
+    }
+
+    /**
+     * 保存按国家批量分配的策略
+     */
+    public function saveBatchAssignByCurrency()
+    {
+        if (!IS_POST) {
+            $this->error('请求方式错误');
+        }
+
+        $currency = I('post.currency', '', 'trim');
+        $type = I('post.type', 1, 'intval');
+        $strategyid = I('post.strategyid', 0, 'intval');
+        $status = I('post.status', 1, 'intval');
+
+        if (empty($currency)) {
+            $this->error('请选择国家');
+        }
+
+        // 验证策略
+        if ($strategyid > 0) {
+            $strategy = M('Strategy')->where(['id' => $strategyid, 'type' => $type, 'status' => 1])->find();
+            if (!$strategy) {
+                $this->error('策略不存在或已禁用');
+            }
+        }
+
+        // 获取该国家下的所有商户
+        $members = M('Member')->where(['currency' => $currency, 'status' => 1])->select();
+        if (empty($members)) {
+            $this->error('该国家下没有有效商户');
+        }
+
+        $successCount = 0;
+        $existCount = 0;
+        $db = M();
+        $db->startTrans();
+
+        try {
+            foreach ($members as $member) {
+                $userid = $member['id'];
+                // 检查是否已存在配置
+                $exist = M('MemberStrategy')->where(['userid' => $userid, 'type' => $type])->find();
+
+                if ($exist) {
+                    M('MemberStrategy')->where(['userid' => $userid, 'type' => $type])->save([
+                        'strategyid' => $strategyid,
+                        'status' => $status,
+                        'updatetime' => date('Y-m-d H:i:s'),
+                    ]);
+                    $existCount++;
+                } else {
+                    M('MemberStrategy')->add([
+                        'userid' => $userid,
+                        'type' => $type,
+                        'strategyid' => $strategyid,
+                        'status' => $status,
+                        'createtime' => date('Y-m-d H:i:s'),
+                    ]);
+                    $successCount++;
+                }
+
+                // 清除缓存
+                S('MemberStrategy_' . $userid . '_' . $type, null);
+            }
+
+            $db->commit();
+
+            UserLogService::HTwrite(1, '按国家批量分配策略', "按国家批量分配策略：国家={$currency}，类型={$type}，策略ID={$strategyid}，商户新增={$successCount}，商户更新={$existCount}");
+
+            $this->success("操作成功：新增 {$successCount} 条，更新 {$existCount} 条");
+        } catch (\Exception $e) {
+            $db->rollback();
+            $this->error('操作失败：' . $e->getMessage());
+        }
+    }
+
+    /**
      * 按包网保存批量分配的策略
      */
     public function saveBatchAssignByAgency()

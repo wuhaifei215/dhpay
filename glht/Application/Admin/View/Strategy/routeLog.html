@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>策略路由日志</title>
+    <include file="Public:static" />
+    <include file="Public:header" />
+</head>
+<body>
+<div class="page-container">
+    <div class="text-l">
+        <form method="get" action="{:U('routeLog')}">
+            类型：
+            <select name="type" class="input-text" style="width: 80px;">
+                <option value="">全部</option>
+                <option value="1" <if condition="$type eq '1'">selected</if>>代收</option>
+                <option value="2" <if condition="$type eq '2'">selected</if>>代付</option>
+            </select>
+            商户ID：
+            <input type="text" class="input-text" style="width: 100px;" value="{$userid}" placeholder="可填+10000" name="userid">
+            订单号：
+            <input type="text" class="input-text" style="width: 150px;" value="{$out_trade_no}" placeholder="外部订单号" name="out_trade_no">
+            时间：
+            <input type="text" class="input-text" style="width: 120px;" value="{$startdate}" placeholder="开始日期" name="startdate" onclick="laydate()"> -
+            <input type="text" class="input-text" style="width: 120px;" value="{$enddate}" placeholder="结束日期" name="enddate" onclick="laydate()">
+            <button type="submit" class="btn btn-success" id="btnSearch"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+        </form>
+    </div>
+
+    <div class="cl pd-5 bg-1 bk-gray mt-20">
+        <span class="r">
+            <a href="{:U('clearCache')}" class="btn btn-secondary radius" onclick="return confirm('确认清除所有策略缓存？')">清除缓存</a>
+            &nbsp;共有数据：<strong>{$count}</strong> 条
+        </span>
+    </div>
+
+    <div class="mt-20">
+        <table class="table table-border table-bordered table-bg table-hover table-sort">
+            <thead>
+                <tr class="text-c">
+                    <th width="60">ID</th>
+                    <th>商户</th>
+                    <th width="80">类型</th>
+                    <th width="120">金额</th>
+                    <th>策略</th>
+                    <th width="80">档位</th>
+                    <th width="80">通道</th>
+                    <th width="150">时间</th>
+                    <th>结果</th>
+                </tr>
+            </thead>
+            <tbody>
+                <volist name="list" id="vo">
+                    <tr class="text-c">
+                        <td>{$vo.id}</td>
+                        <td>{$vo.username}</td>
+                        <td>
+                            <if condition="$vo.type eq 1">
+                                <span class="label label-primary">代收</span>
+                            <else/>
+                                <span class="label label-success">代付</span>
+                            </if>
+                        </td>
+                        <td>{$vo.amount}</td>
+                        <td>{$vo.strategy_name}</td>
+                        <td>{$vo.tier_id}</td>
+                        <td>{$vo.channel_id}</td>
+                        <td>{$vo.createtime|date='Y-m-d H:i:s',###}</td>
+                        <td>
+                            <if condition="$vo.match_result eq 'success'">
+                                <span class="label label-success">成功</span>
+                            <elseif condition="$vo.match_result eq 'no_strategy'"/>
+                                <span class="c-gray">无策略</span>
+                            <elseif condition="$vo.match_result eq 'strategy_disabled'"/>
+                                <span class="c-gray">策略禁用</span>
+                            <elseif condition="$vo.match_result eq 'no_tier_match'"/>
+                                <span class="label label-warning">无匹配档位</span>
+                            <elseif condition="$vo.match_result eq 'no_channel_available'"/>
+                                <span class="label label-danger">无可用通道</span>
+                            <else/>
+                                <span>{$vo.match_result}</span>
+                            </if>
+                        </td>
+                    </tr>
+                </volist>
+                <if condition="empty($list)">
+                    <tr>
+                        <td colspan="9" class="text-c">暂无数据</td>
+                    </tr>
+                </if>
+            </tbody>
+        </table>
+        <div class="page">{$page}</div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$('.table-sort').DataTable({
+    "paging": false,
+    "lengthChange": false,
+    "searching": false,
+    "ordering": true,
+    "info": false,
+    "autoWidth": false
+});
+</script>
+</body>
+</html>

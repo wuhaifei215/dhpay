@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>商户策略分配</title>
+    <include file="Public:static" />
+    <include file="Public:header" />
+</head>
+<body>
+<div class="page-container">
+    <form action="{:U('assignMember')}" method="post" class="form form-horizontal" id="form-assign">
+        <input type="hidden" name="userid" value="{$member.id}" />
+        <input type="hidden" name="type" value="{$type}" />
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">商户ID：</label>
+            <div class="formControls col-xs-8 col-sm-6">
+                <span>{$member.id + 10000}</span>
+            </div>
+        </div>
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">商户名称：</label>
+            <div class="formControls col-xs-8 col-sm-6">
+                <span>{$member.username}</span>
+            </div>
+        </div>
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">策略类型：</label>
+            <div class="formControls col-xs-8 col-sm-6">
+                <span class="label label-primary">{$typename}</span>
+            </div>
+        </div>
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>选择策略：</label>
+            <div class="formControls col-xs-8 col-sm-6">
+                <select name="strategyid" id="strategyid" class="input-text" style="width: 250px;">
+                    <option value="0">-- 不使用策略（原逻辑）--</option>
+                    <volist name="strategys" id="s">
+                        <option value="{$s.id}" <if condition="isset($current) and $current['strategyid'] eq $s['id']">selected</if>>{$s.name}</option>
+                    </volist>
+                </select>
+            </div>
+        </div>
+
+        <if condition="isset($current) and !empty($current['strategy_info'])">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">当前策略：</label>
+            <div class="formControls col-xs-8 col-sm-6">
+                <span class="label label-success">{$current.strategy_info.name}</span>
+            </div>
+        </div>
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">档位预览：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr class="text-c">
+                            <th>档位名称</th>
+                            <th>金额范围</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <volist name="current.tiers" id="tier">
+                        <tr class="text-c">
+                            <td>{$tier.tier_name}</td>
+                            <td>{$tier.tier_min} - {$tier.tier_max}</td>
+                        </tr>
+                        </volist>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </if>
+
+        <div class="row cl">
+            <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
+                <button type="submit" class="btn btn-primary radius">保存</button>
+                <button type="button" class="btn btn-default radius" onclick="layer_close()">取消</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+$(function(){
+    $("#form-assign").validate({
+        submitHandler: function(form) {
+            $.ajax({
+                type: 'POST',
+                url: $(form).attr('action'),
+                data: $(form).serialize(),
+                dataType: 'json',
+                success: function(data) {
+                    if (data.status == 1) {
+                        layer.msg(data.msg, {icon: 1, time: 1500});
+                        setTimeout(function() {
+                            var index = parent.layer.getFrameIndex(window.name);
+                            parent.location.reload();
+                            parent.layer.close(index);
+                        }, 1500);
+                    } else {
+                        layer.msg(data.msg, {icon: 2, time: 2000});
+                    }
+                }
+            });
+            return false;
+        }
+    });
+});
+</script>
+</body>
+</html>

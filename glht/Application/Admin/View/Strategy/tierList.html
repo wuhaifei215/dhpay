@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{$strategy.name} - 档位配置</title>
+    <include file="Public:static" />
+    <include file="Public:header" />
+</head>
+<body>
+<div class="page-container">
+    <div class="cl pd-5 bg-1 bk-gray mt-20">
+        <span class="l">
+            <a class="btn btn-primary radius" href="javascript:;" onclick="tier_edit('添加档位', '{:U(\'editTier\', array(\'strategyid\' => $strategy[\'id\']))}')">
+                <i class="Hui-iconfont">&#xe600;</i> 添加档位
+            </a>
+            <a href="{:U('index', array('type' => $strategy['type']))}" class="btn btn-default radius">返回策略列表</a>
+        </span>
+        <span class="r">{$typename}策略：<strong>{$strategy.name}</strong> | 档位数量：<strong>{$count}</strong></span>
+    </div>
+
+    <div class="mt-20">
+        <table class="table table-border table-bordered table-bg table-hover table-sort">
+            <thead>
+                <tr class="text-c">
+                    <th width="60">ID</th>
+                    <th>档位名称</th>
+                    <th>金额范围</th>
+                    <th>通道配置</th>
+                    <th width="80">排序</th>
+                    <th width="80">状态</th>
+                    <th width="200">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <volist name="list" id="vo">
+                    <tr class="text-c">
+                        <td>{$vo.id}</td>
+                        <td>{$vo.tier_name}</td>
+                        <td>{$vo.tier_min} - {$vo.tier_max}</td>
+                        <td style="text-align: left; padding-left: 10px;">{$vo.channel_display}</td>
+                        <td>{$vo.sort}</td>
+                        <td>
+                            <if condition="$vo.status eq 1">
+                                <span class="label label-success">启用</span>
+                            <else/>
+                                <span class="label label-default">禁用</span>
+                            </if>
+                        </td>
+                        <td>
+                            <a title="编辑" href="javascript:;" onclick="tier_edit('编辑档位', '{:U(\'editTier\', array(\'id\' => $vo[\'id\'], \'strategyid\' => $strategy[\'id\']))}')" class="btn btn-secondary size-MINI radius">编辑</a>
+                            <a title="删除" href="javascript:;" onclick="tier_del(this, '{$vo.id}')" class="btn btn-danger size-MINI radius">删除</a>
+                        </td>
+                    </tr>
+                </volist>
+                <if condition="empty($list)">
+                    <tr>
+                        <td colspan="7" class="text-c">暂无档位配置，请添加档位</td>
+                    </tr>
+                </if>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+/*档位-添加/编辑*/
+function tier_edit(title, url) {
+    var index = layer.open({
+        type: 2,
+        title: title,
+        content: url,
+        area: ['600px', '450px']
+    });
+    layer.full(index);
+}
+
+/*档位-删除*/
+function tier_del(obj, id) {
+    layer.confirm('确认要删除该档位吗？', function(index) {
+        $.ajax({
+            type: 'POST',
+            url: "{:U('delTier')}",
+            data: {id: id},
+            dataType: 'json',
+            success: function(data) {
+                if (data.status == 1) {
+                    $(obj).parents("tr").remove();
+                    layer.msg('已删除', {icon: 1, time: 1000});
+                } else {
+                    layer.msg(data.msg, {icon: 2, time: 2000});
+                }
+            }
+        });
+    });
+}
+
+$('.table-sort').DataTable({
+    "paging": false,
+    "lengthChange": false,
+    "searching": false,
+    "ordering": false,
+    "info": false,
+    "autoWidth": false
+});
+</script>
+</body>
+</html>

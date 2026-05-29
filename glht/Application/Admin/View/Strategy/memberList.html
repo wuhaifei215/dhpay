@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>商户策略列表</title>
+    <include file="Public:static" />
+    <include file="Public:header" />
+</head>
+<body>
+<div class="page-container">
+    <div class="text-l">
+        <form method="get" action="{:U('memberList')}">
+            <input type="hidden" name="type" value="{$type}" />
+            <select name="has_strategy" class="input-text" style="width: 150px;">
+                <option value="">全部商户</option>
+                <option value="1" <if condition="$has_strategy eq '1'">selected</if>>已有策略</option>
+                <option value="0" <if condition="$has_strategy eq '0'">selected</if>>未配置策略</option>
+            </select>
+            <button type="submit" class="btn btn-success" id="btnSearch"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+            <a href="{:U('batchAssign', array('type' => $type))}" class="btn btn-primary radius"><i class="Hui-iconfont">&#xe600;</i> 批量分配策略</a>
+        </form>
+    </div>
+
+    <div class="cl pd-5 bg-1 bk-gray mt-20">
+        <span class="r">
+            <a href="{:U('memberList', array('type' => 1))}" class="btn btn-secondary radius <if condition="$type eq 1">disabled</if>">代收</a>
+            <a href="{:U('memberList', array('type' => 2))}" class="btn btn-secondary radius <if condition="$type eq 2">disabled</if>">代付</a>
+            &nbsp;共有数据：<strong>{$count}</strong> 条
+        </span>
+    </div>
+
+    <div class="mt-20">
+        <table class="table table-border table-bordered table-bg table-hover table-sort">
+            <thead>
+                <tr class="text-c">
+                    <th width="80">商户ID</th>
+                    <th>商户名称</th>
+                    <th>当前策略</th>
+                    <th width="100">状态</th>
+                    <th width="150">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <volist name="list" id="vo">
+                    <tr class="text-c">
+                        <td>{$vo.id + 10000}</td>
+                        <td>{$vo.username}</td>
+                        <td>
+                            <if condition="!empty($vo['strategy'])">
+                                <span class="label label-primary">{$vo.strategy.name}</span>
+                            <else/>
+                                <span class="c-gray">未配置</span>
+                            </if>
+                        </td>
+                        <td>
+                            <if condition="$vo.strategy_status eq 1">
+                                <span class="label label-success">启用</span>
+                            <elseif condition="$vo.strategy_status eq 0"/>
+                                <span class="label label-default">禁用</span>
+                            <else/>
+                                <span class="c-gray">-</span>
+                            </if>
+                        </td>
+                        <td>
+                            <a title="分配策略" href="javascript:;" onclick="assign_strategy('分配策略', '{:U(\'assignMember\', array(\'userid\' => $vo[\'id\'], \'type\' => $type))}')" class="btn btn-primary size-MINI radius">分配策略</a>
+                        </td>
+                    </tr>
+                </volist>
+            </tbody>
+        </table>
+        <div class="page">{$page}</div>
+    </div>
+</div>
+
+<script type="text/javascript">
+function assign_strategy(title, url) {
+    var index = layer.open({
+        type: 2,
+        title: title,
+        content: url,
+        area: ['500px', '400px']
+    });
+    layer.full(index);
+}
+
+$('.table-sort').DataTable({
+    "paging": false,
+    "lengthChange": false,
+    "searching": false,
+    "ordering": true,
+    "info": false,
+    "autoWidth": false
+});
+</script>
+</body>
+</html>

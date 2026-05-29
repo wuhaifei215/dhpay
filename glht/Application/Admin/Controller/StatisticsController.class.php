@@ -360,7 +360,75 @@ class StatisticsController extends BaseController
 //        $this->assign('data', $product);
         $this->display();
     }
-    
+
+//     //代付通道统计
+    public function productPayForAnotherFinance()
+    {
+        $timeType = I("request.timetype", 1);    //时间类型
+        $this->assign('timetype', $timeType);
+
+        $createtime = urldecode(I("request.createtime", '', 'string,strip_tags,htmlspecialchars'));
+        if ($createtime) {
+            list($cstime,$cetime) = explode('|',$createtime);
+        }else{
+            $cstime = date('Y-m-d') . ' 00:00:00';
+            $cetime = date('Y-m-d') . ' 23:59:59';
+            $createtime = $cstime . ' | ' . $cetime;
+        }
+        $this->assign('createtime', $createtime);
+
+
+        $list = M('PayForAnother')->where(['status'=>1,'id' =>['gt',1]])->order('id desc')->select();
+        $countSuccess = $countFail = 0;
+        $S_where = $F_where = [];
+//        $withOutArray = [4,5,6,12,13,24,25];    //排除测试的通道
+        foreach($list as $k => $v) {
+//            if(in_array($v['id'],$withOutArray)){
+//                unset($list[$k]);
+//                continue;
+//            }
+            $S_where['df_id'] = $v['id'];
+            $S_where['status'] = ['between', ['2', '3']];
+
+            if($timeType == 1){        //按创建时间统计
+                $S_where['sqdatetime'] = ['between',[$cstime,$cetime]];
+            }elseif($timeType == 2){   //按成功时间统计
+                $S_where['sqdatetime'] = ['between',[date('Y-m-d H:i:s',strtotime($cstime)-86400*7),$cetime]];
+                $S_where['cldatetime'] = ['between',[$cstime,$cetime]];
+            }
+            $WttklistModel = D('Wttklist');
+            $sum = $WttklistModel->getSum('tkmoney,cost,sxfmoney,money',$S_where);
+            $countSuccess = $WttklistModel->getCount($S_where);
+
+            $list[$k]['tkmoney'] = $sum['tkmoney'] += 0;//交易金额
+            $list[$k]['sxfmoney'] = $sum['sxfmoney']+= 0;//手续费
+            $list[$k]['money'] = $sum['money'] += 0;//实际到账
+
+            $F_where = [
+                'df_id'=> $v['id'],
+                'status' =>  ['between', ['4', '5']]
+            ];
+            if($timeType == 1){        //按创建时间统计
+                $F_where['sqdatetime'] = ['between',[$cstime,$cetime]];
+            }elseif($timeType == 2){   //按成功时间统计
+                $F_where['sqdatetime'] = ['between',[date('Y-m-d H:i:s',strtotime($cstime)-86400*7),$cetime]];
+                $F_where['cldatetime'] = ['between',[$cstime,$cetime]];
+            }
+            $WttklistModel = D('Wttklist');
+            $countFail = $WttklistModel->getCount($F_where);//交易笔数
+            // echo $WttklistModel->getLastSql();
+            $list[$k]['success_count'] = $countSuccess ;//成功笔数
+            $list[$k]['fail_count'] = $countFail;
+            $list[$k]['count'] = $countFail + $countSuccess;//失败笔数
+
+            $list[$k]['success_rate'] = $list[$k]['count']>0?bcdiv($list[$k]['success_count'],$list[$k]['count'], 4) * 100 : 0;//成功率
+            $list[$k]['success_average'] = $list[$k]['count']>0?bcdiv($list[$k]['tkmoney'],$list[$k]['count'], 4) : 0;//成功率
+        }
+        $this->assign('list', $list);
+//        $this->assign('data', $product);
+        $this->display();
+    }
+
     /**
      * 通道对账单
      */

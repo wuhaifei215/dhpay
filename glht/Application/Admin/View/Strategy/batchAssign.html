@@ -1,102 +1,110 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>批量分配策略</title>
-    <include file="Public:static" />
-    <include file="Public:header" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="renderer" content="webkit">
+    <title><{:C("WEB_TITLE")}></title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/Public/Front/css/animate.css" rel="stylesheet">
+    <link href="/Public/Front/css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css">
 </head>
-<body>
-<div class="page-container">
-    <form action="{:U('saveBatchAssign')}" method="post" class="form form-horizontal" id="form-batch-assign">
-        <input type="hidden" name="type" value="{$type}" />
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>批量分配策略 - <if condition="$type eq 1">代收<else/>代付</if></h5>
+                </div>
+                <div class="ibox-content">
+                    <form class="layui-form" action="<{:U('saveBatchAssign')}>" method="post" id="form-batch">
+                        <input type="hidden" name="type" value="<{$type}>" />
 
-        <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-3">策略类型：</label>
-            <div class="formControls col-xs-8 col-sm-6">
-                <span class="label label-primary"><if condition="$type eq 1">代收<else/>代付</if></span>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">策略类型：</label>
+                            <div class="layui-input-block">
+                                <span class="label label-primary"><if condition="$type eq 1">代收<else/>代付</if></span>
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item">
+                            <label class="layui-form-label"><span class="c-red">*</span>选择商户：</label>
+                            <div class="layui-input-block">
+                                <select name="ids" id="ids" class="layui-input" multiple style="width: 400px; height: 200px;">
+                                    <volist name="userList" id="u">
+                                        <option value="<{$u.id}>"><{$u.username}> (ID:<{$u.id + 10000}>)</option>
+                                    </volist>
+                                </select>
+                                <div class="layui-form-mid layui-word-aux">按住 Ctrl 可多选</div>
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item">
+                            <label class="layui-form-label"><span class="c-red">*</span>选择策略：</label>
+                            <div class="layui-input-block">
+                                <select name="strategyid" class="layui-input" style="width: 300px;">
+                                    <option value="0">-- 清除策略（原逻辑）--</option>
+                                    <volist name="strategies" id="s">
+                                        <option value="<{$s.id}>"><{$s.name}></option>
+                                    </volist>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn" lay-submit lay-filter="*" type="submit">确认分配</button>
+                                <button type="button" class="layui-btn layui-btn-primary" onclick="parent.layer.close(parent.layer.getFrameIndex(window.name))">取消</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-
-        <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>选择商户：</label>
-            <div class="formControls col-xs-8 col-sm-6">
-                <select name="ids" id="ids" class="input-text" multiple style="width: 300px; height: 200px;">
-                    <volist name="userList" id="u">
-                        <option value="{$u.id}">{$u.username} (ID:{$u.id + 10000})</option>
-                    </volist>
-                </select>
-                <br><span class="c-gray">按住 Ctrl 可多选</span>
-            </div>
-        </div>
-
-        <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>选择策略：</label>
-            <div class="formControls col-xs-8 col-sm-6">
-                <select name="strategyid" id="strategyid" class="input-text" style="width: 250px;">
-                    <option value="0">-- 清除策略（原逻辑）--</option>
-                    <volist name="strategies" id="s">
-                        <option value="{$s.id}">{$s.name}</option>
-                    </volist>
-                </select>
-            </div>
-        </div>
-
-        <div class="row cl">
-            <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
-                <button type="submit" class="btn btn-primary radius">确认分配</button>
-                <button type="button" class="btn btn-default radius" onclick="layer_close()">取消</button>
-            </div>
-        </div>
-    </form>
+    </div>
 </div>
+<script src="/Public/Front/js/jquery.min.js"></script>
+<script src="/Public/Front/js/bootstrap.min.js"></script>
+<script src="/Public/Front/js/content.js"></script>
+<script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
+<script>
+layui.use(['layer', 'form'], function(){
+    var form = layui.form, layer = layui.layer;
 
-<script type="text/javascript">
-$(function(){
-    $("#form-batch-assign").validate({
-        rules: {
-            ids: {
-                required: true
-            }
-        },
-        messages: {
-            ids: {
-                required: "请选择商户"
-            }
-        },
-        submitHandler: function(form) {
-            var selectedOptions = $('#ids option:selected');
-            if (selectedOptions.length === 0) {
-                layer.msg('请选择商户', {icon: 2, time: 2000});
-                return false;
-            }
-
-            var ids = [];
-            selectedOptions.each(function() {
-                ids.push($(this).val());
-            });
-            $('<input>').attr({type: 'hidden', name: 'ids', value: ids.join(',')}).appendTo(form);
-
-            $.ajax({
-                type: 'POST',
-                url: $(form).attr('action'),
-                data: $(form).serialize(),
-                dataType: 'json',
-                success: function(data) {
-                    if (data.status == 1) {
-                        layer.msg(data.msg, {icon: 1, time: 2000});
-                        setTimeout(function() {
-                            var index = parent.layer.getFrameIndex(window.name);
-                            parent.location.reload();
-                            parent.layer.close(index);
-                        }, 2000);
-                    } else {
-                        layer.msg(data.msg, {icon: 2, time: 2000});
-                    }
-                }
-            });
+    form.on('submit(*)', function(data){
+        var selectedOptions = $('#ids option:selected');
+        if (selectedOptions.length === 0) {
+            layer.msg('请选择商户', {icon: 2, time: 2000});
             return false;
         }
+
+        var ids = [];
+        selectedOptions.each(function(){
+            ids.push($(this).val());
+        });
+
+        $.ajax({
+            type: 'POST',
+            url: $(data.form).attr('action'),
+            data: $(data.form).serialize() + '&ids=' + ids.join(','),
+            dataType: 'json',
+            success: function(res){
+                if(res.status == 1){
+                    layer.msg(res.msg, {icon:1, time:2000});
+                    setTimeout(function(){
+                        parent.location.reload();
+                        parent.layer.close(parent.layer.getFrameIndex(window.name));
+                    }, 2000);
+                } else {
+                    layer.msg(res.msg, {icon:2, time:2000});
+                }
+            }
+        });
+        return false;
     });
 });
 </script>

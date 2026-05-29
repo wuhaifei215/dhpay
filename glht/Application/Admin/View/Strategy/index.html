@@ -1,119 +1,136 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>策略列表</title>
-    <include file="Public:static" />
-    <include file="Public:header" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="renderer" content="webkit">
+    <title><{:C("WEB_TITLE")}></title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/Public/Front/css/animate.css" rel="stylesheet">
+    <link href="/Public/Front/css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css">
 </head>
-<body>
-<div class="page-container">
-    <div class="text-l">
-        <form method="get" action="{:U('index')}">
-            <input type="hidden" name="type" value="{$type}" />
-            状态：
-            <select name="status" class="input-text" style="width: 100px;">
-                <option value="">全部</option>
-                <option value="1" <if condition="$status eq '1'">selected</if>>启用</option>
-                <option value="0" <if condition="$status eq '0'">selected</if>>禁用</option>
-            </select>
-            <button type="submit" class="btn btn-success" id="btnSearch"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
-        </form>
-    </div>
-
-    <div class="cl pd-5 bg-1 bk-gray mt-20">
-        <span class="l">
-            <a class="btn btn-primary radius" href="javascript:;" onclick="strategy_edit('添加策略', '{:U(\'edit\', array(\'type\' => $type))}')">
-                <i class="Hui-iconfont">&#xe600;</i> 添加策略
-            </a>
-            <a href="{:U('index', array('type' => 1))}" class="btn btn-secondary radius <if condition="$type eq 1">disabled</if>">代收策略</a>
-            <a href="{:U('index', array('type' => 2))}" class="btn btn-secondary radius <if condition="$type eq 2">disabled</if>">代付策略</a>
-        </span>
-        <span class="r">共有数据：<strong>{$count}</strong> 条</span>
-    </div>
-
-    <div class="mt-20">
-        <table class="table table-border table-bordered table-bg table-hover table-sort">
-            <thead>
-                <tr class="text-c">
-                    <th width="60">ID</th>
-                    <th>策略名称</th>
-                    <th width="100">类型</th>
-                    <th width="80">档位数量</th>
-                    <th width="100">商户数量</th>
-                    <th width="80">状态</th>
-                    <th width="150">创建时间</th>
-                    <th width="200">操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                <volist name="list" id="vo">
-                    <tr class="text-c">
-                        <td>{$vo.id}</td>
-                        <td>{$vo.name}</td>
-                        <td><span class="label label-primary">{$typeMap[$vo['type']]}</span></td>
-                        <td>{$vo.tier_count}</td>
-                        <td><span class="label label-success">{$vo.member_count}</span></td>
-                        <td>
-                            <if condition="$vo.status eq 1">
-                                <span class="label label-success">启用</span>
-                            <else/>
-                                <span class="label label-default">禁用</span>
-                            </if>
-                        </td>
-                        <td>{$vo.createtime|date='Y-m-d H:i',###}</td>
-                        <td>
-                            <a title="档位配置" href="{:U('tierList', array('strategyid' => $vo['id']))}" class="btn btn-primary size-MINI radius">档位配置</a>
-                            <a title="编辑" href="javascript:;" onclick="strategy_edit('编辑策略', '{:U(\'edit\', array(\'id\' => $vo[\'id\']))}')" class="btn btn-secondary size-MINI radius">编辑</a>
-                            <a title="删除" href="javascript:;" onclick="strategy_del(this, '{$vo.id}')" class="btn btn-danger size-MINI radius">删除</a>
-                        </td>
-                    </tr>
-                </volist>
-            </tbody>
-        </table>
-        <div class="page">{$page}</div>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>策略列表 - <{$typeMap[$type]}></h5>
+                </div>
+                <div class="ibox-content">
+                    <form class="layui-form layui-form-pane form-search" action="" method="get" autocomplete="off">
+                        <input type="hidden" name="type" value="<{$type}>" />
+                        <div class="layui-form-item layui-inline">
+                            <label class="layui-form-label">状态：</label>
+                            <div class="layui-input-inline">
+                                <select name="status" class="layui-input">
+                                    <option value="">全部</option>
+                                    <option value="1" <if condition="$status eq '1'">selected</if>>启用</option>
+                                    <option value="0" <if condition="$status eq '0'">selected</if>>禁用</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline">
+                            <button type="submit" class="layui-btn"><span class="glyphicon glyphicon-search"></span> 搜索</button>
+                        </div>
+                    </form>
+                    <div class="col-sm-12" style="margin-bottom: 10px;">
+                        <a href="javascript:;" onclick="strategy_edit('添加策略', '<{:U(\'edit\', array(\'type\' => $type))}>')" class="layui-btn"><i class="fa fa-plus"></i> 添加策略</a>
+                        <a href="<{:U('index', array('type' => 1))}>" class="layui-btn <if condition="$type eq 1">layui-btn-disabled</if>">代收策略</a>
+                        <a href="<{:U('index', array('type' => 2))}>" class="layui-btn <if condition="$type eq 2">layui-btn-disabled</if>">代付策略</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>策略名称</th>
+                                    <th>类型</th>
+                                    <th>档位数量</th>
+                                    <th>商户数量</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <volist name="list" id="vo">
+                                <tr>
+                                    <td><{$vo.id}></td>
+                                    <td><{$vo.name}></td>
+                                    <td><span class="label label-primary"><{$typeMap[$vo['type']]}></span></td>
+                                    <td><span class="badge badge-info"><{$vo.tier_count}></span></td>
+                                    <td><span class="badge badge-success"><{$vo.member_count}></span></td>
+                                    <td>
+                                        <if condition="$vo.status eq 1">
+                                            <span class="label label-success">启用</span>
+                                        <else/>
+                                            <span class="label label-default">禁用</span>
+                                        </if>
+                                    </td>
+                                    <td><{$vo.createtime}></td>
+                                    <td>
+                                        <div class="layui-btn-group">
+                                            <a href="<{:U('tierList', array('strategyid' => $vo['id']))}>" class="layui-btn layui-btn-small">档位配置</a>
+                                            <a href="javascript:;" onclick="strategy_edit('编辑策略', '<{:U(\'edit\', array(\'id\' => $vo[\'id\']))}>')" class="layui-btn layui-btn-small layui-btn-normal">编辑</a>
+                                            <a href="javascript:;" onclick="strategy_del(this, '<{$vo.id}>')" class="layui-btn layui-btn-small layui-btn-danger">删除</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </volist>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="page"><{$page}></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+<script src="/Public/Front/js/jquery.min.js"></script>
+<script src="/Public/Front/js/bootstrap.min.js"></script>
+<script src="/Public/Front/js/plugins/peity/jquery.peity.min.js"></script>
+<script src="/Public/Front/js/content.js"></script>
+<script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
+<script>
+layui.use(['layer', 'form'], function(){
+    var form = layui.form, layer = layui.layer;
+});
 
-<script type="text/javascript">
-/*策略-添加/编辑*/
-function strategy_edit(title, url) {
-    var index = layer.open({
+function strategy_edit(title, url){
+    var w = 500, h = 300;
+    layer.open({
         type: 2,
+        fix: false,
+        maxmin: true,
+        shadeClose: true,
+        area: [w+'px', h+'px'],
         title: title,
         content: url
     });
-    layer.full(index);
 }
 
-/*策略-删除*/
-function strategy_del(obj, id) {
-    layer.confirm('确认要删除吗？', function(index) {
+function strategy_del(obj, id){
+    layer.confirm('确认要删除吗？', function(index){
         $.ajax({
             type: 'POST',
-            url: "{:U('del')}",
+            url: "<{:U('del')}>",
             data: {id: id},
             dataType: 'json',
-            success: function(data) {
-                if (data.status == 1) {
+            success: function(data){
+                if(data.status == 1){
                     $(obj).parents("tr").remove();
-                    layer.msg('已删除', {icon: 1, time: 1000});
+                    layer.msg('已删除', {icon:1, time:1000});
                 } else {
-                    layer.msg(data.msg, {icon: 2, time: 2000});
+                    layer.msg(data.msg, {icon:2, time:2000});
                 }
             }
         });
     });
 }
-
-$('.table-sort').DataTable({
-    "paging": false,
-    "lengthChange": false,
-    "searching": false,
-    "ordering": true,
-    "info": false,
-    "autoWidth": false
-});
 </script>
 </body>
 </html>

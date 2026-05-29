@@ -1,108 +1,159 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>策略路由日志</title>
-    <include file="Public:static" />
-    <include file="Public:header" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="renderer" content="webkit">
+    <title><{:C("WEB_TITLE")}></title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/Public/Front/css/animate.css" rel="stylesheet">
+    <link href="/Public/Front/css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css">
 </head>
-<body>
-<div class="page-container">
-    <div class="text-l">
-        <form method="get" action="{:U('routeLog')}">
-            类型：
-            <select name="type" class="input-text" style="width: 80px;">
-                <option value="">全部</option>
-                <option value="1" <if condition="$type eq '1'">selected</if>>代收</option>
-                <option value="2" <if condition="$type eq '2'">selected</if>>代付</option>
-            </select>
-            商户ID：
-            <input type="text" class="input-text" style="width: 100px;" value="{$userid}" placeholder="可填+10000" name="userid">
-            订单号：
-            <input type="text" class="input-text" style="width: 150px;" value="{$out_trade_no}" placeholder="外部订单号" name="out_trade_no">
-            时间：
-            <input type="text" class="input-text" style="width: 120px;" value="{$startdate}" placeholder="开始日期" name="startdate" onclick="laydate()"> -
-            <input type="text" class="input-text" style="width: 120px;" value="{$enddate}" placeholder="结束日期" name="enddate" onclick="laydate()">
-            <button type="submit" class="btn btn-success" id="btnSearch"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
-        </form>
-    </div>
-
-    <div class="cl pd-5 bg-1 bk-gray mt-20">
-        <span class="r">
-            <a href="{:U('clearCache')}" class="btn btn-secondary radius" onclick="return confirm('确认清除所有策略缓存？')">清除缓存</a>
-            &nbsp;共有数据：<strong>{$count}</strong> 条
-        </span>
-    </div>
-
-    <div class="mt-20">
-        <table class="table table-border table-bordered table-bg table-hover table-sort">
-            <thead>
-                <tr class="text-c">
-                    <th width="60">ID</th>
-                    <th>商户</th>
-                    <th width="80">类型</th>
-                    <th width="120">金额</th>
-                    <th>策略</th>
-                    <th width="80">档位</th>
-                    <th width="80">通道</th>
-                    <th width="150">时间</th>
-                    <th>结果</th>
-                </tr>
-            </thead>
-            <tbody>
-                <volist name="list" id="vo">
-                    <tr class="text-c">
-                        <td>{$vo.id}</td>
-                        <td>{$vo.username}</td>
-                        <td>
-                            <if condition="$vo.type eq 1">
-                                <span class="label label-primary">代收</span>
-                            <else/>
-                                <span class="label label-success">代付</span>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>策略路由日志</h5>
+                </div>
+                <div class="ibox-content">
+                    <form class="layui-form layui-form-pane form-search" action="" method="get" autocomplete="off">
+                        <div class="layui-form-item layui-inline">
+                            <label class="layui-form-label">类型：</label>
+                            <div class="layui-input-inline">
+                                <select name="type" class="layui-input">
+                                    <option value="">全部</option>
+                                    <option value="1" <if condition="$type eq '1'">selected</if>>代收</option>
+                                    <option value="2" <if condition="$type eq '2'">selected</if>>代付</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline">
+                            <label class="layui-form-label">商户ID：</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="userid" value="<{$userid}>" placeholder="可填+10000" class="layui-input" style="width: 100px;">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline">
+                            <label class="layui-form-label">订单号：</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="out_trade_no" value="<{$out_trade_no}>" placeholder="外部订单号" class="layui-input" style="width: 150px;">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline">
+                            <label class="layui-form-label">时间：</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="startdate" value="<{$startdate}>" placeholder="开始日期" class="layui-input" id="startdate" style="width: 120px;">
+                            </div>
+                            <div class="layui-form-mid">-</div>
+                            <div class="layui-input-inline">
+                                <input type="text" name="enddate" value="<{$enddate}>" placeholder="结束日期" class="layui-input" id="enddate" style="width: 120px;">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-inline">
+                            <button type="submit" class="layui-btn"><span class="glyphicon glyphicon-search"></span> 搜索</button>
+                        </div>
+                        <div class="layui-form-item layui-inline pull-right">
+                            <a href="javascript:;" onclick="clearCache()" class="layui-btn layui-btn-normal layui-btn-small">清除缓存</a>
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>商户</th>
+                                    <th>类型</th>
+                                    <th>金额</th>
+                                    <th>策略</th>
+                                    <th>档位</th>
+                                    <th>通道</th>
+                                    <th>时间</th>
+                                    <th>结果</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <volist name="list" id="vo">
+                                <tr>
+                                    <td><{$vo.id}></td>
+                                    <td><{$vo.username}></td>
+                                    <td>
+                                        <if condition="$vo.type eq 1">
+                                            <span class="label label-primary">代收</span>
+                                        <else/>
+                                            <span class="label label-success">代付</span>
+                                        </if>
+                                    </td>
+                                    <td><{$vo.amount}></td>
+                                    <td><{$vo.strategy_name}></td>
+                                    <td><{$vo.tier_id}></td>
+                                    <td><{$vo.channel_id}></td>
+                                    <td><{$vo.createtime}></td>
+                                    <td>
+                                        <if condition="$vo.match_result eq 'success'">
+                                            <span class="label label-success">成功</span>
+                                        <elseif condition="$vo.match_result eq 'no_strategy'"/>
+                                            <span class="c-gray">无策略</span>
+                                        <elseif condition="$vo.match_result eq 'strategy_disabled'"/>
+                                            <span class="c-gray">策略禁用</span>
+                                        <elseif condition="$vo.match_result eq 'no_tier_match'"/>
+                                            <span class="label label-warning">无匹配档位</span>
+                                        <elseif condition="$vo.match_result eq 'no_channel_available'"/>
+                                            <span class="label label-danger">无可用通道</span>
+                                        <else/>
+                                            <span><{$vo.match_result}></span>
+                                        </if>
+                                    </td>
+                                </tr>
+                            </volist>
+                            <if condition="empty($list)">
+                                <tr>
+                                    <td colspan="9" class="text-center">暂无数据</td>
+                                </tr>
                             </if>
-                        </td>
-                        <td>{$vo.amount}</td>
-                        <td>{$vo.strategy_name}</td>
-                        <td>{$vo.tier_id}</td>
-                        <td>{$vo.channel_id}</td>
-                        <td>{$vo.createtime|date='Y-m-d H:i:s',###}</td>
-                        <td>
-                            <if condition="$vo.match_result eq 'success'">
-                                <span class="label label-success">成功</span>
-                            <elseif condition="$vo.match_result eq 'no_strategy'"/>
-                                <span class="c-gray">无策略</span>
-                            <elseif condition="$vo.match_result eq 'strategy_disabled'"/>
-                                <span class="c-gray">策略禁用</span>
-                            <elseif condition="$vo.match_result eq 'no_tier_match'"/>
-                                <span class="label label-warning">无匹配档位</span>
-                            <elseif condition="$vo.match_result eq 'no_channel_available'"/>
-                                <span class="label label-danger">无可用通道</span>
-                            <else/>
-                                <span>{$vo.match_result}</span>
-                            </if>
-                        </td>
-                    </tr>
-                </volist>
-                <if condition="empty($list)">
-                    <tr>
-                        <td colspan="9" class="text-c">暂无数据</td>
-                    </tr>
-                </if>
-            </tbody>
-        </table>
-        <div class="page">{$page}</div>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="page"><{$page}></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+<script src="/Public/Front/js/jquery.min.js"></script>
+<script src="/Public/Front/js/bootstrap.min.js"></script>
+<script src="/Public/Front/js/content.js"></script>
+<script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
+<script>
+layui.use(['layer', 'form', 'laydate'], function(){
+    var form = layui.form, layer = layui.layer, laydate = layui.laydate;
 
-<script type="text/javascript">
-$('.table-sort').DataTable({
-    "paging": false,
-    "lengthChange": false,
-    "searching": false,
-    "ordering": true,
-    "info": false,
-    "autoWidth": false
+    laydate.render({elem: '#startdate'});
+    laydate.render({elem: '#enddate'});
 });
+
+function clearCache() {
+    layer.confirm('确认清除所有策略缓存？', function(index){
+        $.ajax({
+            type: 'POST',
+            url: "<{:U('clearCache')}>",
+            data: {},
+            dataType: 'json',
+            success: function(res){
+                if(res.status == 1){
+                    layer.msg(res.msg, {icon:1, time:1500});
+                } else {
+                    layer.msg(res.msg, {icon:2, time:2000});
+                }
+            }
+        });
+        layer.close(index);
+    });
+}
 </script>
 </body>
 </html>

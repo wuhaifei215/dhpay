@@ -494,9 +494,6 @@ class StrategyController extends BaseController
 
         // 构建查询条件
         $where = ['type' => $type];
-        if ($currency !== '') {
-            $where['currency'] = $currency;
-        }
 
         if ($hasStrategy === '1') {
             // 有策略的商户
@@ -517,6 +514,9 @@ class StrategyController extends BaseController
             $memberWhere = [];
         }
 
+        if ($currency !== '') {
+            $memberWhere['currency'] = $currency;
+        }
         // 国家列表
         $country = M('Country')->where(['status' => 1])->select();
         $this->assign('country', $country);

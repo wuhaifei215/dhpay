@@ -716,14 +716,14 @@ class StrategyController extends BaseController
         $type = I('get.type', 1, 'intval');
 
         // 获取国家列表（从国家表获取）
-        $countryList = M('Country')->where(['status' => 1])->order('id ASC')->select();
+        $country = M('Country')->where(['status' => 1])->order('id ASC')->select();
 
         // 获取策略列表
         $strategies = M('Strategy')->where(['type' => $type, 'status' => 1])->order('id ASC')->select();
 
         $this->assign('type', $type);
         $this->assign('strategies', $strategies);
-        $this->assign('countryList', $countryList);
+        $this->assign('country', $country);
         $this->display();
     }
 

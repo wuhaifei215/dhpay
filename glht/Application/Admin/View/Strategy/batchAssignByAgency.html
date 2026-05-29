@@ -10,116 +10,109 @@
 <link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
 <link href="/Public/Front/css/animate.css" rel="stylesheet">
 <link href="/Public/Front/css/style.css" rel="stylesheet">
-<link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css">
+<link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css" media="all">
 <style>
-    .layui-form-switch {width:54px;}
-    .layui-form-label {width:110px;padding:4px}
+.layui-form-switch {width:54px;padding:0;}
+.layui-form-label {width:100px;padding:4px}
 </style>
 </head>
-<body>
+<body class="gray-bg">
     <div class="wrapper wrapper-content animated">
         <div class="row">
             <div class="col-sm-12">
-                <span style="font-size:35px;color:red;">策略分配</span>
-                <form class="layui-form" action="" id="batchAssignForm">
-                    <div class="layui-tab">
-                        <ul class="layui-tab-title">
-                            <li><a href="<{:U('Strategy/batchAssign', 'type='.$type.'&currency='.$currency)}>">按商户</a></li>
-                            <li class="layui-this"><a href="javascript:;">按包网</a></li>
-                            <li><a href="<{:U('Strategy/batchAssignByCurrency')}>">按国家</a></li>
-                        </ul>
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>批量分配策略 - 按包网</h5>
                     </div>
-
-                    <!--国家筛选-->
-                    <div class="layui-form-item" style="margin-top:15px;">
-                        <form method="get" action="" class="form-inline">
+                    <div class="ibox-content">
+                        <!-- Tab + 国家筛选 -->
+                        <div class="row" style="margin-bottom:15px;">
+                            <div class="col-sm-12">
+                                <div class="layui-tab" style="margin-bottom:0;">
+                                    <ul class="layui-tab-title">
+                                        <li><a href="<{:U('Strategy/batchAssign', 'type='.$type.'&currency='.$currency)}>">按商户</a></li>
+                                        <li class="layui-this">按包网</li>
+                                        <li><a href="<{:U('Strategy/batchAssignByCurrency')}>">按国家</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <form method="get" action="" class="form-inline" style="margin-bottom:15px;">
                             <input type="hidden" name="type" value="<{$type}>">
-                            <div class="layui-inline">
-                                <label class="layui-form-label">国家：</label>
-                                <div class="layui-input-inline">
-                                    <select name="currency" class="form-control" onchange="this.form.submit()">
-                                        <option value="">全部</option>
-                                        <volist name="country" id="c">
-                                        <option value="<{$c.currency}>" <if condition="$currency eq $c['currency']">selected</if>><{$c.title}> (<{$c.currency}>)</option>
-                                        </volist>
-                                    </select>
+                            <div class="form-group">
+                                <label>国家：</label>
+                                <select name="currency" class="form-control" onchange="this.form.submit()">
+                                    <option value="">全部</option>
+                                    <volist name="country" id="c">
+                                    <option value="<{$c.currency}>" <if condition="$currency eq $c['currency']">selected</if>><{$c.title}> (<{$c.currency}>)</option>
+                                    </volist>
+                                </select>
+                            </div>
+                        </form>
+
+                        <!-- 策略配置 -->
+                        <form class="layui-form" id="batchAssignForm">
+                            <div class="layui-form-item" style="border:1px solid #e5e6e7;padding:15px;border-radius:4px;background:#fafafa;">
+                                <div class="layui-inline" style="margin-right:30px;">
+                                    <label class="layui-form-label" style="width:80px;">策略类型</label>
+                                    <div class="layui-input-inline" style="width:150px;">
+                                        <select name="type" lay-filter="typeFilter" id="typeSelect">
+                                            <option value="1" <if condition="$type eq 1">selected</if>>代收</option>
+                                            <option value="2" <if condition="$type eq 2">selected</if>>代付</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="layui-inline" style="margin-right:30px;">
+                                    <label class="layui-form-label" style="width:80px;">选择策略</label>
+                                    <div class="layui-input-inline" style="width:250px;">
+                                        <select name="strategyid" id="strategySelect">
+                                            <option value="0">-- 不启用策略（清除） --</option>
+                                            <volist name="strategies" id="s">
+                                            <option value="<{$s.id}>"><{$s.name}> (<{$s.currency}>)</option>
+                                            </volist>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="layui-inline">
+                                    <label class="layui-form-label" style="width:60px;">状态</label>
+                                    <div class="layui-input-inline" style="width:100px;">
+                                        <select name="status">
+                                            <option value="1">启用</option>
+                                            <option value="0">禁用</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 包网列表 -->
+                            <div class="row" style="margin-top:20px;">
+                                <div class="col-sm-12">
+                                    <div class="alert alert-info" style="margin-bottom:10px;padding:8px 15px;">
+                                        已选国家：<strong><if condition="$currency neq ''"><{$currency}><else/>全部</if></strong>
+                                        &nbsp;|&nbsp; 包网数量：<strong><{:count($agency)}></strong>
+                                        &nbsp;|&nbsp; <a href="javascript:;" id="checkAll">全选</a> / <a href="javascript:;" id="checkReverse">反选</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="max-height:400px;overflow-y:auto;border:1px solid #e5e6e7;padding:10px;border-radius:4px;">
+                                <volist name="agency" id="vo" key="k">
+                                <div style="display:inline-block;width:220px;padding:4px 6px;">
+                                    <input type="checkbox" title="<{$vo.username}>" value="<{$vo.id}>" class='checkIds' lay-skin="primary">
+                                </div>
+                                </volist>
+                                <if condition="empty($agency)">
+                                    <div class="text-center text-muted" style="padding:30px;">该条件下没有可分配的包网</div>
+                                </if>
+                            </div>
+
+                            <div class="layui-form-item" style="margin-top:20px;">
+                                <div class="layui-input-block">
+                                    <button class="layui-btn layui-btn-lg" lay-submit lay-filter="save">提交保存</button>
                                 </div>
                             </div>
                         </form>
                     </div>
-
-                    <!--策略选择-->
-                    <table class="layui-table" lay-even="" lay-skin="line">
-                        <thead>
-                            <tr>
-                                <th>策略配置</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class="layui-form-item">
-                                        <div class="layui-inline">
-                                            <label class="layui-form-label">策略类型：</label>
-                                            <div class="layui-input-inline">
-                                                <select name="type" lay-filter="typeFilter" id="typeSelect">
-                                                    <option value="1" <if condition="$type eq 1">selected</if>>代收</option>
-                                                    <option value="2" <if condition="$type eq 2">selected</if>>代付</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="layui-inline">
-                                            <label class="layui-form-label">选择策略：</label>
-                                            <div class="layui-input-inline">
-                                                <select name="strategyid" id="strategySelect">
-                                                    <option value="0">-- 不启用策略（清除） --</option>
-                                                    <volist name="strategies" id="s">
-                                                    <option value="<{$s.id}>"><{$s.name}> (<{$s.currency}>)</option>
-                                                    </volist>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="layui-inline">
-                                            <label class="layui-form-label">状态：</label>
-                                            <div class="layui-input-inline">
-                                                <select name="status">
-                                                    <option value="1">启用</option>
-                                                    <option value="0">禁用</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!--包网列表-->
-                    <table class="layui-table" lay-even="" lay-skin="line" style="margin-top:30px;" id="table">
-                        <thead>
-                            <tr>
-                                <th>选择包网</th>
-                                <th><a href="javascript:;" id="checkAll" class="layui-btn layui-btn-sm">全选</a></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <volist name="agency" id="vo" key="k">
-                                <if condition="$k%2 eq 1"><tr></if>
-                                <td>
-                                    <input type="checkbox" title="" value="<{$vo.id}>" class='checkIds' lay-skin="primary">
-                                    &nbsp; <{$vo.username}>
-                                </td>
-                                <if condition="$k%2 eq 0"></tr></if>
-                            </volist>
-                        </tbody>
-                    </table>
-
-                    <div class="layui-form-item">
-                        <div class="layui-input-block">
-                            <button class="layui-btn" lay-submit="submit" lay-filter="save">提交保存</button>
-                        </div>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -128,33 +121,20 @@
     <script src="/Public/Front/js/bootstrap.min.js"></script>
     <script src="/Public/Front/js/content.js"></script>
     <script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
-
     <script>
-    // 全选
-    $('#checkAll').on('click', function(){
-        var child = $('table').next().find('tbody input[type="checkbox"]');
-        child.each(function(){
-            $(this).attr('checked', true);
-        });
-        $('.layui-form-checkbox').addClass('layui-form-checked');
-    });
-
     layui.use(['layer', 'form'], function(){
         var form = layui.form
         ,layer = layui.layer;
 
-        // 类型切换时刷新页面加载对应策略
         form.on('select(typeFilter)', function(data){
             location.href = "<{:U('batchAssignByAgency')}>?type=" + data.value + "&currency=<{$currency}>";
         });
 
-        // 监听提交
         form.on('submit(save)', function(data){
             var ids = '';
             $('.checkIds').each(function () {
-                var _this = $(this);
-                if (_this.is(':checked')) {
-                    ids = ids + _this.val() + ',';
+                if ($(this).is(':checked')) {
+                    ids += $(this).val() + ',';
                 }
             });
 
@@ -163,37 +143,39 @@
                 return false;
             }
 
-            var type = $('#typeSelect').val();
-            var strategyid = $('#strategySelect').val();
-            var status = data.field.status;
-
             $.ajax({
                 url: "<{:U('saveBatchAssignByAgency')}>",
                 type: "post",
                 data: {
                     'ids': ids,
-                    'type': type,
-                    'strategyid': strategyid,
-                    'status': status
+                    'type': data.field.type,
+                    'strategyid': data.field.strategyid,
+                    'status': data.field.status
                 },
                 success: function(res){
                     if (res.status) {
-                        layer.alert("编辑成功", {icon: 6}, function () {
+                        layer.alert("操作成功", {icon: 6}, function () {
                             parent.location.reload();
-                            var index = parent.layer.getFrameIndex(window.name);
-                            parent.layer.close(index);
                         });
                     } else {
-                        layer.alert(res.info || "操作失败", {icon: 5}, function () {
-                            parent.location.reload();
-                            var index = parent.layer.getFrameIndex(window.name);
-                            parent.layer.close(index);
-                        });
+                        layer.alert(res.info || "操作失败", {icon: 5});
                     }
                 }
             });
             return false;
         });
+    });
+
+    $('#checkAll').on('click', function(){
+        $('.checkIds').prop('checked', true);
+        layui.form.render('checkbox');
+    });
+
+    $('#checkReverse').on('click', function(){
+        $('.checkIds').each(function(){
+            $(this).prop('checked', !$(this).prop('checked'));
+        });
+        layui.form.render('checkbox');
     });
     </script>
 </body>

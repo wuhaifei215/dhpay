@@ -488,7 +488,7 @@ class StrategyController extends BaseController
         UserLogService::HTwrite(1, '查看商户策略列表', '查看商户策略列表');
 
         $type = I('get.type', 1, 'intval');
-        $hasStrategy = I('get.has_strategy', '', 'intval');
+        $hasStrategy = I('get.has_strategy', '');
         $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $typename = isset($this->typeMap[$type]) ? $this->typeMap[$type] : '代收';
 

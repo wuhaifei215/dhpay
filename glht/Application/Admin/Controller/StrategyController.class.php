@@ -494,22 +494,11 @@ class StrategyController extends BaseController
 
         // 构建查询条件
         $where = ['type' => $type];
+        $where['strategyid'] = $hasStrategy;
 
-        if ($hasStrategy === '1') {
-            // 有策略的商户
-            $memberList = M('MemberStrategy')->where($where)->getField('userid', true);
-            if (empty($memberList)) {
-                $memberList = [];
-            }
+        $memberList = M('MemberStrategy')->where($where)->getField('userid', true);
+        if (!empty($memberList)) {
             $memberWhere = ['id' => ['in', $memberList]];
-        } elseif ($hasStrategy === '0') {
-            // 无策略的商户
-            $memberWithStrategy = M('MemberStrategy')->where($where)->getField('userid', true);
-            if (!empty($memberWithStrategy)) {
-                $memberWhere = ['id' => ['not in', $memberWithStrategy]];
-            } else {
-                $memberWhere = [];
-            }
         } else {
             $memberWhere = [];
         }

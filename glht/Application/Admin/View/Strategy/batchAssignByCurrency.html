@@ -85,11 +85,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <volist name="currencyList" id="vo" key="k">
+                            <volist name="countryList" id="vo" key="k">
                                 <if condition="$k%2 eq 1"><tr></if>
                                 <td>
                                     <input type="checkbox" title="" value="<{$vo.currency}>" class='checkIds' lay-skin="primary">
-                                    &nbsp; <{$vo.currency}>
+                                    &nbsp; <{$vo.title}> (<{$vo.currency}>)
                                 </td>
                                 <if condition="$k%2 eq 0"></tr></if>
                             </volist>

@@ -24,10 +24,28 @@
                 <form class="layui-form" action="" id="batchAssignForm">
                     <div class="layui-tab">
                         <ul class="layui-tab-title">
-                            <li><a href="<{:U('Strategy/batchAssign')}>">按商户</a></li>
+                            <li><a href="<{:U('Strategy/batchAssign', 'type='.$type.'&currency='.$currency)}>">按商户</a></li>
                             <li class="layui-this"><a href="javascript:;">按包网</a></li>
                             <li><a href="<{:U('Strategy/batchAssignByCurrency')}>">按国家</a></li>
                         </ul>
+                    </div>
+
+                    <!--国家筛选-->
+                    <div class="layui-form-item" style="margin-top:15px;">
+                        <form method="get" action="" class="form-inline">
+                            <input type="hidden" name="type" value="<{$type}>">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">国家：</label>
+                                <div class="layui-input-inline">
+                                    <select name="currency" class="form-control" onchange="this.form.submit()">
+                                        <option value="">全部</option>
+                                        <volist name="country" id="c">
+                                        <option value="<{$c.currency}>" <if condition="$currency eq $c['currency']">selected</if>><{$c.title}> (<{$c.currency}>)</option>
+                                        </volist>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
                     </div>
 
                     <!--策略选择-->
@@ -127,7 +145,7 @@
 
         // 类型切换时刷新页面加载对应策略
         form.on('select(typeFilter)', function(data){
-            location.href = "<{:U('batchAssignByAgency')}>?type=" + data.value;
+            location.href = "<{:U('batchAssignByAgency')}>?type=" + data.value + "&currency=<{$currency}>";
         });
 
         // 监听提交

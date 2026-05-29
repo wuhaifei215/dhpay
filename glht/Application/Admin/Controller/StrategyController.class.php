@@ -489,10 +489,14 @@ class StrategyController extends BaseController
 
         $type = I('get.type', 1, 'intval');
         $hasStrategy = I('get.has_strategy', '');
+        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $typename = isset($this->typeMap[$type]) ? $this->typeMap[$type] : '代收';
 
         // 构建查询条件
         $where = ['type' => $type];
+        if ($currency !== '') {
+            $where['currency'] = $currency;
+        }
 
         if ($hasStrategy === '1') {
             // 有策略的商户
@@ -512,6 +516,11 @@ class StrategyController extends BaseController
         } else {
             $memberWhere = [];
         }
+
+        // 国家列表
+        $country = M('Country')->where(['status' => 1])->select();
+        $this->assign('country', $country);
+        $this->assign('currency', $currency);
 
         // 获取商户列表
         $memberWhere['groupid'] = ['eq', 4]; // 排除测试账号
@@ -557,14 +566,24 @@ class StrategyController extends BaseController
     public function batchAssign()
     {
         $type = I('get.type', 1, 'intval');
+        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
 
-        // 获取商户列表
-        $userList = M('Member')->where(['status' => 1])->order('id desc')->select();
+        // 获取商户列表（按国家筛选）
+        $where = ['status' => 1];
+        if ($currency !== '') {
+            $where['currency'] = $currency;
+        }
+        $userList = M('Member')->where($where)->order('id desc')->select();
 
         // 获取策略列表
         $strategies = M('Strategy')->where(['type' => $type, 'status' => 1])->order('id ASC')->select();
 
+        // 国家列表
+        $country = M('Country')->where(['status' => 1])->select();
+
         $this->assign('type', $type);
+        $this->assign('currency', $currency);
+        $this->assign('country', $country);
         $this->assign('strategies', $strategies);
         $this->assign('userList', $userList);
         $this->display();
@@ -576,14 +595,29 @@ class StrategyController extends BaseController
     public function batchAssignByAgency()
     {
         $type = I('get.type', 1, 'intval');
+        $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
 
-        // 获取包网列表
-        $agency = M('Agency')->select();
+        // 获取包网列表（按国家筛选：只显示该国家有商户的包网）
+        if ($currency !== '') {
+            $memberAgencyIds = M('Member')->where(['status' => 1, 'currency' => $currency])->getField('agency_id', true);
+            $memberAgencyIds = array_filter($memberAgencyIds);
+            if (empty($memberAgencyIds)) {
+                $memberAgencyIds = [0];
+            }
+            $agency = M('Agency')->where(['id' => ['in', $memberAgencyIds]])->select();
+        } else {
+            $agency = M('Agency')->select();
+        }
 
         // 获取策略列表
         $strategies = M('Strategy')->where(['type' => $type, 'status' => 1])->order('id ASC')->select();
 
+        // 国家列表
+        $country = M('Country')->where(['status' => 1])->select();
+
         $this->assign('type', $type);
+        $this->assign('currency', $currency);
+        $this->assign('country', $country);
         $this->assign('strategies', $strategies);
         $this->assign('agency', $agency);
         $this->display();

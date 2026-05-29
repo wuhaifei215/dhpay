@@ -11,6 +11,10 @@
 <link href="/Public/Front/css/animate.css" rel="stylesheet">
 <link href="/Public/Front/css/style.css" rel="stylesheet">
 <link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css"  media="all">
+<style>
+.layui-form-switch {width:54px;padding: 0;}
+.text-overflow {overflow: hidden;text-overflow: ellipsis;white-space: nowrap;max-width: 150px;}
+</style>
 </head>
 <body class="gray-bg">
     <div class="wrapper wrapper-content animated">
@@ -18,12 +22,10 @@
             <div class="col-sm-12">
                 <div class="ibox float-e-margins">
                     <div class="ibox-title">
-                        <h5><{$typename}>商户策略分配管理</h5>
+                        <h5><{$typename}>商户策略分配</h5>
                         <div class="row">
-                            <div class="col-sm-4 pull-right">
-                                <a href="<{:U('index', array('type'=>$type))}>" class="layui-btn layui-btn-primary">返回策略列表</a>
-                                <a href="<{:U('batchAssign', array('type'=>$type))}>" class="layui-btn layui-btn-danger">批量分配</a>
-                                <a href="<{:U('routeLog', array('type'=>$type))}>" class="layui-btn layui-btn-warm">路由日志</a>
+                            <div class="col-sm-2 pull-right">
+                                <a href="<{:U('batchAssign?type='.$type.'&currency='.$currency)}>" class="layui-btn layui-btn-sm">批量分配</a>
                             </div>
                         </div>
                     </div>
@@ -32,65 +34,68 @@
                         <form method="get" action="<{:U('memberList')}>" class="form-inline" style="margin-bottom: 15px;">
                             <input type="hidden" name="type" value="<{$type}>">
                             <div class="form-group">
-                                <label>每页显示：</label>
-                                <select name="rows" class="form-control" onchange="this.form.submit()">
-                                    <option value="20" <if condition="$rows eq 20">selected</if>>20条</option>
-                                    <option value="50" <if condition="$rows eq 50">selected</if>>50条</option>
-                                    <option value="100" <if condition="$rows eq 100">selected</if>>100条</option>
+                                <label>国家：</label>
+                                <select name="currency" class="form-control">
+                                    <option value="">全部</option>
+                                    <volist name="country" id="c">
+                                    <option value="<{$c.currency}>" <if condition="$currency eq $c['currency']">selected</if>><{$c.title}> (<{$c.currency}>)</option>
+                                    </volist>
                                 </select>
                             </div>
+                            &nbsp;&nbsp;
                             <div class="form-group">
-                                <label>筛选：</label>
+                                <label>策略配置：</label>
                                 <select name="has_strategy" class="form-control">
-                                    <option value="">全部商户</option>
+                                    <option value="">全部</option>
                                     <option value="1" <if condition="$has_strategy eq '1'">selected</if>>已分配策略</option>
                                     <option value="0" <if condition="$has_strategy eq '0'">selected</if>>未分配策略</option>
                                 </select>
                             </div>
                             <button type="submit" class="layui-btn">筛选</button>
+                            <a href="<{:U('index?type='.$type)}>" class="layui-btn layui-btn-primary">返回策略列表</a>
                         </form>
 
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>商户ID</th>
+                                        <th>商户编号</th>
                                         <th>商户用户名</th>
-                                        <th>策略配置</th>
+                                        <th>国家</th>
+                                        <th>策略名称</th>
                                         <th>状态</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                <volist name="list" id="p">
+                                <volist name="list" id="m">
                                     <tr>
-                                        <td><{$p.id|shanghubianhao=###}></td>
-                                        <td><{$p.username}></td>
+                                        <td><{$m.id|shanghubianhao=###}></td>
+                                        <td><{$m.username}></td>
+                                        <td><{$m.currency}></td>
                                         <td>
-                                            <if condition="isset($p['strategy']) AND $p['strategy']">
-                                                <span class="label label-primary"><{$p.strategy.name}></span>
+                                            <if condition="$m['strategy']">
+                                                <span class="text-navy"><{$m['strategy']['name']}></span>
                                             <else/>
-                                                <span class="label label-default">未分配</span>
+                                                <span class="text-muted">未分配</span>
                                             </if>
                                         </td>
                                         <td>
-                                            <if condition="$p['strategy_status'] eq 1">
-                                                <span class="label label-success">启用</span>
-                                            <elseif condition="$p['strategy_status'] eq 0"/>
-                                                <span class="label label-warning">停用</span>
+                                            <if condition="$m['strategy_status'] eq 1">
+                                                <span class="layui-btn layui-btn-xs layui-btn-normal">启用</span>
                                             <else/>
-                                                <span class="label label-default">-</span>
+                                                <span class="layui-btn layui-btn-xs layui-btn-danger">禁用</span>
                                             </if>
                                         </td>
                                         <td>
-                                            <button class="layui-btn layui-btn-small" onclick="assignStrategy('<{:U('assignMember?userid='.$p[id].'&type='.$type)}>')">
-                                                <if condition="isset($p['strategy']) AND $p['strategy']">修改<else/>分配</if>
-                                            </button>
+                                            <div class="layui-btn-group">
+                                                <button class="layui-btn layui-btn-xs" onclick="assignMember('<{:U('assignMember')}>?userid=<{$m.id}>&type=<{$type}>')">分配策略</button>
+                                            </div>
                                         </td>
                                     </tr>
                                 </volist>
                                 <if condition="empty($list)">
-                                    <tr><td colspan="5" class="text-center">暂无数据</td></tr>
+                                    <tr><td colspan="6" class="text-center">暂无数据</td></tr>
                                 </if>
                                 </tbody>
                             </table>
@@ -107,22 +112,18 @@
     <script src="/Public/Front/js/content.js"></script>
     <script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
     <script>
-    layui.use(['layer'], function(){
-        var layer = layui.layer;
-
-        window.assignStrategy = function(url) {
-            layer.open({
-                type: 2,
-                fix: false,
-                maxmin: true,
-                shadeClose: true,
-                area: ['700px', '500px'],
-                shade: 0.4,
-                title: "分配策略",
-                content: url
-            });
-        };
-    });
+    function assignMember(url) {
+        layer.open({
+            type: 2,
+            fix: false,
+            maxmin: true,
+            shadeClose: true,
+            area: ['600px', '450px'],
+            shade: 0.4,
+            title: "商户策略分配",
+            content: url
+        });
+    }
     </script>
 </body>
 </html>

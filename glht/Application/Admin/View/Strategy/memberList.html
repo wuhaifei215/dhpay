@@ -112,18 +112,24 @@
     <script src="/Public/Front/js/content.js"></script>
     <script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
     <script>
-    function assignMember(url) {
-        layer.open({
-            type: 2,
-            fix: false,
-            maxmin: true,
-            shadeClose: true,
-            area: ['600px', '450px'],
-            shade: 0.4,
-            title: "商户策略分配",
-            content: url
-        });
-    }
+    layui.use(['layer', 'form'], function(){
+        var layer = layui.layer;
+
+        function assignMember(url) {
+            layer.open({
+                type: 2,
+                fix: false,
+                maxmin: true,
+                shadeClose: true,
+                area: ['600px', '450px'],
+                shade: 0.4,
+                title: "商户策略分配",
+                content: url
+            });
+        }
+
+        window.assignMember = assignMember;
+    });
     </script>
 </body>
 </html>

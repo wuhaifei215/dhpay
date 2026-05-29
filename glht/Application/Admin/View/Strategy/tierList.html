@@ -1,115 +1,140 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="renderer" content="webkit">
-    <title><{:C("WEB_TITLE")}></title>
-    <link rel="shortcut icon" href="favicon.ico">
-    <link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/animate.css" rel="stylesheet">
-    <link href="/Public/Front/css/style.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="renderer" content="webkit">
+<title><{:C("WEB_TITLE")}></title>
+<link rel="shortcut icon" href="favicon.ico">
+<link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
+<link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
+<link href="/Public/Front/css/animate.css" rel="stylesheet">
+<link href="/Public/Front/css/style.css" rel="stylesheet">
+<link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css"  media="all">
+<style>
+.text-overflow {overflow: hidden;text-overflow: ellipsis;white-space: nowrap;max-width: 200px;}
+</style>
 </head>
 <body class="gray-bg">
-<div class="wrapper wrapper-content animated">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="ibox float-e-margings">
-                <div class="ibox-title">
-                    <h5><{$strategy.name}> - 档位配置 (<{$typename}>策略)</h5>
-                    <div class="ibox-tools">
-                        <a href="<{:U('index', array('type' => $strategy['type']))}>" class="btn btn-primary btn-xs">返回策略列表</a>
-                        <a href="javascript:;" onclick="tier_edit('添加档位', '<{:U(\'editTier\', array(\'strategyid\' => $strategy[\'id\']))}>')" class="btn btn-primary btn-xs">添加档位</a>
+    <div class="wrapper wrapper-content animated">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5><{$typeMap[$strategy['type']]}>策略 - <{$strategy.name}> - 档位管理</h5>
+                        <div class="row">
+                            <div class="col-sm-2 pull-right">
+                                <a href="<{:U('index?type='.$strategy['type'])}>" class="layui-btn layui-btn-primary">返回列表</a>
+                                <a href="javascript:;" id="addTier" class="layui-btn">添加档位</a>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="ibox-content">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>档位名称</th>
-                                    <th>金额范围</th>
-                                    <th>通道配置</th>
-                                    <th>排序</th>
-                                    <th>状态</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            <volist name="list" id="vo">
-                                <tr>
-                                    <td><{$vo.id}></td>
-                                    <td><{$vo.tier_name}></td>
-                                    <td><{$vo.tier_min}> - <{$vo.tier_max}></td>
-                                    <td style="text-align: left; padding-left: 20px;"><{$vo.channel_display}></td>
-                                    <td><{$vo.sort}></td>
-                                    <td>
-                                        <if condition="$vo.status eq 1">
-                                            <span class="label label-success">启用</span>
-                                        <else/>
-                                            <span class="label label-default">禁用</span>
-                                        </if>
-                                    </td>
-                                    <td>
-                                        <div class="layui-btn-group">
-                                            <a href="javascript:;" onclick="tier_edit('编辑档位', '<{:U(\'editTier\', array(\'id\' => $vo[\'id\'], \'strategyid\' => $strategy[\'id\']))}>')" class="layui-btn layui-btn-small layui-btn-normal">编辑</a>
-                                            <a href="javascript:;" onclick="tier_del(this, '<{$vo.id}>')" class="layui-btn layui-btn-small layui-btn-danger">删除</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </volist>
-                            <if condition="empty($list)">
-                                <tr>
-                                    <td colspan="7" class="text-center">暂无档位配置，请添加档位</td>
-                                </tr>
-                            </if>
-                            </tbody>
-                        </table>
+                    <div class="ibox-content">
+<!--                        <div class="alert alert-info">-->
+<!--                            <strong>金额档位说明：</strong><br>-->
+<!--                            代收：5-100 | 101-4999 | 5000-15000 | 15001-50000<br>-->
+<!--                            代付：10-100 | 101-4999 | 5000-15000-->
+<!--                        </div>-->
+
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>排序</th>
+                                        <th>档位名称</th>
+                                        <th>金额范围</th>
+                                        <th>通道配置</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                <volist name="list" id="p">
+                                    <tr>
+                                        <td><{$p.sort}></td>
+                                        <td><{$p.tier_name|default='-'}></td>
+                                        <td><{$p.tier_min}> - <{$p.tier_max}></td>
+                                        <td class="text-overflow" title="<{$p.channel_display}>"><{$p.channel_display}></td>
+                                        <td>
+                                            <if condition="$p['status'] eq 1">
+                                                <span class="label label-primary">开启</span>
+                                            <else/>
+                                                <span class="label label-default">关闭</span>
+                                            </if>
+                                        </td>
+                                        <td>
+                                            <div class="layui-btn-group">
+                                                <button class="layui-btn layui-btn-small" onclick="editTier('<{:U('editTier?id='.$p[id].'&strategyid='.$strategy[id])}>')">编辑</button>
+                                                <button class="layui-btn layui-btn-small layui-btn-danger" onclick="delTier('<{:U('delTier')}>', <{$p.id}>)">删除</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </volist>
+                                <if condition="empty($list)">
+                                    <tr><td colspan="6" class="text-center">暂无档位配置，请添加</td></tr>
+                                </if>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<script src="/Public/Front/js/jquery.min.js"></script>
-<script src="/Public/Front/js/bootstrap.min.js"></script>
-<script src="/Public/Front/js/content.js"></script>
-<script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
-<script>
-function tier_edit(title, url){
-    var w = 650, h = 450;
-    layer.open({
-        type: 2,
-        fix: false,
-        maxmin: true,
-        shadeClose: true,
-        area: [w+'px', h+'px'],
-        title: title,
-        content: url
-    });
-}
 
-function tier_del(obj, id){
-    layer.confirm('确认要删除该档位吗？', function(index){
-        $.ajax({
-            type: 'POST',
-            url: "<{:U('delTier')}>",
-            data: {id: id},
-            dataType: 'json',
-            success: function(data){
-                if(data.status == 1){
-                    $(obj).parents("tr").remove();
-                    layer.msg('已删除', {icon:1, time:1000});
-                } else {
-                    layer.msg(data.msg, {icon:2, time:2000});
-                }
-            }
+    <script src="/Public/Front/js/jquery.min.js"></script>
+    <script src="/Public/Front/js/bootstrap.min.js"></script>
+    <script src="/Public/Front/js/content.js"></script>
+    <script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
+    <script>
+    layui.use(['layer', 'form'], function(){
+        var layer = layui.layer;
+
+        $('#addTier').on('click', function(){
+            layer.open({
+                type: 2,
+                fix: false,
+                maxmin: true,
+                shadeClose: true,
+                area: ['700px', '500px'],
+                shade: 0.4,
+                title: "添加档位",
+                content: "<{:U('editTier?strategyid='.$strategy[id])}>"
+            });
         });
     });
-}
-</script>
+
+    function editTier(url) {
+        layer.open({
+            type: 2,
+            fix: false,
+            maxmin: true,
+            shadeClose: true,
+            area: ['700px', '500px'],
+            shade: 0.4,
+            title: "编辑档位",
+            content: url
+        });
+    }
+
+    function delTier(url, id) {
+        layer.confirm('确定要删除该档位吗？', function(index){
+            $.ajax({
+                url: url,
+                type: 'post',
+                data: {id: id},
+                success: function(res){
+                    if(res.status == 1){
+                        layer.msg('删除成功', {icon: 1});
+                        setTimeout(function(){location.reload();}, 1000);
+                    }else{
+                        layer.msg(res.msg || '删除失败', {icon: 2});
+                    }
+                }
+            });
+            layer.close(index);
+        });
+    }
+    </script>
 </body>
 </html>

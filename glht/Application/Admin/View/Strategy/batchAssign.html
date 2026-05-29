@@ -1,112 +1,182 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="renderer" content="webkit">
-    <title><{:C("WEB_TITLE")}></title>
-    <link rel="shortcut icon" href="favicon.ico">
-    <link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/animate.css" rel="stylesheet">
-    <link href="/Public/Front/css/style.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="renderer" content="webkit">
+<title><{:C("WEB_TITLE")}></title>
+<link rel="shortcut icon" href="favicon.ico">
+<link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
+<link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
+<link href="/Public/Front/css/animate.css" rel="stylesheet">
+<link href="/Public/Front/css/style.css" rel="stylesheet">
+<link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css">
+<style>
+    .layui-form-switch {width:54px;}
+    .layui-form-label {width:110px;padding:4px}
+</style>
 </head>
-<body class="gray-bg">
-<div class="wrapper wrapper-content animated">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <h5>批量分配策略 - <if condition="$type eq 1">代收<else/>代付</if></h5>
-                </div>
-                <div class="ibox-content">
-                    <form class="layui-form" action="<{:U('saveBatchAssign')}>" method="post" id="form-batch">
-                        <input type="hidden" name="type" value="<{$type}>" />
+<body>
+    <div class="wrapper wrapper-content animated">
+        <div class="row">
+            <div class="col-sm-12">
+                <span style="font-size:35px;color:red;">策略分配</span>
+                <form class="layui-form" action="" id="batchAssignForm">
+                    <input type="hidden" name="userid" value="<{$_GET['uid']|htmlspecialchars}>">
+                    <div class="layui-tab">
+                        <ul class="layui-tab-title">
+                            <li class="layui-this"><a href="javascript:;">按商户</a></li>
+                            <li><a href="<{:U('Strategy/batchAssignByAgency')}>">按包网</a></li>
+                        </ul>
+                    </div>
 
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">策略类型：</label>
-                            <div class="layui-input-block">
-                                <span class="label label-primary"><if condition="$type eq 1">代收<else/>代付</if></span>
-                            </div>
-                        </div>
+                    <!--策略选择-->
+                    <table class="layui-table" lay-even="" lay-skin="line">
+                        <thead>
+                            <tr>
+                                <th>策略配置</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="layui-form-item">
+                                        <div class="layui-inline">
+                                            <label class="layui-form-label">策略类型：</label>
+                                            <div class="layui-input-inline">
+                                                <select name="type" lay-filter="typeFilter" id="typeSelect">
+                                                    <option value="1" <if condition="$type eq 1">selected</if>>代收</option>
+                                                    <option value="2" <if condition="$type eq 2">selected</if>>代付</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline">
+                                            <label class="layui-form-label">选择策略：</label>
+                                            <div class="layui-input-inline">
+                                                <select name="strategyid" id="strategySelect">
+                                                    <option value="0">-- 不启用策略（清除） --</option>
+                                                    <volist name="strategies" id="s">
+                                                    <option value="<{$s.id}>"><{$s.name}> (ID: <{$s.id}>)</option>
+                                                    </volist>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline">
+                                            <label class="layui-form-label">状态：</label>
+                                            <div class="layui-input-inline">
+                                                <select name="status">
+                                                    <option value="1">启用</option>
+                                                    <option value="0">禁用</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
 
-                        <div class="layui-form-item">
-                            <label class="layui-form-label"><span class="c-red">*</span>选择商户：</label>
-                            <div class="layui-input-block">
-                                <select name="ids" id="ids" class="layui-input" multiple style="width: 400px; height: 200px;">
-                                    <volist name="userList" id="u">
-                                        <option value="<{$u.id}>"><{$u.username}> (ID:<{$u.id + 10000}>)</option>
-                                    </volist>
-                                </select>
-                                <div class="layui-form-mid layui-word-aux">按住 Ctrl 可多选</div>
-                            </div>
-                        </div>
+                    <!--商户列表-->
+                    <table class="layui-table" lay-even="" lay-skin="line" style="margin-top:30px;" id="table">
+                        <thead>
+                            <tr>
+                                <th>选择用户</th>
+                                <th><a href="javascript:;" id="checkAll" class="layui-btn layui-btn-sm">全选</a></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <volist name="userList" id="vo" key="k">
+                                <if condition="$k%2 eq 1"><tr></if>
+                                <td>
+                                    <input type="checkbox" title="" value="<{$vo.id}>" class='checkIds' lay-skin="primary">
+                                    &nbsp; <{$vo['id']|shanghubianhao=###}> == <{$vo.username}>
+                                </td>
+                                <if condition="$k%2 eq 0"></tr></if>
+                            </volist>
+                        </tbody>
+                    </table>
 
-                        <div class="layui-form-item">
-                            <label class="layui-form-label"><span class="c-red">*</span>选择策略：</label>
-                            <div class="layui-input-block">
-                                <select name="strategyid" class="layui-input" style="width: 300px;">
-                                    <option value="0">-- 清除策略（原逻辑）--</option>
-                                    <volist name="strategies" id="s">
-                                        <option value="<{$s.id}>"><{$s.name}></option>
-                                    </volist>
-                                </select>
-                            </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <button class="layui-btn" lay-submit="submit" lay-filter="save">提交保存</button>
                         </div>
-
-                        <div class="layui-form-item">
-                            <div class="layui-input-block">
-                                <button class="layui-btn" lay-submit lay-filter="*" type="submit">确认分配</button>
-                                <button type="button" class="layui-btn layui-btn-primary" onclick="parent.layer.close(parent.layer.getFrameIndex(window.name))">取消</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-</div>
-<script src="/Public/Front/js/jquery.min.js"></script>
-<script src="/Public/Front/js/bootstrap.min.js"></script>
-<script src="/Public/Front/js/content.js"></script>
-<script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
-<script>
-layui.use(['layer', 'form'], function(){
-    var form = layui.form, layer = layui.layer;
 
-    form.on('submit(*)', function(data){
-        var selectedOptions = $('#ids option:selected');
-        if (selectedOptions.length === 0) {
-            layer.msg('请选择商户', {icon: 2, time: 2000});
-            return false;
-        }
+    <script src="/Public/Front/js/jquery.min.js"></script>
+    <script src="/Public/Front/js/bootstrap.min.js"></script>
+    <script src="/Public/Front/js/content.js"></script>
+    <script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
 
-        var ids = [];
-        selectedOptions.each(function(){
-            ids.push($(this).val());
+    <script>
+    // 全选
+    $('#checkAll').on('click', function(){
+        var child = $('table').next().find('tbody input[type="checkbox"]');
+        child.each(function(){
+            $(this).attr('checked', true);
         });
-
-        $.ajax({
-            type: 'POST',
-            url: $(data.form).attr('action'),
-            data: $(data.form).serialize() + '&ids=' + ids.join(','),
-            dataType: 'json',
-            success: function(res){
-                if(res.status == 1){
-                    layer.msg(res.msg, {icon:1, time:2000});
-                    setTimeout(function(){
-                        parent.location.reload();
-                        parent.layer.close(parent.layer.getFrameIndex(window.name));
-                    }, 2000);
-                } else {
-                    layer.msg(res.msg, {icon:2, time:2000});
-                }
-            }
-        });
-        return false;
+        $('.layui-form-checkbox').addClass('layui-form-checked');
     });
-});
-</script>
+
+    layui.use(['layer', 'form'], function(){
+        var form = layui.form
+        ,layer = layui.layer;
+
+        // 类型切换时刷新页面加载对应策略
+        form.on('select(typeFilter)', function(data){
+            location.href = "<{:U('batchAssign')}>?type=" + data.value;
+        });
+
+        // 监听提交
+        form.on('submit(save)', function(data){
+            var ids = '';
+            $('.checkIds').each(function () {
+                var _this = $(this);
+                if (_this.is(':checked')) {
+                    ids = ids + _this.val() + ',';
+                }
+            });
+
+            if (ids == '') {
+                layer.msg('请选择商户', {icon: 2, time: 2000});
+                return false;
+            }
+
+            var type = $('#typeSelect').val();
+            var strategyid = $('#strategySelect').val();
+            var status = data.field.status;
+
+            $.ajax({
+                url: "<{:U('saveBatchAssign')}>",
+                type: "post",
+                data: {
+                    'ids': ids,
+                    'type': type,
+                    'strategyid': strategyid,
+                    'status': status
+                },
+                success: function(res){
+                    if (res.status) {
+                        layer.alert("编辑成功", {icon: 6}, function () {
+                            parent.location.reload();
+                            var index = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(index);
+                        });
+                    } else {
+                        layer.alert(res.info || "操作失败", {icon: 5}, function () {
+                            parent.location.reload();
+                            var index = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(index);
+                        });
+                    }
+                }
+            });
+            return false;
+        });
+    });
+    </script>
 </body>
 </html>

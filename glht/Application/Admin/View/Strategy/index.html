@@ -1,136 +1,181 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="renderer" content="webkit">
-    <title><{:C("WEB_TITLE")}></title>
-    <link rel="shortcut icon" href="favicon.ico">
-    <link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/animate.css" rel="stylesheet">
-    <link href="/Public/Front/css/style.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="renderer" content="webkit">
+<title><{:C("WEB_TITLE")}></title>
+<link rel="shortcut icon" href="favicon.ico">
+<link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
+<link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
+<link href="/Public/Front/css/animate.css" rel="stylesheet">
+<link href="/Public/Front/css/style.css" rel="stylesheet">
+<link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css"  media="all">
+<style>
+.layui-form-switch {width:54px;padding: 0;}
+.text-overflow {overflow: hidden;text-overflow: ellipsis;white-space: nowrap;max-width: 150px;}
+</style>
 </head>
 <body class="gray-bg">
-<div class="wrapper wrapper-content animated">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <h5>策略列表 - <{$typeMap[$type]}></h5>
-                </div>
-                <div class="ibox-content">
-                    <form class="layui-form layui-form-pane form-search" action="" method="get" autocomplete="off">
-                        <input type="hidden" name="type" value="<{$type}>" />
-                        <div class="layui-form-item layui-inline">
-                            <label class="layui-form-label">状态：</label>
-                            <div class="layui-input-inline">
-                                <select name="status" class="layui-input">
-                                    <option value="">全部</option>
-                                    <option value="1" <if condition="$status eq '1'">selected</if>>启用</option>
-                                    <option value="0" <if condition="$status eq '0'">selected</if>>禁用</option>
-                                </select>
+    <div class="wrapper wrapper-content animated">
+
+        <div class="row">
+            <div class="col-sm-12">
+
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5><{$typename}>策略管理</h5>
+                        <div class="row">
+                            <div class="col-sm-2 pull-right">
+                                <a href="javascript:;" id="addStrategy" class="layui-btn">添加策略</a>
                             </div>
                         </div>
-                        <div class="layui-form-item layui-inline">
-                            <button type="submit" class="layui-btn"><span class="glyphicon glyphicon-search"></span> 搜索</button>
+                    </div>
+                    <div class="ibox-content">
+                        <!-- 筛选条件 -->
+                        <form method="get" action="<{:U('index')}>" class="form-inline" style="margin-bottom: 15px;">
+                            <input type="hidden" name="type" value="<{$type}>">
+                            <div class="form-group">
+                                <label>状态：</label>
+                                <select name="status" class="form-control">
+                                    <option value="">全部</option>
+                                    <option value="1" <if condition="$status eq '1'">selected</if>>开启</option>
+                                    <option value="0" <if condition="$status eq '0'">selected</if>>关闭</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="layui-btn">筛选</button>
+                            <a href="<{:U('memberList?type='.$type)}>" class="layui-btn layui-btn-normal">商户策略分配</a>
+                        </form>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>编号</th>
+                                        <th>策略名称</th>
+                                        <th>类型</th>
+                                        <th>档位数量</th>
+                                        <th>使用商户</th>
+                                        <th>状态</th>
+                                        <th>创建时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                <volist name="list" id="p">
+                                    <tr>
+                                        <td><{$p.id}></td>
+                                        <td><{$p.name}></td>
+                                        <td><{$typeMap[$p['type']]}></td>
+                                        <td><{$p.tier_count}></td>
+                                        <td><{$p.member_count}></td>
+                                        <td>
+                                            <div class="layui-form">
+                                                <input type="checkbox" <if condition="$p['status']">checked</if> name="status" value="1" data-id="<{$p.id}>" data-name="<{$p.name}>" lay-skin="switch" lay-filter="switchStatus" lay-text="开启|关闭">
+                                            </div>
+                                        </td>
+                                        <td><{$p.createtime}></td>
+                                        <td>
+                                            <div class="layui-btn-group">
+                                                <a href="<{:U('tierList?strategyid='.$p[id])}>" class="layui-btn layui-btn-small">档位管理</a>
+                                                <button class="layui-btn layui-btn-small" onclick="editStrategy('<{:U('edit?id='.$p[id].'&type='.$type)}>')">编辑</button>
+                                                <button class="layui-btn layui-btn-small layui-btn-danger" onclick="delStrategy('<{:U('del')}>', <{$p.id}>, <{$p.member_count}>)">删除</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </volist>
+                                <if condition="empty($list)">
+                                    <tr><td colspan="8" class="text-center">暂无数据</td></tr>
+                                </if>
+                                </tbody>
+                            </table>
                         </div>
-                    </form>
-                    <div class="col-sm-12" style="margin-bottom: 10px;">
-                        <a href="javascript:;" onclick="strategy_edit('添加策略', '<{:U(\'edit\', array(\'type\' => $type))}>')" class="layui-btn"><i class="fa fa-plus"></i> 添加策略</a>
-                        <a href="<{:U('index', array('type' => 1))}>" class="layui-btn <if condition="$type eq 1">layui-btn-disabled</if>">代收策略</a>
-                        <a href="<{:U('index', array('type' => 2))}>" class="layui-btn <if condition="$type eq 2">layui-btn-disabled</if>">代付策略</a>
+                        <div class="page"><{$page}></div>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>策略名称</th>
-                                    <th>类型</th>
-                                    <th>档位数量</th>
-                                    <th>商户数量</th>
-                                    <th>状态</th>
-                                    <th>创建时间</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            <volist name="list" id="vo">
-                                <tr>
-                                    <td><{$vo.id}></td>
-                                    <td><{$vo.name}></td>
-                                    <td><span class="label label-primary"><{$typeMap[$vo['type']]}></span></td>
-                                    <td><span class="badge badge-info"><{$vo.tier_count}></span></td>
-                                    <td><span class="badge badge-success"><{$vo.member_count}></span></td>
-                                    <td>
-                                        <if condition="$vo.status eq 1">
-                                            <span class="label label-success">启用</span>
-                                        <else/>
-                                            <span class="label label-default">禁用</span>
-                                        </if>
-                                    </td>
-                                    <td><{$vo.createtime}></td>
-                                    <td>
-                                        <div class="layui-btn-group">
-                                            <a href="<{:U('tierList', array('strategyid' => $vo['id']))}>" class="layui-btn layui-btn-small">档位配置</a>
-                                            <a href="javascript:;" onclick="strategy_edit('编辑策略', '<{:U(\'edit\', array(\'id\' => $vo[\'id\']))}>')" class="layui-btn layui-btn-small layui-btn-normal">编辑</a>
-                                            <a href="javascript:;" onclick="strategy_del(this, '<{$vo.id}>')" class="layui-btn layui-btn-small layui-btn-danger">删除</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </volist>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="page"><{$page}></div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<script src="/Public/Front/js/jquery.min.js"></script>
-<script src="/Public/Front/js/bootstrap.min.js"></script>
-<script src="/Public/Front/js/plugins/peity/jquery.peity.min.js"></script>
-<script src="/Public/Front/js/content.js"></script>
-<script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
-<script>
-layui.use(['layer', 'form'], function(){
-    var form = layui.form, layer = layui.layer;
-});
 
-function strategy_edit(title, url){
-    var w = 500, h = 300;
-    layer.open({
-        type: 2,
-        fix: false,
-        maxmin: true,
-        shadeClose: true,
-        area: [w+'px', h+'px'],
-        title: title,
-        content: url
-    });
-}
+    <script src="/Public/Front/js/jquery.min.js"></script>
+    <script src="/Public/Front/js/bootstrap.min.js"></script>
+    <script src="/Public/Front/js/plugins/peity/jquery.peity.min.js"></script>
+    <script src="/Public/Front/js/content.js"></script>
+    <script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
+    <script>
+    layui.use(['layer', 'form'], function(){
+        var form = layui.form
+        ,layer = layui.layer;
 
-function strategy_del(obj, id){
-    layer.confirm('确认要删除吗？', function(index){
-        $.ajax({
-            type: 'POST',
-            url: "<{:U('del')}>",
-            data: {id: id},
-            dataType: 'json',
-            success: function(data){
-                if(data.status == 1){
-                    $(obj).parents("tr").remove();
-                    layer.msg('已删除', {icon:1, time:1000});
-                } else {
-                    layer.msg(data.msg, {icon:2, time:2000});
+        //监听指定开关
+        form.on('switch(switchStatus)', function(data){
+            var id = $(this).attr('data-id'),
+            status = this.checked ? 1 : 0,
+            name = $(this).attr('data-name');
+            $.ajax({
+                url:"<{:U('edit')}>",
+                type:'post',
+                data:{id: id, name: name, type: <{$type}>, status: status},
+                success:function(res){
+                    if(res.status == 1){
+                        layer.tips('状态已更新', data.othis);
+                    }else{
+                        layer.tips('操作失败', data.othis);
+                    }
                 }
-            }
+            });
+        });
+
+        //添加策略
+        $('#addStrategy').on('click',function(){
+            layer.open({
+                type: 2,
+                fix: false,
+                maxmin: true,
+                shadeClose: true,
+                area: ['500px', '300px'],
+                shade: 0.4,
+                title: "添加策略",
+                content: "<{:U('edit?type='.$type)}>"
+            });
         });
     });
-}
-</script>
+
+    function editStrategy(url) {
+        layer.open({
+            type: 2,
+            fix: false,
+            maxmin: true,
+            shadeClose: true,
+            area: ['500px', '300px'],
+            shade: 0.4,
+            title: "编辑策略",
+            content: url
+        });
+    }
+
+    function delStrategy(url, id, memberCount) {
+        if (memberCount > 0) {
+            layer.msg('该策略已被 ' + memberCount + ' 个商户使用，无法删除', {icon: 2});
+            return;
+        }
+        layer.confirm('确定要删除该策略吗？', function(index){
+            $.ajax({
+                url: url,
+                type: 'post',
+                data: {id: id},
+                success: function(res){
+                    if(res.status == 1){
+                        layer.msg('删除成功', {icon: 1});
+                        setTimeout(function(){location.reload();}, 1000);
+                    }else{
+                        layer.msg(res.msg || '删除失败', {icon: 2});
+                    }
+                }
+            });
+            layer.close(index);
+        });
+    }
+    </script>
 </body>
 </html>

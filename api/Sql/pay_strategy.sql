@@ -1,7 +1,6 @@
 -- ============================================
 -- 策略路由功能数据库表
--- 执行时间: 2026-05-29
--- 从 r97 项目迁移
+-- 执行时间: 2026-04-10
 -- ============================================
 
 -- ----------------------------
@@ -64,7 +63,7 @@ DROP TABLE IF EXISTS `pay_strategy_log`;
 CREATE TABLE `pay_strategy_log` (
   `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
   `userid` INT(11) UNSIGNED DEFAULT NULL COMMENT '商户ID',
-  `out_trade_no` VARCHAR(100) NOT NULL COMMENT '外部订单号',
+  `out_trade_no` varchar(100) NOT NULL COMMENT '外部订单号',
   `type` TINYINT(1) DEFAULT NULL COMMENT '1:代收 2:代付',
   `amount` DECIMAL(12,2) DEFAULT NULL COMMENT '交易金额',
   `strategyid` INT(11) UNSIGNED DEFAULT NULL COMMENT '匹配到的策略ID',

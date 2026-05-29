@@ -4,7 +4,7 @@
  * 用于配置金额档位通道路由策略
  *
  * @author 系统开发
- * @date 2026-05-29 (从 r97 迁移)
+ * @date 2026-04-10
  */
 
 namespace Admin\Controller;
@@ -307,10 +307,6 @@ class StrategyController extends BaseController
                 }
             }
 
-            // 清除策略缓存
-            $redis = $this->redis_connect();
-            $redis->del('StrategyTier_' . $strategyId . '_' . $strategy['type']);
-
             $this->ajaxReturn(['status' => $res ? 1 : 0, 'msg' => $res ? '操作成功' : '操作失败']);
         }
 
@@ -413,7 +409,7 @@ class StrategyController extends BaseController
                 $res = M('MemberStrategy')->add($data);
 
                 // 清除缓存
-                $redis = $this->redis_connect();
+                $redis = $this->connectRedis();
                 $redis->del('MemberStrategy_' . $userid . '_' . $type);
 
                 if ($res) {
@@ -553,6 +549,25 @@ class StrategyController extends BaseController
     }
 
     /**
+     * 按包网批量分配策略
+     */
+    public function batchAssignByAgency()
+    {
+        $type = I('get.type', 1, 'intval');
+
+        // 获取包网列表
+        $agency = M('Agency')->select();
+
+        // 获取策略列表
+        $strategies = M('Strategy')->where(['type' => $type, 'status' => 1])->order('id ASC')->select();
+
+        $this->assign('type', $type);
+        $this->assign('strategies', $strategies);
+        $this->assign('agency', $agency);
+        $this->display();
+    }
+
+    /**
      * 保存批量分配的策略
      */
     public function saveBatchAssign()
@@ -613,13 +628,94 @@ class StrategyController extends BaseController
                 }
 
                 // 清除缓存
-                $redis = $this->redis_connect();
-                $redis->del('MemberStrategy_' . $userid . '_' . $type);
+                S('MemberStrategy_' . $userid . '_' . $type, null);
             }
 
             $db->commit();
 
             UserLogService::HTwrite(1, '批量分配策略', "批量分配策略：类型={$type}，策略ID={$strategyid}，新增={$successCount}，更新={$existCount}");
+
+            $this->success("操作成功：新增 {$successCount} 条，更新 {$existCount} 条");
+        } catch (\Exception $e) {
+            $db->rollback();
+            $this->error('操作失败：' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 按包网保存批量分配的策略
+     */
+    public function saveBatchAssignByAgency()
+    {
+        if (!IS_POST) {
+            $this->error('请求方式错误');
+        }
+
+        $ids = I('post.ids', '', 'trim');
+        $type = I('post.type', 1, 'intval');
+        $strategyid = I('post.strategyid', 0, 'intval');
+        $status = I('post.status', 1, 'intval');
+
+        if (empty($ids)) {
+            $this->error('请选择包网');
+        }
+
+        // 解析包网ID列表
+        $agencyArr = array_filter(array_map('intval', explode(',', $ids)));
+        if (empty($agencyArr)) {
+            $this->error('包网ID格式不正确');
+        }
+
+        // 验证策略
+        if ($strategyid > 0) {
+            $strategy = M('Strategy')->where(['id' => $strategyid, 'type' => $type, 'status' => 1])->find();
+            if (!$strategy) {
+                $this->error('策略不存在或已禁用');
+            }
+        }
+
+        // 获取包网下的所有商户
+        $members = M('Member')->where(['agency_id' => ['in', $agencyArr], 'status' => 1])->select();
+        if (empty($members)) {
+            $this->error('所选包网下没有有效商户');
+        }
+
+        $successCount = 0;
+        $existCount = 0;
+        $db = M();
+        $db->startTrans();
+
+        try {
+            foreach ($members as $member) {
+                $userid = $member['id'];
+                // 检查是否已存在配置
+                $exist = M('MemberStrategy')->where(['userid' => $userid, 'type' => $type])->find();
+
+                if ($exist) {
+                    M('MemberStrategy')->where(['userid' => $userid, 'type' => $type])->save([
+                        'strategyid' => $strategyid,
+                        'status' => $status,
+                        'updatetime' => date('Y-m-d H:i:s'),
+                    ]);
+                    $existCount++;
+                } else {
+                    M('MemberStrategy')->add([
+                        'userid' => $userid,
+                        'type' => $type,
+                        'strategyid' => $strategyid,
+                        'status' => $status,
+                        'createtime' => date('Y-m-d H:i:s'),
+                    ]);
+                    $successCount++;
+                }
+
+                // 清除缓存
+                S('MemberStrategy_' . $userid . '_' . $type, null);
+            }
+
+            $db->commit();
+
+            UserLogService::HTwrite(1, '按包网批量分配策略', "按包网批量分配策略：类型={$type}，策略ID={$strategyid}，包网数=" . count($agencyArr) . "，商户新增={$successCount}，商户更新={$existCount}");
 
             $this->success("操作成功：新增 {$successCount} 条，更新 {$existCount} 条");
         } catch (\Exception $e) {
@@ -646,7 +742,7 @@ class StrategyController extends BaseController
             $where['type'] = $type;
         }
         if ($userid > 0) {
-            $where['userid'] = $userid - 10000;
+            $where['userid'] = $userid -10000;
         }
         if (!empty($startDate)) {
             $where['createtime'] = ['egt', $startDate . ' 00:00:00'];
@@ -711,7 +807,7 @@ class StrategyController extends BaseController
             $type = I('post.type', 0, 'intval');
 
             try {
-                $redis = $this->redis_connect();
+                $redis = $this->connectRedis();
 
                 if ($strategyId > 0) {
                     $redis->del('StrategyInfo_' . $strategyId);
@@ -733,5 +829,16 @@ class StrategyController extends BaseController
                 $this->ajaxReturn(['status' => 0, 'msg' => '清除缓存失败：' . $e->getMessage()]);
             }
         }
+    }
+
+    /**
+     * 连接Redis
+     */
+    private function connectRedis()
+    {
+        $redis = new \Redis();
+        $redis->connect(C('REDIS_HOST'), C('REDIS_PORT'));
+        $redis->auth(C('REDIS_PWD'));
+        return $redis;
     }
 }

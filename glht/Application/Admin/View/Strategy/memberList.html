@@ -1,110 +1,128 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="renderer" content="webkit">
-    <title><{:C("WEB_TITLE")}></title>
-    <link rel="shortcut icon" href="favicon.ico">
-    <link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/animate.css" rel="stylesheet">
-    <link href="/Public/Front/css/style.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="renderer" content="webkit">
+<title><{:C("WEB_TITLE")}></title>
+<link rel="shortcut icon" href="favicon.ico">
+<link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
+<link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
+<link href="/Public/Front/css/animate.css" rel="stylesheet">
+<link href="/Public/Front/css/style.css" rel="stylesheet">
+<link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css"  media="all">
 </head>
 <body class="gray-bg">
-<div class="wrapper wrapper-content animated">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <h5>商户策略管理 - <{$typename}></h5>
-                </div>
-                <div class="ibox-content">
-                    <form class="layui-form layui-form-pane form-search" action="" method="get" autocomplete="off">
-                        <input type="hidden" name="type" value="<{$type}>" />
-                        <div class="layui-form-item layui-inline">
-                            <label class="layui-form-label">筛选：</label>
-                            <div class="layui-input-inline">
-                                <select name="has_strategy" class="layui-input">
-                                    <option value="">全部商户</option>
-                                    <option value="1" <if condition="$has_strategy eq '1'">selected</if>>已有策略</option>
-                                    <option value="0" <if condition="$has_strategy eq '0'">selected</if>>未配置策略</option>
-                                </select>
+    <div class="wrapper wrapper-content animated">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5><{$typename}>商户策略分配管理</h5>
+                        <div class="row">
+                            <div class="col-sm-4 pull-right">
+                                <a href="<{:U('index', array('type'=>$type))}>" class="layui-btn layui-btn-primary">返回策略列表</a>
+                                <a href="<{:U('batchAssign', array('type'=>$type))}>" class="layui-btn layui-btn-danger">批量分配</a>
+                                <a href="<{:U('routeLog', array('type'=>$type))}>" class="layui-btn layui-btn-warm">路由日志</a>
                             </div>
                         </div>
-                        <div class="layui-form-item layui-inline">
-                            <button type="submit" class="layui-btn"><span class="glyphicon glyphicon-search"></span> 搜索</button>
+                    </div>
+                    <div class="ibox-content">
+                        <!-- 筛选条件 -->
+                        <form method="get" action="<{:U('memberList')}>" class="form-inline" style="margin-bottom: 15px;">
+                            <input type="hidden" name="type" value="<{$type}>">
+                            <div class="form-group">
+                                <label>每页显示：</label>
+                                <select name="rows" class="form-control" onchange="this.form.submit()">
+                                    <option value="20" <if condition="$rows eq 20">selected</if>>20条</option>
+                                    <option value="50" <if condition="$rows eq 50">selected</if>>50条</option>
+                                    <option value="100" <if condition="$rows eq 100">selected</if>>100条</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>筛选：</label>
+                                <select name="has_strategy" class="form-control">
+                                    <option value="">全部商户</option>
+                                    <option value="1" <if condition="$has_strategy eq '1'">selected</if>>已分配策略</option>
+                                    <option value="0" <if condition="$has_strategy eq '0'">selected</if>>未分配策略</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="layui-btn">筛选</button>
+                        </form>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>商户ID</th>
+                                        <th>商户用户名</th>
+                                        <th>策略配置</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                <volist name="list" id="p">
+                                    <tr>
+                                        <td><{$p.id|shanghubianhao=###}></td>
+                                        <td><{$p.username}></td>
+                                        <td>
+                                            <if condition="isset($p['strategy']) AND $p['strategy']">
+                                                <span class="label label-primary"><{$p.strategy.name}></span>
+                                            <else/>
+                                                <span class="label label-default">未分配</span>
+                                            </if>
+                                        </td>
+                                        <td>
+                                            <if condition="$p['strategy_status'] eq 1">
+                                                <span class="label label-success">启用</span>
+                                            <elseif condition="$p['strategy_status'] eq 0"/>
+                                                <span class="label label-warning">停用</span>
+                                            <else/>
+                                                <span class="label label-default">-</span>
+                                            </if>
+                                        </td>
+                                        <td>
+                                            <button class="layui-btn layui-btn-small" onclick="assignStrategy('<{:U('assignMember?userid='.$p[id].'&type='.$type)}>')">
+                                                <if condition="isset($p['strategy']) AND $p['strategy']">修改<else/>分配</if>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </volist>
+                                <if condition="empty($list)">
+                                    <tr><td colspan="5" class="text-center">暂无数据</td></tr>
+                                </if>
+                                </tbody>
+                            </table>
                         </div>
-                    </form>
-                    <div class="col-sm-12" style="margin-bottom: 10px;">
-                        <a href="<{:U('batchAssign', array('type' => $type))}>" class="layui-btn"><i class="fa fa-plus"></i> 批量分配策略</a>
-                        <a href="<{:U('memberList', array('type' => 1))}>" class="layui-btn <if condition="$type eq 1">layui-btn-disabled</if>">代收</a>
-                        <a href="<{:U('memberList', array('type' => 2))}>" class="layui-btn <if condition="$type eq 2">layui-btn-disabled</if>">代付</a>
+                        <div class="page"><{$page}></div>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>商户ID</th>
-                                    <th>商户名称</th>
-                                    <th>当前策略</th>
-                                    <th>状态</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            <volist name="list" id="vo">
-                                <tr>
-                                    <td><{$vo.id + 10000}></td>
-                                    <td><{$vo.username}></td>
-                                    <td>
-                                        <if condition="!empty($vo['strategy'])">
-                                            <span class="label label-primary"><{$vo.strategy.name}></span>
-                                        <else/>
-                                            <span class="c-gray">未配置</span>
-                                        </if>
-                                    </td>
-                                    <td>
-                                        <if condition="$vo.strategy_status eq 1">
-                                            <span class="label label-success">启用</span>
-                                        <elseif condition="$vo.strategy_status eq 0"/>
-                                            <span class="label label-default">禁用</span>
-                                        <else/>
-                                            <span class="c-gray">-</span>
-                                        </if>
-                                    </td>
-                                    <td>
-                                        <a href="javascript:;" onclick="assign_strategy('分配策略', '<{:U(\'assignMember\', array(\'userid\' => $vo[\'id\'], \'type\' => $type))}>')" class="layui-btn layui-btn-small layui-btn-normal">分配策略</a>
-                                    </td>
-                                </tr>
-                            </volist>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="page"><{$page}></div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<script src="/Public/Front/js/jquery.min.js"></script>
-<script src="/Public/Front/js/bootstrap.min.js"></script>
-<script src="/Public/Front/js/content.js"></script>
-<script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
-<script>
-function assign_strategy(title, url){
-    var w = 550, h = 400;
-    layer.open({
-        type: 2,
-        fix: false,
-        maxmin: true,
-        shadeClose: true,
-        area: [w+'px', h+'px'],
-        title: title,
-        content: url
+
+    <script src="/Public/Front/js/jquery.min.js"></script>
+    <script src="/Public/Front/js/bootstrap.min.js"></script>
+    <script src="/Public/Front/js/content.js"></script>
+    <script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
+    <script>
+    layui.use(['layer'], function(){
+        var layer = layui.layer;
+
+        window.assignStrategy = function(url) {
+            layer.open({
+                type: 2,
+                fix: false,
+                maxmin: true,
+                shadeClose: true,
+                area: ['700px', '500px'],
+                shade: 0.4,
+                title: "分配策略",
+                content: url
+            });
+        };
     });
-}
-</script>
+    </script>
 </body>
 </html>

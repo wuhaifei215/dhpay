@@ -1,135 +1,166 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="renderer" content="webkit">
-    <title><{:C("WEB_TITLE")}></title>
-    <link rel="shortcut icon" href="favicon.ico">
-    <link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/animate.css" rel="stylesheet">
-    <link href="/Public/Front/css/style.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="renderer" content="webkit">
+<title><{:C("WEB_TITLE")}></title>
+<link rel="shortcut icon" href="favicon.ico">
+<link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
+<link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
+<link href="/Public/Front/css/animate.css" rel="stylesheet">
+<link href="/Public/Front/css/style.css" rel="stylesheet">
+<link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css"  media="all">
 </head>
 <body class="gray-bg">
-<div class="wrapper wrapper-content animated">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <h5>商户策略分配</h5>
-                </div>
-                <div class="ibox-content">
-                    <form class="layui-form" action="<{:U('assignMember')}>" method="post" id="form-assign">
-                        <input type="hidden" name="userid" value="<{$member.id}>" />
-                        <input type="hidden" name="type" value="<{$type}>" />
+    <div class="wrapper wrapper-content animated">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>为商户【<{$member.username}>】分配<{$typename}>策略</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <form class="form-horizontal" method="post" action="<{:U('assignMember')}>" id="assignForm">
+                            <input type="hidden" name="userid" value="<{$member.id}>">
+                            <input type="hidden" name="type" value="<{$type}>">
 
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">商户ID：</label>
-                            <div class="layui-input-block">
-                                <span class="layui-form-text" style="line-height: 38px;"><{$member.id + 10000}></span>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">商户编号</label>
+                                <div class="col-sm-6">
+                                    <p class="form-control-static"><{$member.id|shanghubianhao=###}></p>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">商户名称：</label>
-                            <div class="layui-input-block">
-                                <span class="layui-form-text" style="line-height: 38px;"><{$member.username}></span>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">商户用户名</label>
+                                <div class="col-sm-6">
+                                    <p class="form-control-static"><{$member.username}></p>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">策略类型：</label>
-                            <div class="layui-input-block">
-                                <span class="label label-primary"><{$typename}></span>
-                            </div>
-                        </div>
-
-                        <div class="layui-form-item">
-                            <label class="layui-form-label"><span class="c-red">*</span>选择策略：</label>
-                            <div class="layui-input-block">
-                                <select name="strategyid" class="layui-input" style="width: 300px;">
-                                    <option value="0">-- 不使用策略（原逻辑）--</option>
-                                    <volist name="strategys" id="s">
-                                        <option value="<{$s.id}>" <if condition="isset($current) and $current['strategyid'] eq $s['id']">selected</if>><{$s.name}></option>
-                                    </volist>
-                                </select>
-                            </div>
-                        </div>
-
-                        <if condition="isset($current) and !empty($current['strategy_info'])">
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">当前策略：</label>
-                            <div class="layui-input-block">
-                                <span class="label label-success"><{$current.strategy_info.name}></span>
-                            </div>
-                        </div>
-
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">档位预览：</label>
-                            <div class="layui-input-block">
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>档位名称</th>
-                                            <th>金额范围</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <volist name="current.tiers" id="tier">
-                                        <tr>
-                                            <td><{$tier.tier_name}></td>
-                                            <td><{$tier.tier_min}> - <{$tier.tier_max}></td>
-                                        </tr>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label"><{$typename}>策略</label>
+                                <div class="col-sm-6">
+                                    <select name="strategyid" class="form-control" id="strategySelect">
+                                        <option value="0">-- 不使用策略（走原有配置）--</option>
+                                        <volist name="strategys" id="s">
+                                            <option value="<{$s.id}>" <if condition="isset($current) AND $current['strategyid'] eq $s['id']">selected</if>><{$s.name}></option>
                                         </volist>
-                                    </tbody>
-                                </table>
+                                    </select>
+                                    <span class="help-block">选择策略后，系统将根据金额自动分配通道，覆盖原有通道配置</span>
+                                </div>
                             </div>
-                        </div>
-                        </if>
 
-                        <div class="layui-form-item">
-                            <div class="layui-input-block">
-                                <button class="layui-btn" lay-submit lay-filter="*" type="submit">保存</button>
-                                <button type="button" class="layui-btn layui-btn-primary" onclick="parent.layer.close(parent.layer.getFrameIndex(window.name))">取消</button>
+                            <!-- 策略详情展示 -->
+                            <div id="strategyDetail" style="display: none;">
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">策略信息</label>
+                                    <div class="col-sm-8">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>档位名称</th>
+                                                    <th>金额范围</th>
+                                                    <th>通道配置</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tierList">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </form>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-3 col-sm-6">
+                                    <button type="submit" class="layui-btn">保存</button>
+                                    <button type="button" class="layui-btn layui-btn-primary" onclick="closeLayer()">取消</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<script src="/Public/Front/js/jquery.min.js"></script>
-<script src="/Public/Front/js/bootstrap.min.js"></script>
-<script src="/Public/Front/js/content.js"></script>
-<script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
-<script>
-layui.use(['layer', 'form'], function(){
-    var form = layui.form, layer = layui.layer;
 
-    form.on('submit(*)', function(data){
-        $.ajax({
-            type: 'POST',
-            url: $(data.form).attr('action'),
-            data: $(data.form).serialize(),
-            dataType: 'json',
-            success: function(res){
-                if(res.status == 1){
-                    layer.msg(res.msg, {icon:1, time:1500});
-                    setTimeout(function(){
-                        parent.location.reload();
-                        parent.layer.close(parent.layer.getFrameIndex(window.name));
-                    }, 1500);
-                } else {
-                    layer.msg(res.msg, {icon:2, time:2000});
+    <script src="/Public/Front/js/jquery.min.js"></script>
+    <script src="/Public/Front/js/bootstrap.min.js"></script>
+    <script src="/Public/Front/js/content.js"></script>
+    <script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
+    <script>
+    var strategyData = <php>echo json_encode($strategys);</php>;
+    var currentData = <php>echo json_encode($current);</php>;
+
+    layui.use(['layer', 'form'], function(){
+        var form = layui.form,
+        layer = layui.layer;
+
+        // 策略选择变化
+        $('#strategySelect').on('change', function(){
+            var strategyId = $(this).val();
+            if (strategyId > 0) {
+                var strategy = null;
+                for (var i = 0; i < strategyData.length; i++) {
+                    if (strategyData[i].id == strategyId) {
+                        strategy = strategyData[i];
+                        break;
+                    }
                 }
+                if (strategy && strategy.tiers) {
+                    var html = '';
+                    for (var i = 0; i < strategy.tiers.length; i++) {
+                        var tier = strategy.tiers[i];
+                        var channelDisplay = tier.channel_display || '-';
+                        html += '<tr>';
+                        html += '<td>' + (tier.tier_name || '-') + '</td>';
+                        html += '<td>' + tier.tier_min + ' - ' + tier.tier_max + '</td>';
+                        html += '<td>' + channelDisplay + '</td>';
+                        html += '</tr>';
+                    }
+                    $('#tierList').html(html);
+                    $('#strategyDetail').show();
+                } else {
+                    $('#strategyDetail').hide();
+                }
+            } else {
+                $('#strategyDetail').hide();
             }
         });
-        return false;
+
+        // 初始化：如果已有选择，显示详情
+        if (currentData && currentData.strategyid > 0) {
+            $('#strategySelect').trigger('change');
+        }
+
+        // 表单提交
+        $('#assignForm').on('submit', function(){
+            $.ajax({
+                url: "<{:U('assignMember')}>",
+                type: 'post',
+                data: $(this).serialize(),
+                success: function(res){
+                    if (res.status == 1) {
+                        layer.msg('保存成功', {icon: 1});
+                        setTimeout(function(){
+                            var index = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(index);
+                            parent.location.reload();
+                        }, 1000);
+                    } else {
+                        layer.msg(res.msg || '保存失败', {icon: 2});
+                    }
+                }
+            });
+            return false;
+        });
     });
-});
-</script>
+
+    function closeLayer() {
+        var index = parent.layer.getFrameIndex(window.name);
+        parent.layer.close(index);
+    }
+    </script>
 </body>
 </html>

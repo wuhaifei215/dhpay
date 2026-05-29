@@ -1,188 +1,188 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="renderer" content="webkit">
-    <title><{:C("WEB_TITLE")}></title>
-    <link rel="shortcut icon" href="favicon.ico">
-    <link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/animate.css" rel="stylesheet">
-    <link href="/Public/Front/css/style.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css">
-    <style>
-        .channel-item {margin-bottom: 10px; padding: 10px; background: #f5f5f5; border-radius: 4px;}
-        .channel-item select {width: 200px;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="renderer" content="webkit">
+<title><{:C("WEB_TITLE")}></title>
+<link rel="shortcut icon" href="favicon.ico">
+<link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
+<link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
+<link href="/Public/Front/css/animate.css" rel="stylesheet">
+<link href="/Public/Front/css/style.css" rel="stylesheet">
+<link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css"  media="all">
 </head>
 <body class="gray-bg">
-<div class="wrapper wrapper-content animated">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <h5><if condition="isset($info)">编辑档位<else/>添加档位</if></h5>
-                </div>
-                <div class="ibox-content">
-                    <form class="layui-form" action="<{:U('editTier')}>" method="post" id="form-tier">
-                        <input type="hidden" name="id" value="<{$info.id|default=''}>" />
-                        <input type="hidden" name="strategyid" value="<{$strategy.id}>" />
+    <div class="wrapper wrapper-content animated">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5><if condition="isset($info)">编辑<else/>添加</if>档位 - <{$strategy.name}></h5>
+                    </div>
+                    <div class="ibox-content">
+                        <form class="form-horizontal" method="post" action="<{:U('editTier')}>" id="tierForm">
+                            <input type="hidden" name="id" value="<{$info['id']|default=''}>">
+                            <input type="hidden" name="strategyid" value="<{$strategy.id}>">
 
-                        <div class="layui-form-item">
-                            <label class="layui-form-label"><span class="c-red">*</span>档位名称：</label>
-                            <div class="layui-input-block">
-                                <input type="text" name="tier_name" lay-verify="required" placeholder="如：小额档、中额档、大额档" value="<{$info.tier_name|default=''}>" class="layui-input" style="width: 300px;">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">档位名称</label>
+                                <div class="col-sm-4">
+                                    <input type="text" name="tier_name" class="form-control" value="<{$info['tier_name']|default=''}>" placeholder="如：小额档、中额档">
+                                </div>
+                                <label class="col-sm-2 control-label">排序</label>
+                                <div class="col-sm-4">
+                                    <input type="number" name="sort" class="form-control" value="<{$info['sort']|default='100'}>" placeholder="数字越小越优先匹配">
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="layui-form-item">
-                            <label class="layui-form-label"><span class="c-red">*</span>金额范围：</label>
-                            <div class="layui-input-inline" style="width: 120px;">
-                                <input type="number" name="tier_min" lay-verify="required|number" placeholder="最小金额" value="<{$info.tier_min|default='0'}>" class="layui-input">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">最小金额</label>
+                                <div class="col-sm-4">
+                                    <input type="number" name="tier_min" step="0.01" class="form-control" value="<{$info['tier_min']|default='0'
+                                    }>" required placeholder="最小金额">
+                                </div>
+                                <label class="col-sm-2 control-label">最大金额</label>
+                                <div class="col-sm-4">
+                                    <input type="number" name="tier_max" step="0.01" class="form-control" value="<{$info['tier_max']|default='0'}>" required placeholder="最大金额">
+                                </div>
                             </div>
-                            <div class="layui-form-mid">-</div>
-                            <div class="layui-input-inline" style="width: 120px;">
-                                <input type="number" name="tier_max" lay-verify="required|number" placeholder="最大金额" value="<{$info.tier_max|default='0'}>" class="layui-input">
-                            </div>
-                        </div>
 
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">排序：</label>
-                            <div class="layui-input-inline" style="width: 100px;">
-                                <input type="number" name="sort" placeholder="数字越小越优先" value="<{$info.sort|default='100'}>" class="layui-input">
-                            </div>
-                            <div class="layui-form-mid layui-word-aux">数字越小排序越靠前</div>
-                        </div>
-
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">状态：</label>
-                            <div class="layui-input-block">
-                                <input type="radio" name="status" value="1" title="启用" <if condition="!isset($info) or $info['status'] eq 1">checked</if>>
-                                <input type="radio" name="status" value="0" title="禁用" <if condition="isset($info) and $info['status'] eq 0">checked</if>>
-                            </div>
-                        </div>
-
-                        <div class="layui-form-item">
-                            <label class="layui-form-label"><span class="c-red">*</span>通道配置：</label>
-                            <div class="layui-input-block" id="channel-list">
-                                <notpresent name="info.channel_config_arr">
-                                    <div class="channel-item">
-                                        <select name="channel_select[]" class="layui-input" style="width: 200px; display: inline-block;">
-                                            <option value="">请选择通道</option>
-                                            <volist name="channels" id="ch">
-                                                <option value="<{$ch.id}>"><{$ch.title}><if condition="isset($ch['rate'])"> (<{$ch.rate}>%)</if></option>
-                                            </volist>
-                                        </select>
-                                        权重：<input type="number" name="weight[]" value="10" min="1" class="layui-input" style="width: 60px; display: inline-block;">
-                                        <a href="javascript:void(0);" class="layui-btn layui-btn-xs" onclick="addChannel()">+ 添加</a>
-                                        <a href="javascript:void(0);" class="layui-btn layui-btn-xs layui-btn-danger" onclick="removeChannel(this)">- 删除</a>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">状态</label>
+                                <div class="col-sm-4">
+                                    <div class="layui-form">
+                                        <input type="checkbox" name="status" value="1" <if condition="isset($info)"><if condition="$info['status'] eq 1">checked</if><else/>checked</if> lay-skin="switch" lay-text="开启|关闭">
                                     </div>
-                                <else/>
-                                    <volist name="info.channel_config_arr" id="ch">
-                                        <div class="channel-item">
-                                            <select name="channel_select[]" class="layui-input" style="width: 200px; display: inline-block;">
-                                                <option value="">请选择通道</option>
-                                                <volist name="channels" key="ck" id="c">
-                                                    <option value="<{$c.id}>" <if condition="$ch['channel_id'] eq $c['id']">selected</if>><{$c.title}><if condition="isset($c['rate'])"> (<{$c.rate}>%)</if></option>
-                                                </volist>
-                                            </select>
-                                            权重：<input type="number" name="weight[]" value="<{$ch.weight}>" min="1" class="layui-input" style="width: 60px; display: inline-block;">
-                                            <a href="javascript:void(0);" class="layui-btn layui-btn-xs" onclick="addChannel()">+ 添加</a>
-                                            <a href="javascript:void(0);" class="layui-btn layui-btn-xs layui-btn-danger" onclick="removeChannel(this)">- 删除</a>
+                                </div>
+                            </div>
+
+                            <div class="hr-line-dashed"></div>
+                            <h4>通道配置</h4>
+                            <p class="text-muted">配置该档位使用的支付通道，支持多通道加权随机</p>
+
+                            <div id="channelList">
+                                <volist name="channels" id="ch">
+                                    <div class="form-group channel-item" data-id="<{$ch.id}>">
+                                        <div class="col-sm-3">
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" class="channel-check" value="<{$ch.id}>"
+                                                    <if condition="isset($info['channel_config_arr'])">
+                                                        <php>foreach($info['channel_config_arr'] as $cfg): if($cfg['channel_id'] == $ch['id']): echo 'checked'; break; endif; endforeach;</php>
+                                                    </if>
+                                                    > <{$ch.title}>
+                                                </label>
+                                            </div>
                                         </div>
-                                    </volist>
-                                </notpresent>
+                                        <div class="col-sm-3">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">权重</span>
+                                                <input type="number" class="form-control channel-weight" value="
+                                                    <if condition="isset($info['channel_config_arr'])">
+                                                        <php>foreach($info['channel_config_arr'] as $cfg): if($cfg['channel_id'] == $ch['id']): echo $cfg['weight']; break; endif; endforeach;</php>
+                                                    <else/>1</if>" min="1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </volist>
+                                <if condition="empty($channels)">
+                                    <div class="alert alert-warning">暂无可用通道，请先在通道管理中添加通道</div>
+                                </if>
                             </div>
-                            <div class="layui-form-mid layui-word-aux">可添加多个通道，权重表示分配比例</div>
-                        </div>
 
-                        <input type="hidden" name="channel_ids" id="channel_ids" value="" />
-                        <input type="hidden" name="weights" id="weights" value="" />
+                            <input type="hidden" name="channel_ids" id="channelIds">
+                            <input type="hidden" name="weights" id="weights">
 
-                        <div class="layui-form-item">
-                            <div class="layui-input-block">
-                                <button class="layui-btn" lay-submit lay-filter="*" type="submit">保存</button>
-                                <button type="button" class="layui-btn layui-btn-primary" onclick="parent.layer.close(parent.layer.getFrameIndex(window.name))">取消</button>
+                            <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-8">
+                                    <button type="submit" class="layui-btn">保存</button>
+                                    <button type="button" class="layui-btn layui-btn-primary" onclick="closeLayer()">取消</button>
+                                    <button type="button" class="layui-btn layui-btn-normal" onclick="clearChannels()">清除通道选择</button>
+                                </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<script src="/Public/Front/js/jquery.min.js"></script>
-<script src="/Public/Front/js/bootstrap.min.js"></script>
-<script src="/Public/Front/js/content.js"></script>
-<script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
-<script>
-var channelOptions = '<option value="">请选择通道</option><volist name="channels" id="ch"><option value="<{$ch.id}>"><{$ch.title}><if condition="isset($ch[\'rate\'])"> (<{$ch.rate}>%)</if></option></volist></volist>';
 
-function addChannel() {
-    var html = '<div class="channel-item">' +
-        '<select name="channel_select[]" class="layui-input" style="width: 200px; display: inline-block;">' + channelOptions +
-        '</select> ' +
-        '权重：<input type="number" name="weight[]" value="10" min="1" class="layui-input" style="width: 60px; display: inline-block;"> ' +
-        '<a href="javascript:void(0);" class="layui-btn layui-btn-xs" onclick="addChannel()">+ 添加</a> ' +
-        '<a href="javascript:void(0);" class="layui-btn layui-btn-xs layui-btn-danger" onclick="removeChannel(this)">- 删除</a>' +
-        '</div>';
-    $('#channel-list').append(html);
-}
+    <script src="/Public/Front/js/jquery.min.js"></script>
+    <script src="/Public/Front/js/bootstrap.min.js"></script>
+    <script src="/Public/Front/js/content.js"></script>
+    <script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
+    <script>
+    layui.use(['layer', 'form'], function(){
+        var form = layui.form,
+        layer = layui.layer;
 
-function removeChannel(obj) {
-    var items = $('#channel-list .channel-item');
-    if (items.length > 1) {
-        $(obj).parent().remove();
-    } else {
-        layer.msg('至少保留一个通道配置', {icon: 0, time: 1500});
-    }
-}
+        // 表单提交
+        $('#tierForm').on('submit', function(){
+            var tierMin = $('input[name="tier_min"]').val();
+            var tierMax = $('input[name="tier_max"]').val();
 
-layui.use(['layer', 'form'], function(){
-    var form = layui.form, layer = layui.layer;
-
-    form.on('submit(*)', function(data){
-        // 收集通道配置
-        var channelIds = [];
-        var weights = [];
-        $('#channel-list .channel-item').each(function(){
-            var channelId = $(this).find('select').val();
-            var weight = $(this).find('input[name="weight[]"]').val();
-            if (channelId) {
-                channelIds.push(channelId);
-                weights.push(weight);
+            if (!tierMin || parseFloat(tierMin) <= 0) {
+                layer.msg('请输入正确的最小金额', {icon: 2});
+                return false;
             }
-        });
+            if (!tierMax || parseFloat(tierMax) <= 0) {
+                layer.msg('请输入正确的最大金额', {icon: 2});
+                return false;
+            }
+            if (parseFloat(tierMin) > parseFloat(tierMax)) {
+                layer.msg('最小金额不能大于最大金额', {icon: 2});
+                return false;
+            }
 
-        if (channelIds.length === 0) {
-            layer.msg('请至少选择一个通道', {icon: 2, time: 2000});
-            return false;
-        }
+            // 收集通道配置
+            var channelIds = [];
+            var weights = [];
+            $('.channel-item').each(function(){
+                var $item = $(this);
+                var $checkbox = $item.find('.channel-check');
+                var $weightInput = $item.find('.channel-weight');
 
-        $('#channel_ids').val(channelIds.join(','));
-        $('#weights').val(weights.join(','));
-
-        $.ajax({
-            type: 'POST',
-            url: $(data.form).attr('action'),
-            data: $(data.form).serialize(),
-            dataType: 'json',
-            success: function(res){
-                if(res.status == 1){
-                    layer.msg(res.msg, {icon:1, time:1500});
-                    setTimeout(function(){
-                        parent.location.reload();
-                        parent.layer.close(parent.layer.getFrameIndex(window.name));
-                    }, 1500);
-                } else {
-                    layer.msg(res.msg, {icon:2, time:2000});
+                if ($checkbox.is(':checked')) {
+                    channelIds.push($checkbox.val());
+                    weights.push($weightInput.val() || 1);
                 }
-            }
+            });
+
+            $('#channelIds').val(channelIds.join(','));
+            $('#weights').val(weights.join(','));
+
+            $.ajax({
+                url: "<{:U('editTier')}>",
+                type: 'post',
+                data: $(this).serialize(),
+                success: function(res){
+                    if (res.status == 1) {
+                        layer.msg('保存成功', {icon: 1});
+                        setTimeout(function(){
+                            var index = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(index);
+                            parent.location.reload();
+                        }, 1000);
+                    } else {
+                        layer.msg(res.msg || '保存失败', {icon: 2});
+                    }
+                }
+            });
+            return false;
         });
-        return false;
     });
-});
-</script>
+
+    // 清除通道选择
+    function clearChannels() {
+        $('.channel-check').prop('checked', false);
+        $('.channel-weight').val('1');
+    }
+
+    function closeLayer() {
+        var index = parent.layer.getFrameIndex(window.name);
+        parent.layer.close(index);
+    }
+    </script>
 </body>
 </html>

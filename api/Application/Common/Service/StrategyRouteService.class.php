@@ -4,7 +4,7 @@
  * 根据金额档位自动分配支付通道
  *
  * @author 系统开发
- * @date 2026-05-29 (从 r97 迁移)
+ * @date 2026-04-10
  */
 
 namespace Common\Service;

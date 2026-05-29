@@ -1,93 +1,108 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="renderer" content="webkit">
-    <title><{:C("WEB_TITLE")}></title>
-    <link rel="shortcut icon" href="favicon.ico">
-    <link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/Public/Front/css/animate.css" rel="stylesheet">
-    <link href="/Public/Front/css/style.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="renderer" content="webkit">
+<title><{:C("WEB_TITLE")}></title>
+<link rel="shortcut icon" href="favicon.ico">
+<link href="/Public/Front/css/bootstrap.min.css" rel="stylesheet">
+<link href="/Public/Front/css/font-awesome.min.css" rel="stylesheet">
+<link href="/Public/Front/css/animate.css" rel="stylesheet">
+<link href="/Public/Front/css/style.css" rel="stylesheet">
+<link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css"  media="all">
 </head>
 <body class="gray-bg">
-<div class="wrapper wrapper-content animated">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <h5><if condition="isset($info)">编辑策略<else/>添加策略</if></h5>
-                </div>
-                <div class="ibox-content">
-                    <form class="layui-form" action="<{:U('edit')}>" method="post" id="form-strategy">
-                        <input type="hidden" name="id" value="<{$info.id|default=''}>" />
-                        <input type="hidden" name="type" value="<{$type}>" />
+    <div class="wrapper wrapper-content animated">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5><if condition="isset($info)">编辑<else/>添加</if>策略</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <form class="form-horizontal" method="post" action="<{:U('edit')}>" id="strategyForm">
+                            <input type="hidden" name="id" value="<{$info['id']|default=''}>">
+                            <input type="hidden" name="type" value="<{$type}>">
 
-                        <div class="layui-form-item">
-                            <label class="layui-form-label"><span class="c-red">*</span>策略名称：</label>
-                            <div class="layui-input-block">
-                                <input type="text" name="name" lay-verify="required" placeholder="请输入策略名称" value="<{$info.name|default=''}>" class="layui-input" style="width: 300px;">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">策略名称</label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="name" class="form-control" value="<{$info['name']|default=''}>" required placeholder="请输入策略名称">
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">策略类型：</label>
-                            <div class="layui-input-block">
-                                <span class="label label-primary"><{$typename}></span>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">策略类型</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" value="<{$typename}>" disabled>
+                                    <span class="help-block m-b-none">类型一旦创建不可修改</span>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">状态：</label>
-                            <div class="layui-input-block">
-                                <input type="radio" name="status" value="1" title="启用" <if condition="!isset($info) or $info['status'] eq 1">checked</if>>
-                                <input type="radio" name="status" value="0" title="禁用" <if condition="isset($info) and $info['status'] eq 0">checked</if>>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">状态</label>
+                                <div class="col-sm-8">
+                                    <div class="layui-form">
+                                        <input type="checkbox" name="status" value="1" <if condition="isset($info)"><if condition="$info['status'] eq 1">checked</if><else/>checked</if> lay-skin="switch" lay-text="开启|关闭">
+                                    </div>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="layui-form-item">
-                            <div class="layui-input-block">
-                                <button class="layui-btn" lay-submit lay-filter="*" type="submit">保存</button>
-                                <button type="button" class="layui-btn layui-btn-primary" onclick="parent.layer.close(parent.layer.getFrameIndex(window.name))">取消</button>
+                            <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-8">
+                                    <button type="submit" class="layui-btn">保存</button>
+                                    <button type="button" class="layui-btn layui-btn-primary" onclick="closeLayer()">取消</button>
+                                </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<script src="/Public/Front/js/jquery.min.js"></script>
-<script src="/Public/Front/js/bootstrap.min.js"></script>
-<script src="/Public/Front/js/content.js"></script>
-<script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
-<script>
-layui.use(['layer', 'form'], function(){
-    var form = layui.form, layer = layui.layer;
 
-    form.on('submit(*)', function(data){
-        $.ajax({
-            type: 'POST',
-            url: data.form.action,
-            data: $(data.form).serialize(),
-            dataType: 'json',
-            success: function(res){
-                if(res.status == 1){
-                    layer.msg(res.msg, {icon:1, time:1500});
-                    setTimeout(function(){
-                        parent.location.reload();
-                        parent.layer.close(parent.layer.getFrameIndex(window.name));
-                    }, 1500);
-                } else {
-                    layer.msg(res.msg, {icon:2, time:2000});
-                }
+    <script src="/Public/Front/js/jquery.min.js"></script>
+    <script src="/Public/Front/js/bootstrap.min.js"></script>
+    <script src="/Public/Front/js/content.js"></script>
+    <script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
+    <script>
+    layui.use(['layer', 'form'], function(){
+        var form = layui.form,
+        layer = layui.layer;
+
+        $('#strategyForm').on('submit', function(){
+            var name = $('input[name="name"]').val();
+            if (!name) {
+                layer.msg('请输入策略名称', {icon: 2});
+                return false;
             }
+
+            $.ajax({
+                url: "<{:U('edit')}>",
+                type: 'post',
+                data: $(this).serialize(),
+                success: function(res){
+                    if (res.status == 1) {
+                        layer.msg('保存成功', {icon: 1});
+                        setTimeout(function(){
+                            var index = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(index);
+                            parent.location.reload();
+                        }, 1000);
+                    } else {
+                        layer.msg(res.msg || '保存失败', {icon: 2});
+                    }
+                }
+            });
+            return false;
         });
-        return false;
     });
-});
-</script>
+
+    function closeLayer() {
+        var index = parent.layer.getFrameIndex(window.name);
+        parent.layer.close(index);
+    }
+    </script>
 </body>
 </html>

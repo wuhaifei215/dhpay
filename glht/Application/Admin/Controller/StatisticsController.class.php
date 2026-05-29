@@ -378,7 +378,7 @@ class StatisticsController extends BaseController
         $this->assign('createtime', $createtime);
 
 
-        $list = M('PayForAnother')->where(['status'=>1,'id' =>['gt',1]])->order('id desc')->select();
+        $list = M('PayForAnother')->where(['status'=>1,'id' =>['gt',11]])->order('id desc')->select();
         $countSuccess = $countFail = 0;
         $S_where = $F_where = [];
 //        $withOutArray = [4,5,6,12,13,24,25];    //排除测试的通道

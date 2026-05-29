@@ -247,10 +247,52 @@ class CreateDFController extends Controller
     
     /**
      * [channelIsOpen 判断通道是否开启]
+     * 修改说明: 增加策略路由功能，根据金额档位自动分配通道
+     * @date 2026-04-10
      * @return [type] [description]
      */
     protected function channelIsOpen()
     {
+        // 通道编码
+        $this->bankcode = I('request.bankcode', 0, 'intval');
+        if ($this->bankcode == 0) {
+            $this->showmessage('bankcode error');
+        }
+        $userid = $this->memberid - 10000;
+
+        // ================== 策略路由 (优先执行) ==================
+        // 获取代付金额和订单号
+        $money = I("request.money", 0, 'floatval');
+        $out_trade_no = I("request.out_trade_no", '', 'string,strip_tags,htmlspecialchars');
+
+        if ($money > 0) {
+            $strategyService = new \Common\Service\StrategyRouteService();
+            $strategyChannel = $strategyService->routeChannel(
+                $userid,              // 商户ID
+                $money,              // 代付金额
+                2,                   // 2:代付
+                $out_trade_no        // 订单号
+            );
+
+            if ($strategyChannel && isset($strategyChannel['id'])) {
+                // 使用策略分配的通道
+                $info = M('PayForAnother')->where(['id' => $strategyChannel['id'], 'status' => 1])->find();
+                if ($info) {
+                    // 验证通道文件是否存在
+                    if (!is_file(APP_PATH . 'Payment/Controller/' . $info['code'] . 'Controller.class.php')) {
+                        // 策略通道文件不存在，尝试原有逻辑
+                    } else {
+                        // 设置策略路由标记
+                        $this->userPayForAnother = $info;
+                        $this->userPayForAnother['_isStrategyRoute'] = true;
+                        return; // 策略路由成功，直接返回
+                    }
+                }
+            }
+        }
+        // ================== 策略路由结束 ==================
+
+        // 以下是原有逻辑：如果策略路由失败或未配置策略，使用原有通道分配方式
         $redis = redis_connect();
         $userPayForAnother_redis = $redis->get('UserPayForAnother_'. $this->bankcode . '_' . $this->userid);
         $userPayForAnother = json_decode($userPayForAnother_redis,true);

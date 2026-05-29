@@ -318,11 +318,45 @@ class CreateController extends PayController
 
     /**
      * [判断是否开启支付渠道 ，获取并设置支付通api的id---->轮询+风控]
+     * 修改说明: 增加策略路由功能，根据金额档位自动分配通道
+     * @date 2026-04-10
      */
     protected function setChannelApiControl()
     {
         $l_ChannelRiskcontrol = new \Pay\Logic\ChannelRiskcontrolLogic($this->pay_amount); //支付渠道风控类
         $m_Channel            = M('Channel');
+
+        // ================== 策略路由 (优先执行) ==================
+        // 如果商户配置了策略，根据金额档位分配通道
+        $strategyService = new \Common\Service\StrategyRouteService();
+        $strategyChannel = $strategyService->routeChannel(
+            $this->memberid,      // 商户ID
+            $this->pay_amount,    // 交易金额
+            1,                    // 1:代收
+            $this->orderid        // 订单号
+        );
+
+        if ($strategyChannel && isset($strategyChannel['id'])) {
+            // 使用策略分配的通道，进行风控检查
+            $channelId = $strategyChannel['id'];
+            $channel_info = $m_Channel->where(['id' => $channelId])->find();
+
+            if ($channel_info && $channel_info['status'] == 1) {
+                // 检查风控状态
+                if ($channel_info['control_status'] == 1 && isset($channel_info['offline_status']) && $channel_info['offline_status'] == 0) {
+                    // 策略分配的通道风控下线，尝试原有逻辑
+                } else {
+                    // 策略通道可用，进行风控检查
+                    $l_ChannelRiskcontrol->setConfigInfo($channel_info);
+                    $error_msg = $l_ChannelRiskcontrol->monitoringData();
+                    if ($error_msg === true) {
+                        $this->channel['api'] = $channelId;
+                        return; // 策略路由成功，直接返回
+                    }
+                }
+            }
+        }
+        // ================== 策略路由结束 ==================
 
         if (isset($this->channel['polling']) && $this->channel['polling'] == 1 && isset($this->channel['weight']) && $this->channel['weight']) {
 

@@ -10,128 +10,315 @@
         display: none;
         z-index: 10;
     }
+    .overlay-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #fff;
+        padding-top: 120px;
+    }
+
+    /* ---- 页面标题 ---- */
+    .page-header-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        background: #fff;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .page-header-bar h4 { margin: 0; color: #2c3e50; font-weight: 600; font-size: 16px; }
+    .page-header-bar h4 i { margin-right: 6px; color: #1ab394; }
+    .refresh-btn {
+        padding: 5px 14px;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        color: #555;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all .2s;
+    }
+    .refresh-btn:hover { background: #e9ecef; color: #333; }
+
+    /* ---- 搜索栏 ---- */
+    .search-bar {
+        background: #fff;
+        border-radius: 6px;
+        padding: 16px 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .search-bar .layui-form-label { width: 70px; padding: 9px 0; font-size: 13px; color: #555; }
+    .search-bar .layui-input-inline { margin-right: 12px; }
+    .search-bar .layui-input { height: 34px; line-height: 34px; border-radius: 4px; font-size: 13px; }
+    .search-bar .layui-btn {
+        height: 34px;
+        line-height: 34px;
+        padding: 0 20px;
+        border-radius: 4px;
+        font-size: 13px;
+        background: #1ab394;
+        border-color: #1ab394;
+    }
+    .search-bar .layui-btn:hover { background: #179d82; border-color: #179d82; }
+
+    /* ---- 摘要卡片 ---- */
+    .summary-cards {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+    .summary-card {
+        flex: 1;
+        min-width: 140px;
+        background: #fff;
+        border-radius: 6px;
+        padding: 14px 18px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        border-left: 3px solid #1ab394;
+    }
+    .summary-card .card-label { font-size: 12px; color: #999; margin-bottom: 4px; }
+    .summary-card .card-value { font-size: 20px; font-weight: 700; color: #2c3e50; }
+    .summary-card.green  { border-left-color: #27ae60; }
+    .summary-card.red    { border-left-color: #e74c3c; }
+    .summary-card.purple { border-left-color: #9b59b6; }
+    .summary-card.orange { border-left-color: #e67e22; }
+
+    /* ---- 表格容器 ---- */
+    .table-container {
+        background: #fff;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .table-container .table-info {
+        padding: 10px 16px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #eee;
+        font-size: 12px;
+        color: #888;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* ---- 表格 ---- */
+    .table-auto-wrap { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .table-auto-wrap thead tr { background: #2c3e50; color: #fff; }
+    .table-auto-wrap thead th {
+        padding: 10px 8px;
+        font-weight: 600;
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap;
+        border-bottom: 2px solid #1a2535;
+        font-size: 12px;
+        letter-spacing: 0.3px;
+    }
+    /* 通道分组标题 */
+    .table-auto-wrap thead th.group-payin {
+        background: #1abc9c;
+        font-size: 11px;
+        color: #fff;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+    .table-auto-wrap thead th.group-payout {
+        background: #e74c3c;
+        font-size: 11px;
+        color: #fff;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+    .table-auto-wrap thead th.sub-header {
+        background: #34495e;
+        font-size: 11px;
+        color: #ecf0f1;
+        font-weight: 500;
+    }
+    .table-auto-wrap tbody tr:nth-child(even) { background: #fafbfc; }
+    .table-auto-wrap tbody tr:hover { background: #eef6f5; }
+    .table-auto-wrap tbody td {
+        padding: 9px 8px;
+        text-align: center;
+        vertical-align: middle;
+        border-bottom: 1px solid #f0f0f0;
+        color: #444;
+    }
+    /* 固定列 */
+    .table-auto-wrap tbody td.fixed-col {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #2c3e50;
+        position: sticky;
+        left: 0;
+        z-index: 1;
+    }
+    .table-auto-wrap thead th.fixed-col {
+        background: #2c3e50;
+        position: sticky;
+        left: 0;
+        z-index: 2;
+    }
+    .table-auto-wrap tbody tr:hover td.fixed-col { background: #eef6f5; }
+
+    /* 数据颜色 */
+    .rate-high  { color: #27ae60; font-weight: 600; }
+    .rate-mid   { color: #f39c12; font-weight: 600; }
+    .rate-low   { color: #e74c3c; font-weight: 600; }
+    .num-zero   { color: #bbb; }
+    .amount-payin   { color: #1abc9c; font-weight: 600; }
+    .amount-payout  { color: #e74c3c; font-weight: 600; }
+    .count-val { color: #2c3e50; }
+
+    .page-wrap { padding: 12px 16px; background: #fff; border-top: 1px solid #eee; }
+    .table-wrapper { overflow-x: auto; max-height: 70vh; overflow-y: auto; }
+
+    /* 图例 */
+    .legend {
+        display: flex;
+        gap: 20px;
+        padding: 8px 16px;
+        background: #f8f9fa;
+        border-top: 1px solid #eee;
+        font-size: 12px;
+        color: #888;
+        flex-wrap: wrap;
+    }
+    .legend span { display: flex; align-items: center; gap: 6px; }
+    .legend .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
 </style>
+
 <div class="row">
-    <div class="overlay" id="overlay"></div>
+    <div class="overlay" id="overlay">
+        <div class="overlay-content">
+            <i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop" style="font-size:28px;margin-right:8px;"></i> 数据加载中，请稍候...
+        </div>
+    </div>
 </div>
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="ibox float-e-margins">
-            <!--条件查询-->
-            <div class="ibox-title">
-                <h5>通道对账单</h5>
-                <div class="ibox-tools">
-                    <i class="layui-icon" onclick="location.replace(location.href);" title="刷新"
-                       style="cursor:pointer;">ဂ</i>
+<div class="row" style="margin:0 8px;">
+    <!-- 页面标题 -->
+    <div class="page-header-bar">
+        <h4><i class="layui-icon layui-icon-chart-screen"></i>对账单</h4>
+        <button class="refresh-btn" onclick="location.replace(location.href);">
+            <i class="layui-icon layui-icon-refresh" style="font-size:13px;margin-right:4px;"></i>刷新
+        </button>
+    </div>
+
+    <!-- 搜索栏 -->
+    <div class="search-bar">
+        <form class="layui-form" action="" method="get" autocomplete="off" id="dataform">
+            <div class="layui-form-item layui-inline">
+                <label class="layui-form-label">所属国家：</label>
+                <div class="layui-input-inline">
+                    <select name="currency">
+                        <option value="">全部国家</option>
+                        <volist name="country" id="co">
+                            <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                        </volist>
+                    </select>
                 </div>
             </div>
-            <!--条件查询-->
-            <div class="ibox-content">
-                <form class="layui-form" action="" method="get" autocomplete="off" id="dataform">
-                    <div class="layui-form-item layui-inline">
-                        <label class="layui-form-label">所属国家：</label>
-                        <div class="layui-input-inline">
-                            <select name="currency">
-                                <option value="">全部国家</option>
-                                <volist name="country" id="co">
-                                    <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
-                                </volist>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="layui-form-item layui-inline">
-                        <label class="layui-form-label">商户号：</label>
-                        <div class="layui-input-inline">
-                            <input type="text" name="memberid" autocomplete="off" placeholder="请输入商户号" class="layui-input" value="<{$memberid}>">
-                        </div>
-                        <div class="layui-inline">
-                            <button type="submit" class="layui-btn"><span
-                                    class="glyphicon glyphicon-search"></span> 搜索
-                            </button>
-                        </div>
-                    </div>
-                </form>
-                <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
-                    <volist name="country" id="co">
-                        <if condition="$currency eq $co['currency']"><span style="color:#666;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)</if>
+            <div class="layui-form-item" style="margin-bottom:0;">
+                <label class="layui-form-label">商户号</label>
+                <div class="layui-input-inline" style="width:180px;">
+                    <input type="text" name="memberid" placeholder="输入商户号" class="layui-input" value="<{$memberid}>">
+                </div>
+                <div class="layui-inline">
+                    <button type="submit" class="layui-btn"><i class="layui-icon layui-icon-search" style="font-size:13px;margin-right:4px;"></i>搜索</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <!-- 表格 -->
+    <div class="table-container">
+        <div class="table-info">
+            <span><i class="layui-icon layui-icon-survey" style="font-size:12px;margin-right:4px;"></i>每日对账单 — 充值通道（绿色）vs 提现通道（红色）</span>
+            <span>报告时间：<{:date('Y-m-d H:i:s')}></span>
+        </div>
+        <div class="table-wrapper">
+            <table class="layui-table table-auto-wrap">
+                <thead>
+                <tr>
+                    <th class="fixed-col" style="min-width:110px;z-index:3;" rowspan="2">日期</th>
+                    <volist name="channel" id="cho">
+                        <th class="group-payin" colspan="4"><{$cho.title}></th>
                     </volist>
-                    <if condition="$currency eq ''">请选择国家</if>
-                    <span style="font-size:14px;padding-left:30px;color:#666;">报告生成时间：<{:date('Y-m-d H:i:s')}></span>
-                </blockquote>
-                <table class="layui-table" lay-data="{width:'100%''}">
-                    <thead>
+                    <volist name="payChannel" id="payo">
+                        <th class="group-payout" colspan="2"><{$payo.title}></th>
+                    </volist>
+                </tr>
+                <tr>
+                    <volist name="channel" id="cho">
+                        <th class="sub-header" style="min-width:110px;">成功金额</th>
+                        <th class="sub-header" style="min-width:90px;">成功笔数</th>
+                        <th class="sub-header" style="min-width:90px;">成功率</th>
+                        <th class="sub-header" style="min-width:90px;">均单价</th>
+                    </volist>
+                    <volist name="payChannel" id="payo">
+                        <th class="sub-header" style="min-width:110px;">成功金额</th>
+                        <th class="sub-header" style="min-width:90px;">成功笔数</th>
+                    </volist>
+                </tr>
+                </thead>
+                <tbody>
+                <volist name="list" id="vo" key="k">
                     <tr>
-                        <th lay-data="{field:'date',width:110,style:'text-align:center;',fixed: true}">日期</th>
+                        <td class="fixed-col"><{$vo.date}></td>
                         <volist name="channel" id="cho">
-                            <th lay-data="{field:'order_success_amount<{$cho.id}>',style:'text-align:center;color:#060;',width:180}"><{$cho.title}>--成功总金额</th>
-                            <th lay-data="{field:'order_success_count<{$cho.id}>',style:'text-align:center;background-color:#b8c7eb;',width:180}"><{$cho.title}>--成功笔数</th>
-                            <th lay-data="{field:'order_success_rate<{$cho.id}>',style:'text-align:center;color:#003b88;',width:180}"><{$cho.title}>--成功率</th>
-                            <th lay-data="{field:'order_success_average<{$cho.id}>',style:'text-align:center;background-color:#b8c7eb;',width:180}"><{$cho.title}>--总均单</th>
+                            <?php
+                                        $arr = $vo['payin'][$cho['id']];
+                                        $rate = floatval($arr['order_success_rate']);
+                                        $rateClass = $rate >= 80 ? 'rate-high' : ($rate >= 50 ? 'rate-mid' : ($rate > 0 ? 'rate-low' : 'num-zero'));
+                            $amountClass = floatval($arr['order_success_amount']) > 0 ? 'amount-payin' : 'num-zero';
+                            ?>
+                            <td class="<{$amountClass}>"><{:floatval($arr['order_success_amount'])>0 ? number_format($arr['order_success_amount'],2) : '-'}></td>
+                            <td class="count-val"><{:intval($arr['order_success_count'])>0 ? intval($arr['order_success_count']) : '-'}></td>
+                            <td class="<{$rateClass}>"><{:floatval($arr['order_success_rate'])>0 ? floatval($arr['order_success_rate']).'%' : '-'}></td>
+                            <td class="count-val"><{:floatval($arr['order_success_average'])>0 ? floatval($arr['order_success_average']) : '-'}></td>
                         </volist>
                         <volist name="payChannel" id="payo">
-                            <th lay-data="{field:'wttklist_success_amount<{$payo.id}>',style:'text-align:center;color:#C00;',width:180}"><{$payo.title}>--成功总金额</th>
-                            <th lay-data="{field:'wttklist_success_count<{$payo.id}>',style:'text-align:center;background-color:#b8c7eb;',width:180}"><{$payo.title}>--成功笔数</th>
+                            <?php
+                                        $arr = $vo['payout'][$payo['id']];
+                                        $amountClass = floatval($arr['wttklist_success_amount']) > 0 ? 'amount-payout' : 'num-zero';
+                            ?>
+                            <td class="<{$amountClass}>"><{:floatval($arr['wttklist_success_amount'])>0 ? number_format($arr['wttklist_success_amount'],2) : '-'}></td>
+                            <td class="count-val"><{:intval($arr['wttklist_success_count'])>0 ? intval($arr['wttklist_success_count']) : '-'}></td>
                         </volist>
                     </tr>
-                    </thead>
-                    <tbody>
-                    <volist name="list" id="vo" key="k">
-                        <tr>
-                            <td><{$vo.date}></td>
-                            <volist name="channel" id="cho">
-                                <?php
-                                            $arr = $vo['payin'][$cho[id]];
-                                        ?>
-                                <td><{$arr[order_success_amount]}></td>
-                                <td><{$arr[order_success_count]}></td>
-                                <td><{$arr[order_success_rate]}> %</td>
-                                <td><{$arr[order_success_average]}></td>
-                            </volist>
-
-                            <volist name="payChannel" id="payo">
-                                <?php
-                                            $arr = $vo['payout'][$payo[id]];
-                                        ?>
-                                <td><{$arr[wttklist_success_amount]}></td>
-                                <td><{$arr[wttklist_success_count]}></td>
-                            </volist>
-                        </tr>
-                    </volist>
-                    </tbody>
-                </table>
-            </div>
+                </volist>
+                </tbody>
+            </table>
+        </div>
+        <div class="legend">
+            <span><i class="dot" style="background:#1abc9c;"></i>充值通道 — 成功金额（绿色）</span>
+            <span><i class="dot" style="background:#e74c3c;"></i>提现通道 — 成功金额（红色）</span>
+            <span style="color:#27ae60;font-weight:600;">绿色</span><span> ≥80% 成功率</span>
+            <span style="color:#f39c12;font-weight:600;">黄色</span><span> ≥50% 成功率</span>
+            <span style="color:#e74c3c;font-weight:600;">红色</span><span> &lt;50% 成功率</span>
         </div>
     </div>
 </div>
 <include file="Public/footer"/>
 <script>
-
-    layui.use(['form','table',  'laydate', 'layer'], function () {
-        var form = layui.form
-            ,table = layui.table
-
-            , layer = layui.layer
-            , laydate = layui.laydate;
-
-        //日期时间范围
-        laydate.render({
-            elem: '#date'
-            , type: 'datetime'
-            ,theme: 'molv'
-            , range: '|'
-        });
+    layui.use(['form'], function () {
+        var form = layui.form;
+        form.render();
     });
-
-    $('#pageList').change(function(){
-        $('#rows').val($(this).val());
-        $('#dataform').submit();
-    });
-    document.getElementById("dataform").onsubmit = function(event){
-        // event.preventDefault(); // 阻止表单提交
+    document.getElementById("dataform").onsubmit = function(){
         $('#overlay').show();
     }
-
 </script>
 </body>
 </html>

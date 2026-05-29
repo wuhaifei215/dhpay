@@ -488,18 +488,27 @@ class StrategyController extends BaseController
         UserLogService::HTwrite(1, '查看商户策略列表', '查看商户策略列表');
 
         $type = I('get.type', 1, 'intval');
-        $hasStrategy = I('get.has_strategy', '');
+        $hasStrategy = I('get.has_strategy', '', 'trim,string,strip_tags,htmlspecialchars');
         $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $typename = isset($this->typeMap[$type]) ? $this->typeMap[$type] : '代收';
 
         // 构建查询条件
         $where = ['type' => $type];
-        if($hasStrategy != ''){
-            $where['strategyid'] = $hasStrategy;
-        }
-        $memberList = M('MemberStrategy')->where($where)->getField('userid', true);
-        if (!empty($memberList)) {
+        if ($hasStrategy === '1') {
+            // 有策略的商户
+            $memberList = M('MemberStrategy')->where($where)->getField('userid', true);
+            if (empty($memberList)) {
+                $memberList = [];
+            }
             $memberWhere = ['id' => ['in', $memberList]];
+        } elseif ($hasStrategy === '0') {
+            // 无策略的商户
+            $memberWithStrategy = M('MemberStrategy')->where($where)->getField('userid', true);
+            if (!empty($memberWithStrategy)) {
+                $memberWhere = ['id' => ['not in', $memberWithStrategy]];
+            } else {
+                $memberWhere = [];
+            }
         } else {
             $memberWhere = [];
         }

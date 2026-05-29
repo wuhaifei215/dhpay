@@ -499,7 +499,7 @@ class StrategyController extends BaseController
             // 有策略的商户
             $memberList = M('MemberStrategy')->where($where)->getField('userid', true);
             if (empty($memberList)) {
-                $memberList = [0];
+                $memberList = [];
             }
             $memberWhere = ['id' => ['in', $memberList]];
         } elseif ($hasStrategy === '0') {

@@ -494,8 +494,9 @@ class StrategyController extends BaseController
 
         // 构建查询条件
         $where = ['type' => $type];
-        $where['strategyid'] = $hasStrategy;
-
+        if($hasStrategy != ''){
+            $where['strategyid'] = $hasStrategy;
+        }
         $memberList = M('MemberStrategy')->where($where)->getField('userid', true);
         if (!empty($memberList)) {
             $memberWhere = ['id' => ['in', $memberList]];

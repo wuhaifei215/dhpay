@@ -2,7 +2,7 @@
 
 namespace Pay\Controller;
 
-class PakJazzcashFlowPayController extends PayController
+class FlowPayPakJZController extends PayController
 {
     private $code = '';
 

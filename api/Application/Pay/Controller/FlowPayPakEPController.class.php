@@ -2,7 +2,7 @@
 
 namespace Pay\Controller;
 
-class PakEasypaisaFlowPayController extends PayController
+class FlowPayPakEPController extends PayController
 {
     private $code = '';
 

@@ -16,8 +16,12 @@ class FlowPayPakDFController extends PaymentController
     //代付提交
     public function PaymentExec($data, $config)
     {
-        if(!in_array($data['type'],['IMPS', 'NEFT', 'RTGS', 'UPI'])){
-            $return = ['status' => 0, 'msg' => '支付类型错误'];
+        if( $data['bankname'] === 'JAZZCASH'){
+            $ifscCode = '097';
+        }elseif( $data['bankname'] === 'EASYPAISA'){
+            $ifscCode = '096';
+        }else{
+            $return = ['status' => 3, 'msg' => '不支持类型'];
             return $return;
         }
         $post_data = array(
@@ -29,7 +33,7 @@ class FlowPayPakDFController extends PaymentController
             "notifyUrl" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
             "userName" => $data['bankfullname'],  //户名
             "cardNumber" => $data['banknumber'],    //账号
-            "ifscCode" => $data['bankzhiname'],     //印度银行卡代付，IFSC代码
+            "ifscCode" => $ifscCode,
             "bankName" => $data['bankname'],
         );
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);

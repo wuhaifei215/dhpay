@@ -40,7 +40,7 @@ class VN196PayController extends PayController
         $site = trim($return['unlockdomain']) ? $return['unlockdomain'] . '/' : $_site;
         
         $native = array(
-            'amount' => intval(sprintf('%.2f', $return['amount']) * 100),
+            'amount' => $return['amount'],
             'bank_name' => "VietQR",
             'mer_id' => $return['mch_id'],
             'mer_no' => $return['orderid'],

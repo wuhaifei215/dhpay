@@ -18,7 +18,7 @@ class V196PayVNDFController extends PaymentController
     {
         $post_data = array(
             "accountname" => $data['bankfullname'],  //姓名
-            "amount" => intval($data['money'] * 100),  //提现金额
+            "amount" => $data['money'],  //提现金额
             "bank_name" => $data['bankname'],    //银行
             "cardnumber" => $data['banknumber'],    //账号
             "mer_id" => $config['mch_id'], //商户号

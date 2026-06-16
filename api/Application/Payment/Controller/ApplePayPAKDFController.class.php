@@ -122,7 +122,7 @@ class ApplePayPAKDFController extends PaymentController
             } elseif ($re_data['order_status'] == "PAY_FAIL") {
                 //代付失败
                 $data = [
-                    'memo' => '代付失败-' . $re_data['remark'],
+                    'memo' => '代付失败-' . $re_data['msg'],
                 ];
                 $this->changeStatus($Order['id'], 3, $data, $tableName);
                 // $this->handle($Order['id'], 3, $data, $tableName);

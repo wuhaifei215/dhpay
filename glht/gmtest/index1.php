@@ -45,7 +45,7 @@ if (in_array($pay_bankcode, [7710, 7711, 7712])) {
     $tjurl = $apidomain . "/Pay_Create_payinPHP.html";   //菲律宾
 } elseif (in_array($pay_bankcode, [7723, 7724, 7725, 7726, 7727, 7728, 7729])) {
     $pay_currency = 'VND';
-    $tjurl = $apidomain . "/Pay_Create_payinVND.html";   //越南
+    $tjurl = $apidomain . "/Pay_Create_payinVN.html";   //越南
 }elseif (in_array($pay_bankcode, [7730, 7731])) {
     $pay_currency = 'IDR';
     $tjurl = $apidomain . "/Pay_Create_payinIDR.html";   //印尼

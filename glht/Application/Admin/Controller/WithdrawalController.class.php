@@ -1211,6 +1211,7 @@ class WithdrawalController extends BaseController
                 "orderid"    => $withdraw['out_trade_no'],
                 "lx"         => 21,
                 'contentstr' => '冲正退款',
+                "currency" => $withdraw['currency'],
             );
             $Moneychange = D("Moneychange");
             $tablename = $Moneychange -> getRealTableName($arrayField['datetime']);
@@ -1240,6 +1241,7 @@ class WithdrawalController extends BaseController
                     "orderid"    => $withdraw['out_trade_no'],
                     "lx"         => 21,
                     'contentstr' => ' 冲正退款',
+                    "currency" => $withdraw['currency'],
                 );
                     
                 $Moneychange = D("Moneychange");

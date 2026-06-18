@@ -28,20 +28,7 @@ class CreateController extends PayController
         if($this->currency !=='BRL'){
             $this->showmessage("国家货币不对！");
         }
-
-        $this->productIsOpen(); //判断通道是否开启
-
-        $this->judgeRepeatOrder(); //验证是否可以提交重复订单
-
-        $this->checkIP();
-
-        $this->userRiskcontrol(); //用户风控检测
-
-        $this->productUserIsSet();
-        
-        $this->setChannelApiControl(); //判断是否开启支付渠道 ，获取并设置支付通api的id和通道风控
-        
-        $this->doNext();
+        $this->doFirst();
     }
     //巴基斯坦代收接口
     public function payinPAK(){
@@ -62,20 +49,7 @@ class CreateController extends PayController
                 $this->showmessage('The secondary parameter of the extends field 【' . $v . '】 cannot be empty');
             }
         }
-        
-        $this->productIsOpen(); //判断通道是否开启
-
-        $this->judgeRepeatOrder(); //验证是否可以提交重复订单
-
-        $this->checkIP();
-
-        $this->userRiskcontrol(); //用户风控检测
-
-        $this->productUserIsSet();
-        
-        $this->setChannelApiControl(); //判断是否开启支付渠道 ，获取并设置支付通api的id和通道风控
-        
-        $this->doNext();
+        $this->doFirst();
     }
     //菲律宾代收接口
     public function payinPHP(){
@@ -84,20 +58,7 @@ class CreateController extends PayController
         if($this->currency !=='PHP'){
             $this->showmessage("国家货币不对！");
         }
-
-        $this->productIsOpen(); //判断通道是否开启
-
-        $this->judgeRepeatOrder(); //验证是否可以提交重复订单
-
-        $this->checkIP();
-
-        $this->userRiskcontrol(); //用户风控检测
-
-        $this->productUserIsSet();
-
-        $this->setChannelApiControl(); //判断是否开启支付渠道 ，获取并设置支付通api的id和通道风控
-
-        $this->doNext();
+        $this->doFirst();
     }
 
     //越南代收接口
@@ -107,20 +68,7 @@ class CreateController extends PayController
         if($this->currency !=='VND'){
             $this->showmessage("国家货币不对！");
         }
-
-        $this->productIsOpen(); //判断通道是否开启
-
-        $this->judgeRepeatOrder(); //验证是否可以提交重复订单
-
-        $this->checkIP();
-
-        $this->userRiskcontrol(); //用户风控检测
-
-        $this->productUserIsSet();
-
-        $this->setChannelApiControl(); //判断是否开启支付渠道 ，获取并设置支付通api的id和通道风控
-
-        $this->doNext();
+        $this->doFirst();
     }
 
     //印尼代收接口
@@ -142,19 +90,29 @@ class CreateController extends PayController
                 $this->showmessage('The secondary parameter of the extends field 【' . $v . '】 cannot be empty');
             }
         }
+        $this->doFirst();
+    }
 
+    //印度代收接口
+    public function payinIND(){
+        $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
+
+        if($this->currency !=='INR'){
+            $this->showmessage("国家货币不对！");
+        }
+        $this->doFirst();
+    }
+
+    /**
+     * [基础步骤]
+     */
+    public function doFirst(){
         $this->productIsOpen(); //判断通道是否开启
-
         $this->judgeRepeatOrder(); //验证是否可以提交重复订单
-
         $this->checkIP();
-
         $this->userRiskcontrol(); //用户风控检测
-
         $this->productUserIsSet();
-
         $this->setChannelApiControl(); //判断是否开启支付渠道 ，获取并设置支付通api的id和通道风控
-
         $this->doNext();
     }
 

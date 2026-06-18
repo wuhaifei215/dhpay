@@ -51,7 +51,7 @@ if (in_array($pay_bankcode, [7710, 7711, 7712])) {
     $tjurl = $apidomain . "/Pay_Create_payinIDR.html";   //印尼
 }elseif (in_array($pay_bankcode, [7732, 7733, 7734])) {
     $pay_currency = 'INR';
-    $tjurl = $apidomain . "/Pay_Create_payinINR.html";   //印度
+    $tjurl = $apidomain . "/Pay_Create_payinIND.html";   //印度
 }
 
 //扫码

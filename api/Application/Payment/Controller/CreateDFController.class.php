@@ -106,6 +106,21 @@ class CreateDFController extends Controller
         $this->doNext();
     }
 
+    //印度代付接口
+    public function payoutIND(){
+        $this->doFirst();
+        if (!$this->bankname) {
+            $this->showmessage('银行名称不能为空！');
+        }
+        if (!$this->subbranch) {
+            $this->showmessage('银行IFSC不能为空！');
+        }
+        if($this->currency !=='INR'){
+            $this->showmessage("国家货币不对！");
+        }
+        $this->doNext();
+    }
+
     //======================================辅助方法===================================
 
     /**

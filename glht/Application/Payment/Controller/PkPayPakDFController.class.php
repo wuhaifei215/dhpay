@@ -57,7 +57,7 @@ class PkPayPakDFController extends PaymentController
                 // 结束并输出执行时间
                 $endTime = microtime(TRUE);
                 $doTime = floor(($endTime-$beginTime)*1000);
-                logApiAddPayment('I8Pay订单提交上游' . $this->code, __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '2');
+                logApiAddPayment('订单提交上游' . $this->code, __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '2');
             }catch (\Exception $e) {
                 // var_dump($e);
             }

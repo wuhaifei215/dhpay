@@ -102,7 +102,7 @@ class NotifyController extends Controller
             // 结束并输出执行时间
             $endTime = microtime(TRUE);
             $doTime = floor(($endTime-$beginTime)*1000);
-            logApiAddReceipt('I8Pay回调下游商户信息', __METHOD__, $order_info['pay_orderid'], $order_info['out_trade_id'], $order_info["pay_notifyurl"], $notifystr, substr($contents,0,2000), $doTime, $httpCode, '2', '2');
+            logApiAddReceipt('回调下游商户信息', __METHOD__, $order_info['pay_orderid'], $order_info['out_trade_id'], $order_info["pay_notifyurl"], $notifystr, substr($contents,0,2000), $doTime, $httpCode, '2', '2');
         // }
         //记录向下游异步通知日志
         log_server_notify($order_info["pay_orderid"], $order_info["pay_notifyurl"], $notifystr, $httpCode, $contents);

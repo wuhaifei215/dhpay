@@ -82,7 +82,7 @@ class PakJazzcashPkPayController extends PayController
                 $userpost = $redis->get('userpost_' . $return['out_trade_id']);
                 $userpost = json_decode($userpost,true);
                 
-                logApiAddReceipt('下游商户提交I8Pay', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, $return_arr, '0', '0', '1', '2');
+                logApiAddReceipt('下游商户提交', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, $return_arr, '0', '0', '1', '2');
                 
                 // 结束并输出执行时间
                 $endTime = microtime(TRUE);

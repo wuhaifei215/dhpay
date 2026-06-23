@@ -1722,11 +1722,10 @@ class UserController extends BaseController
     //按类型查询代付通道
     public function getWithdrawal()
     {
-        $currency = I('post.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $productid = I('post.productid');
         //系统产品列表
         $product = M('Product')
-            ->where(['id' => $productid,'isdisplay' => 1,'currency'=>$currency])
+            ->where(['id' => $productid,'isdisplay' => 1])
             ->field('id,name,status,paytype')
             ->find();
         //系统产品列表

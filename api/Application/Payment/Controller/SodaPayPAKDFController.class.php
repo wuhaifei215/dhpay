@@ -36,29 +36,35 @@ class SodaPayPAKDFController extends PaymentController
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code, $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
         log_place_order($this->code, $data['orderid'] . "----提交地址", $config['exec_gateway']);    //日志
-        
+
         // 记录初始执行时间
         $beginTime = microtime(TRUE);
-        
+
         $returnContent = $this->http_post_data($config['exec_gateway'], $post_data);
         $result = json_decode($returnContent, true);
         // if($data['userid'] == 2){
-            try{
-                // 结束并输出执行时间
-                $endTime = microtime(TRUE);
-                $doTime = floor(($endTime-$beginTime)*1000);
-                logApiAddPayment('订单提交三方' . $this->code, __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '2');
-            }catch (\Exception $e) {
-                // var_dump($e);
-            }
+        try{
+            // 结束并输出执行时间
+            $endTime = microtime(TRUE);
+            $doTime = floor(($endTime-$beginTime)*1000);
+            logApiAddPayment('订单提交三方' . $this->code, __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '2');
+        }catch (\Exception $e) {
+            // var_dump($e);
+        }
         // }
         log_place_order($this->code, $data['orderid'] . "----返回", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
 
         // log_place_order($this->code, $data['orderid'] . "----状态：", $result['status']);    //日志
         //WAIT_CONFIRM	等待确认,WAIT_PAY	等待支付,PAY_ING	正在支付中,PAY_FAIL	支付失败,PAY_SUCCESS	支付成功
-        if($result['data']['order_status'] === "WAIT_PAY" || $result['data']['order_status'] === "PAY_ING" || $result['data']['order_status'] === "WAIT_CONFIRM"){
-            $return = ['status' => 1, 'msg' => '申请正常'];
-        }elseif($result['data']['order_status'] === "PAY_FAIL"){
+        if($result['code'] === "200"){
+            if($result['data']['order_status'] === "WAIT_PAY" || $result['data']['order_status'] === "PAY_ING" || $result['data']['order_status'] === "WAIT_CONFIRM"){
+                $return = ['status' => 1, 'msg' => '申请正常'];
+            }elseif($result['data']['order_status'] === "PAY_FAIL"){
+                $return = ['status' => 3, 'msg' => $result['message']];
+            }else{
+                $return = ['status' => 0, 'msg' => $result['message']];
+            }
+        }elseif($result['code'] === "300"){
             $return = ['status' => 3, 'msg' => $result['message']];
         }else{
             $return = ['status' => 0, 'msg' => $result['message']];
@@ -73,19 +79,19 @@ class SodaPayPAKDFController extends PaymentController
         $orderid = $re_data['merchant_order_id'];
         //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
         log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", json_encode($_REQUEST, JSON_UNESCAPED_UNICODE));    //日志
-        
+
         $tableName ='';
         $Wttklistmodel = D('Wttklist');
         $date = date('Ymd',strtotime(substr($orderid, 1, 8)));  //获取订单日期
         $tableName = $Wttklistmodel->getRealTableName($date);
         $Order = $Wttklistmodel->table($tableName)->where(['orderid' => $orderid])->find();
-        
+
         // $Order = $this->selectOrder(['orderid' => $orderid]);
         if (!$Order) {
             log_place_order($this->code . '_notifyurl', $orderid . '----没有查询到Order！ ', $orderid);
             exit;
         }
-        
+
         $config = M('pay_for_another')->where(['code' => $this->code,'id'=>$Order['df_id']])->find();
 
         //验证IP白名单
@@ -172,7 +178,7 @@ class SodaPayPAKDFController extends PaymentController
         }
         return $return;
     }
-    
+
     //账户余额查询
     public function queryBalance()
     {
@@ -207,10 +213,10 @@ class SodaPayPAKDFController extends PaymentController
 AAA;
                 $this->ajaxReturn(['status' => 1, 'msg' => '成功', 'data' => $html]);
             }
-            
+
         }
     }
-    
+
     //账户余额查询
     public function queryBalance2($config)
     {

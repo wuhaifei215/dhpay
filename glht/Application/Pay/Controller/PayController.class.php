@@ -749,7 +749,7 @@ class PayController extends Controller
                 if ($ratediff <= 0) {
                     return false;
                 } else {
-                    $parent = M('Member')->where(['id' => $parentid])->field('id,balance,balance_inr')->find();
+                    $parent = M('Member')->where(['id' => $parentid])->field('id,balance')->find();
                     if (empty($parent)) {
                         return false;
                     }

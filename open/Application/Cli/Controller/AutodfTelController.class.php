@@ -151,10 +151,6 @@ class AutodfTelController extends Controller
                         $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance_php' => array('exp', "balance_php+{$withdraw['tkmoney']}")]);
                         $ymoney = $memberInfo['balance_php'];
                     }
-                    if(getPaytypeCurrency($withdraw['paytype']) ==='INR'){        //菲律宾余额
-                        $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance_inr' => array('exp', "balance_inr+{$withdraw['tkmoney']}")]);
-                        $ymoney = $memberInfo['balance_inr'];
-                    }
                     //2,记录流水订单号
                     $arrayField = array(
                         "userid"     => $withdraw['userid'],
@@ -178,9 +174,6 @@ class AutodfTelController extends Controller
                     if ($withdraw['df_charge_type'] && $withdraw['sxfmoney']>0) {
                         if(getPaytypeCurrency($withdraw['paytype']) ==='PHP'){        //菲律宾余额
                             $res3 = $Member->where(['id' => $withdraw['userid']])->save(['balance_php' => array('exp', "balance_php+{$withdraw['sxfmoney']}")]);
-                        }
-                        if(getPaytypeCurrency($withdraw['paytype']) ==='INR'){        //菲律宾余额
-                            $res3 = $Member->where(['id' => $withdraw['userid']])->save(['balance_inr' => array('exp', "balance_inr+{$withdraw['sxfmoney']}")]);
                         }
                         if (!$res3) {
                             $sxf_re = false;

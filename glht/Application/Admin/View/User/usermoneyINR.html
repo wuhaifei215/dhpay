@@ -5,8 +5,8 @@
                 <!-- Content -->
                 <div class="ibox-content">
 					<blockquote class="layui-elem-quote layui-quote-nm">
-					<p>可用余额：<span class="text-danger"><{$info.balance_inr}></span> INR</p>
-					<p>冻结余额：<span class="text-danger"><{$info.blockedbalance_inr}></span> INR</p>
+					<p>可用余额：<span class="text-danger"><{$info.balance}></span> INR</p>
+					<p>冻结余额：<span class="text-danger"><{$info.blockedbalance}></span> INR</p>
 					</blockquote>
                     <button class="layui-btn layui-btn-danger" onclick="money_incr('增加/减少资金','<{:U('User/incrMoney',['uid'=>$info[id],'currency'=>'INR'])}>',640,480)"> 加/减余额</button>
                     <!--<button class="layui-btn layui-btn-danger " onclick="money_frozen('T1冻结资金管理','<{:U('User/frozenTiming',['uid'=>$info[id],'currency'=>'INR'])}>',640,480)"> T1冻结资金管理</button>-->

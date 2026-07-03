@@ -26,16 +26,17 @@ class ExportController extends Controller
         }
         $this->_site= 'https://' . C("DOMAIN") . '/';
         ini_set('default_charset', 'UTF-8');
+        ini_set('memory_limit', '2048M');
     }
     public function index(){
         echo "[" . date('Y-m-d H:i:s'). "] 自动代付任务触发\n";
         $redis = $this->redis_connect();
         
         // $count = $redis->lLen('downList_now');
-        if($count >= 3){        //允许5条导出同时进行
-            echo "[" . date('Y-m-d H:i:s'). "] 有执行中的任务\n";
-            return;
-        }
+//        if($count >= 3){        //允许5条导出同时进行
+//            echo "[" . date('Y-m-d H:i:s'). "] 有执行中的任务\n";
+//            return;
+//        }
         //取出第一个
         $downKey = $redis->lPop('downList');
         // $redis->rPush('downList', $downKey);
@@ -626,14 +627,6 @@ class ExportController extends Controller
         if ($where['bank']) {
             $where['lx'] = array('eq', $where['bank']);
             unset($where['bank']);
-        }
-        if($where['currency'] ==='PHP'){
-            $where['paytype'] = ['between', [1,3]];
-            unset($where['currency']);
-        }
-        if($where['currency'] ==='INR'){
-            $where['paytype'] = ['eq', 4];
-            unset($where['currency']);
         }
         if ($where['createtime']) {
             list($cstime, $cetime) = explode('|', $where['createtime']);

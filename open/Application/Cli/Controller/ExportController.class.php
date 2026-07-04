@@ -29,7 +29,7 @@ class ExportController extends Controller
         ini_set('memory_limit', '2048M');
     }
     public function index(){
-        echo "[" . date('Y-m-d H:i:s'). "] 自动代付任务触发\n";
+        echo "[" . date('Y-m-d H:i:s'). "] 自动导出任务触发\n";
         $redis = $this->redis_connect();
         
         // $count = $redis->lLen('downList_now');
@@ -95,7 +95,7 @@ class ExportController extends Controller
         }else{
             echo "[" . date('Y-m-d H:i:s'). "] 不需要处理\n";
         }
-        echo "[" . date('Y-m-d H:i:s'). "] 自动代付任务结束\n\n";
+        echo "[" . date('Y-m-d H:i:s'). "] 自动导出任务结束\n\n";
     }
     
     public function redis_connect(){

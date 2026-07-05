@@ -26,7 +26,10 @@ return [
         ['id'=>'22','currency'=>'VND','name'=>'VN-DIRECT'],
         ['id'=>'23','currency'=>'VND','name'=>'VN-BANK-QR'],
         ['id'=>'24','currency'=>'VND','name'=>'VN-VN-PERPAID'],
-        ['id'=>'25','currency'=>'IDR‌','name'=>'印尼QRIS'],
-        ['id'=>'26','currency'=>'IDR‌','name'=>'印尼DANA'],
+        ['id'=>'25','currency'=>'IDR','name'=>'印尼QRIS'],
+        ['id'=>'26','currency'=>'IDR','name'=>'印尼DANA'],
+        ['id'=>'27','currency'=>'BDT','name'=>'BD-BKash'],
+        ['id'=>'28','currency'=>'BDT','name'=>'BD-Nagad'],
+        ['id'=>'29','currency'=>'BDT','name'=>'BD-Rocket'],
     ],
 ];

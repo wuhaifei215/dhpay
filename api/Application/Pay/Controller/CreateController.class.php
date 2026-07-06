@@ -26,7 +26,7 @@ class CreateController extends PayController
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
         if($this->currency !=='BRL'){
-            $this->showmessage("国家货币不对！");
+            $this->showmessage("pay_currency error");
         }
         $this->doFirst();
     }
@@ -35,7 +35,7 @@ class CreateController extends PayController
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
         if($this->currency !=='PKR'){
-            $this->showmessage("国家货币不对！");
+            $this->showmessage("pay_currency error");
         }
 
         $extends = I("request.pay_extends", '');
@@ -56,7 +56,7 @@ class CreateController extends PayController
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
         if($this->currency !=='PHP'){
-            $this->showmessage("国家货币不对！");
+            $this->showmessage("pay_currency error");
         }
         $this->doFirst();
     }
@@ -66,7 +66,7 @@ class CreateController extends PayController
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
         if($this->currency !=='VND'){
-            $this->showmessage("国家货币不对！");
+            $this->showmessage("pay_currency error");
         }
         $this->doFirst();
     }
@@ -76,7 +76,7 @@ class CreateController extends PayController
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
         if($this->currency !=='IDR'){
-            $this->showmessage("国家货币不对！");
+            $this->showmessage("pay_currency error");
         }
 
         $extends = I("request.pay_extends", '');
@@ -98,7 +98,17 @@ class CreateController extends PayController
         $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
 
         if($this->currency !=='INR'){
-            $this->showmessage("国家货币不对！");
+            $this->showmessage("pay_currency error");
+        }
+        $this->doFirst();
+    }
+
+    //孟加拉代收接口
+    public function payinBD(){
+        $this->firstCheckParams(); //初步验证参数 ，设置memberid，pay_amount，bankcode属性
+
+        if($this->currency !=='BDT'){
+            $this->showmessage("pay_currency error");
         }
         $this->doFirst();
     }

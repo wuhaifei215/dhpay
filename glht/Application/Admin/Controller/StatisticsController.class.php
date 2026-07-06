@@ -309,6 +309,9 @@ class StatisticsController extends BaseController
 
     public function productChannelFinance()
     {
+        $timeType = I("request.timetype", 1);    //时间类型
+        $this->assign('timetype', $timeType);
+
         $where = array();
         $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $where['currency'] = ['eq', $currency];
@@ -332,8 +335,13 @@ class StatisticsController extends BaseController
         foreach($list as $k => $v) {
             $S_where['channel_id'] = $v['id'];
             $S_where['pay_status'] = ['between', [1, 2]];
-            $S_where['pay_applydate'] = ['between',[strtotime($cstime)-86400*7,strtotime($cetime)]];
-            $S_where['pay_successdate'] = ['between',[strtotime($cstime),strtotime($cetime)]];
+
+            if($timeType == 1){        //按创建时间统计
+                $S_where['pay_applydate'] = ['between',[strtotime($cstime),strtotime($cetime)]];
+            }elseif($timeType == 2){   //按成功时间统计
+                $S_where['pay_applydate'] = ['between',[strtotime($cstime)-86400*7,strtotime($cetime)]];
+                $S_where['pay_successdate'] = ['between',[strtotime($cstime),strtotime($cetime)]];
+            }
             $OrderModel = D('Order');
             $sum = $OrderModel->getSum('pay_amount,cost,pay_poundage,pay_actualamount',$S_where);
             $countSuccess = $OrderModel->getCount($S_where);
@@ -341,12 +349,17 @@ class StatisticsController extends BaseController
             $list[$k]['pay_amount'] = $sum['pay_amount'] += 0;//交易笔数
             $list[$k]['pay_poundage'] = $sum['pay_poundage']+= 0;//手续费
             $list[$k]['pay_actualamount'] = $sum['pay_actualamount'] += 0;//入金总额
-            
+
             $F_where = [
                 'channel_id'=> $v['id'],
-                'pay_applydate' => ['between', [strtotime($cstime), strtotime($cetime)]],
                 'pay_status' =>  ['eq', 0]
             ];
+            if($timeType == 1){        //按创建时间统计
+                $F_where['pay_applydate'] = ['between',[strtotime($cstime),strtotime($cetime)]];
+            }elseif($timeType == 2){   //按成功时间统计
+                $F_where['pay_applydate'] = ['between',[strtotime($cstime)-86400*7,strtotime($cetime)]];
+                $F_where['pay_successdate'] = ['between',[strtotime($cstime),strtotime($cetime)]];
+            }
             $OrderModel = D('Order');
             $countFail = $OrderModel->getCount($F_where);//交易笔数
             $list[$k]['success_count'] = $countSuccess ;//成功笔数

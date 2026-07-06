@@ -39,6 +39,15 @@
             </div>
         </div>
         <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">时间类型</label>
+            <div class="layui-input-inline">
+                <select name="timetype">
+                    <option <if condition="$timetype eq 1">selected</if> value="1">创建时间</option>
+                    <option <if condition="$timetype eq 2">selected</if> value="2">成功时间</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item layui-inline">
             <label class="layui-form-label">时间范围</label>
             <div class="layui-input-inline" style="width: 300px;">
                 <input type="text" class="layui-input" name="createtime" id="createtime"

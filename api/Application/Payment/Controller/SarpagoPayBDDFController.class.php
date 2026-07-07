@@ -141,7 +141,7 @@ class SarpagoPayBDDFController extends PaymentController
         }
         echo $json_result;
         try{
-            logApiAddNotify($orderid, 1, $_REQUEST, $json_result);
+            logApiAddNotify($orderid, 1, $re_data, $json_result);
         }catch (\Exception $e) {
             // var_dump($e);
         }

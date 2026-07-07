@@ -76,6 +76,8 @@ class SarpagoPayBDDFController extends PaymentController
             }else{
                 $return = ['status' => 0, 'msg' => $result['data']['message']];
             }
+        }elseif($result['code'] === 400){
+            $return = ['status' => 3, 'msg' => $result['error']];
         }else{
             $return = ['status' => 0, 'msg' => $result['msg']];
         }

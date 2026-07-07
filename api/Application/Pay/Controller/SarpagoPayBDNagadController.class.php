@@ -66,7 +66,7 @@ class SarpagoPayBDNagadController extends PayController
 
         $returnContent = $this->http_post_json($return['gateway'], $native);
         log_place_order($this->code, $return['orderid'] . "----返回", json_encode($returnContent, JSON_UNESCAPED_UNICODE));    //日志
-        $ans = json_decode($returnContent['body'], true);
+        $ans = json_decode($returnContent, true);
         if($ans['code'] === 0){
             $payurl = $ans['data']['params']['paymentLink'];
             $return_arr = [

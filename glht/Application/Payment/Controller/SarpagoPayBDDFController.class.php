@@ -89,19 +89,19 @@ class SarpagoPayBDDFController extends PaymentController
         $orderid = $re_data['merOrderNo'];
         //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
         log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", file_get_contents("php://input"));    //日志
-        
+
         $tableName ='';
         $Wttklistmodel = D('Wttklist');
         $date = date('Ymd',strtotime(substr($orderid, 1, 8)));  //获取订单日期
         $tableName = $Wttklistmodel->getRealTableName($date);
         $Order = $Wttklistmodel->table($tableName)->where(['orderid' => $orderid])->find();
-        
+
         // $Order = $this->selectOrder(['orderid' => $orderid]);
         if (!$Order) {
             log_place_order($this->code . '_notifyurl', $orderid . '----没有查询到Order！ ', $orderid);
             exit;
         }
-        
+
         $config = M('pay_for_another')->where(['code' => $this->code,'id'=>$Order['df_id']])->find();
         //验证IP白名单
         if ($this->verifyNotifyIp($config['notifyip'], $orderid) !== true) {
@@ -115,7 +115,7 @@ class SarpagoPayBDDFController extends PaymentController
             return;
         }
         $sign = $this->get_sign($re_data,$config['signkey']);
-        
+
         if ($sign === $re_data["sign"]) {
             if ($re_data['orderStatus'] === "2" || $re_data['orderStatus'] === "3") {     //订单状态（订单状态支付中 0 1 -4, 支付成功 2 3, 支付失败 -1 -2 -3 ）
                 //代付成功 更改代付状态 完善代付逻辑
@@ -144,7 +144,7 @@ class SarpagoPayBDDFController extends PaymentController
             // var_dump($e);
         }
     }
-    
+
     //账户余额查询
     public function queryBalance()
     {
@@ -155,11 +155,11 @@ class SarpagoPayBDDFController extends PaymentController
             );
             $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
             log_place_order($this->code . '_queryBalance', "提交", json_encode($post_data));    //日志
-            $returnContent = $this->http_post_json($config['serverreturn'], $post_data);
+            $returnContent = $this->http_get_json($config['serverreturn'], $post_data);
             log_place_order($this->code . '_queryBalance', "url", $config['serverreturn']);    //日志
             log_place_order($this->code . '_queryBalance', "返回", $returnContent);    //日志
             $result = json_decode($returnContent,true);
-            
+
             if($result['code'] === 0){
                 $balance = $result['data']['payinValue'];  //代收余额
                 $payoutValue = $result['data']['payoutValue'];  //代付余额
@@ -191,7 +191,7 @@ AAA;
             $this->ajaxReturn(['status' => 1, 'msg' => '成功', 'data' => $html]);
         }
     }
-    
+
     //账户余额查询
     public function queryBalance2($config)
     {
@@ -200,7 +200,7 @@ AAA;
         );
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code . '_queryBalance2', "提交", json_encode($post_data));    //日志
-        $returnContent = $this->http_post_json($config['serverreturn'], $post_data);
+        $returnContent = $this->http_get_json($config['serverreturn'], $post_data);
         log_place_order($this->code . '_queryBalance2', "返回", $returnContent);    //日志
         $result = json_decode($returnContent,true);
         if($result['Success'] === true){
@@ -219,7 +219,7 @@ AAA;
         ];
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code . '_PaymentQuery', $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
-        $returnContent = $this->http_post_json($config['query_gateway'], $post_data);
+        $returnContent = $this->http_get_json($config['query_gateway'], $post_data);
         log_place_order($this->code . '_PaymentQuery', $data['orderid'] . "----返回", $returnContent);    //日志
         $result = json_decode($returnContent, true);
         if ($result['code'] === 0 ) {
@@ -348,6 +348,25 @@ AAA;
                 'Content-Type: application/json',
                 'Content-Length:'.strlen($json)
             ),
+        ));
+        $response = curl_exec($curl);
+        curl_close($curl);
+        return $response;
+    }
+
+    private function http_get_json($url, $headerArray)
+    {
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_HTTPHEADER => $headerArray,
+            CURLOPT_CUSTOMREQUEST => 'GET',
         ));
         $response = curl_exec($curl);
         curl_close($curl);

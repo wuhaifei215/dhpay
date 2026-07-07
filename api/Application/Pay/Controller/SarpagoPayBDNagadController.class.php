@@ -64,7 +64,7 @@ class SarpagoPayBDNagadController extends PayController
         // 记录初始执行时间
         $beginTime = microtime(TRUE);
 
-        $returnContent = $this->http_post_json($return['gateway'], json_encode($native));
+        $returnContent = $this->http_post_json($return['gateway'], $native);
         log_place_order($this->code, $return['orderid'] . "----返回", json_encode($returnContent, JSON_UNESCAPED_UNICODE));    //日志
         $ans = json_decode($returnContent['body'], true);
         if($ans['code'] === 0){

@@ -52,7 +52,7 @@ class SarpagoPayBDDFController extends PaymentController
         // 记录初始执行时间
         $beginTime = microtime(TRUE);
 
-        $returnContent = $this->http_post_data($config['exec_gateway'], $post_data);
+        $returnContent = $this->http_post_json($config['exec_gateway'], $post_data);
         $result = json_decode($returnContent, true);
         // if($data['userid'] == 2){
         try{

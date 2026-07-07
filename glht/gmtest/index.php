@@ -327,6 +327,26 @@ $product_name = "Vip基础服务";
                     </li>
                 </label>
             </ul>
+            <ul style="border-bottom: 1px dashed #000; ">
+                <label for="BDBKash">
+                    <li class="pay_li" data_power_id="3000000018" data_product_id="3000000018">
+                        <input value="7735" name="channel" id="BDBKash" type="radio">
+                        <span>孟加拉-BKash</span>
+                    </li>
+                </label>
+                <label for="BDNagad">
+                    <li class="pay_li" data_power_id="3000000019" data_product_id="3000000019">
+                        <input value="7736" name="channel" id="BDNagad" type="radio">
+                        <span>孟加拉-Nagad</span>
+                    </li>
+                </label>
+                <label for="BDRocket">
+                    <li class="pay_li" data_power_id="3000000020" data_product_id="3000000020">
+                        <input value="7737" name="channel" id="BDRocket" type="radio">
+                        <span>孟加拉-Rocket</span>
+                    </li>
+                </label>
+            </ul>
         </div>
     </div>
     <!--立即支付-->

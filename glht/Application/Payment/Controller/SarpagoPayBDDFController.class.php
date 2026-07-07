@@ -39,7 +39,7 @@ class SarpagoPayBDDFController extends PaymentController
             'appId' => $config['appid'],
             "merOrderNo" => $data['orderid'], //订单号
             'currency' => 'BDT',
-            "amount" =>$data['money'],  //提现金额
+            "amount" => sprintf('%.2f', $data['money']),  //提现金额
             "notifyUrl" => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",      //异步通知地址
             'payMethod' => $payMethod,
             'extra' => $extra,

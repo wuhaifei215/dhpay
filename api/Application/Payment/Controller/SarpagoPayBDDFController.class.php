@@ -69,9 +69,9 @@ class SarpagoPayBDDFController extends PaymentController
         // log_place_order($this->code, $data['orderid'] . "----状态：", $result['status']);    //日志
         if($result['code'] === 0){
             //支付中 0 1 -4 ，支付成功 2 3 ，支付失败 -1 -2 -3
-            if($result['data']['orderStatus'] === "0" || $result['data']['orderStatus'] === "1" || $result['data']['orderStatus'] === "-4"){
+            if($result['data']['orderStatus'] === 0 || $result['data']['orderStatus'] === 1 || $result['data']['orderStatus'] === -4){
                 $return = ['status' => 1, 'msg' => '申请正常'];
-            }elseif($result['data']['orderStatus'] === "2" || $result['data']['orderStatus'] === "3"){
+            }elseif($result['data']['orderStatus'] === 2 || $result['data']['orderStatus'] === 3){
                 $return = ['status' => 2, 'msg' => "支付成功！"];
             }else{
                 $return = ['status' => 0, 'msg' => $result['data']['message']];
@@ -117,14 +117,14 @@ class SarpagoPayBDDFController extends PaymentController
         $sign = $this->get_sign($re_data,$config['signkey']);
 
         if ($sign === $re_data["sign"]) {
-            if ($re_data['orderStatus'] === "2" || $re_data['orderStatus'] === "3") {     //订单状态（订单状态支付中 0 1 -4, 支付成功 2 3, 支付失败 -1 -2 -3 ）
+            if ($re_data['orderStatus'] === 2 || $re_data['orderStatus'] === 3) {     //订单状态（订单状态支付中 0 1 -4, 支付成功 2 3, 支付失败 -1 -2 -3 ）
                 //代付成功 更改代付状态 完善代付逻辑
                 $data = [
                     'memo' => '代付成功',
                 ];
                 $this->changeStatus($Order['id'], 2, $data, $tableName);
                 log_place_order($this->code . '_notifyurl', $orderid, "----代付成功");    //日志
-            } elseif ($re_data['orderStatus'] === "-1" || $re_data['orderStatus'] === "-2" || $re_data['orderStatus'] === "-3") {
+            } elseif ($re_data['orderStatus'] === -1 || $re_data['orderStatus'] === -2 || $re_data['orderStatus'] === -3) {
                 //代付失败
                 $data = [
                     'memo' => '代付失败-' . $re_data['message'],
@@ -224,18 +224,18 @@ AAA;
         $result = json_decode($returnContent, true);
         if ($result['code'] === 0 ) {
             switch ($result['data']['orderStatus']) {       //订单状态（订单状态支付中 0 1 -4, 支付成功 2 3, 支付失败 -1 -2 -3 ）
-                case "0":
-                case "1":
-                case "-4":
+                case 0:
+                case 1:
+                case -4:
                     $return = ['status' => 1, 'msg' => '处理中'];
                     break;
-                case "2":
-                case "3":
+                case 2:
+                case 3:
                     $return = ['status' => 2, 'msg' => '成功'];
                     break;
-                case "-1":
-                case "-2":
-                case "-3":
+                case -1:
+                case -2:
+                case -3:
                     $return = ['status' => 3, 'msg' => '失败','remark' => $result['data']['message']];
                     break;
             }

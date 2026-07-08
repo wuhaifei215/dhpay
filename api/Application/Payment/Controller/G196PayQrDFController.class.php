@@ -19,7 +19,7 @@ class G196PayQrDFController extends PaymentController
         if($data['type'] == 'Gcash'){
             $url = $config['exec_gateway'] . '/php/gcash/api/v2/dfApi';
         } elseif ($data['type'] == 'Maya'){
-            $url = $config['exec_gateway'] . '//php/maya/api/v2/dfApi';
+            $url = $config['exec_gateway'] . '/php/maya/api/v2/dfApi';
             // } elseif ($data['type'] == 'Bank'){
             //     $type = $data['bankname'];
         } else {

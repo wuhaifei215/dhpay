@@ -34,7 +34,9 @@
                             <select name="currency">
                                 <option value="">全部国家</option>
                                 <volist name="country" id="co">
-                                    <option <if condition="$currency eq $co['currency']">selected</if> value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
+                                    <option
+                                    <if condition="$currency eq $co['currency']">selected</if>
+                                    value="<{$co.currency}>"><{$co.title}>(<{$co.currency}>)</option>
                                 </volist>
                             </select>
                         </div>
@@ -43,8 +45,12 @@
                         <label class="layui-form-label">时间类型</label>
                         <div class="layui-input-inline">
                             <select name="timetype">
-                                <option <if condition="$timetype eq 1">selected</if> value="1">创建时间</option>
-                                <option <if condition="$timetype eq 2">selected</if> value="2">成功时间</option>
+                                <option
+                                <if condition="$timetype eq 1">selected</if>
+                                value="1">创建时间</option>
+                                <option
+                                <if condition="$timetype eq 2">selected</if>
+                                value="2">成功时间</option>
                             </select>
                         </div>
                     </div>
@@ -63,7 +69,8 @@
                 </form>
                 <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
                     <volist name="country" id="co">
-                        <if condition="$currency eq $co['currency']"><span style="color:#333;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)</if>
+                        <if condition="$currency eq $co['currency']"><span style="color:#333;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)
+                        </if>
                     </volist>
                     <if condition="$currency eq ''">请选择国家</if>
                 </blockquote>
@@ -76,7 +83,7 @@
                                 </div>
                                 <div class="ibox-content">
                                     <p>订单金额：<{$v.tkmoney}>元</p>
-                                    <p>手续费  &nbsp;&nbsp;&nbsp;：<{$v.sxfmoney}>元</p>
+                                    <p>手续费 &nbsp;&nbsp;&nbsp;：<{$v.sxfmoney}>元</p>
                                     <p>到账总额：<{$v.money}>元</p>
                                 </div>
                                 <div class="ibox-content">
@@ -101,9 +108,9 @@
 <include file="Public/footer"/>
 <script>
 
-    layui.use(['form','table',  'laydate', 'layer'], function () {
+    layui.use(['form', 'table', 'laydate', 'layer'], function () {
         var form = layui.form
-            ,table = layui.table
+            , table = layui.table
 
             , layer = layui.layer
             , laydate = layui.laydate;
@@ -112,11 +119,11 @@
         laydate.render({
             elem: '#createtime'
             , type: 'datetime'
-            ,theme: 'molv'
+            , theme: 'molv'
             , range: '|'
         });
     });
-    document.getElementById("orderform").onsubmit = function(event){
+    document.getElementById("orderform").onsubmit = function (event) {
         // event.preventDefault(); // 阻止表单提交
         $('#overlay').show();
     }

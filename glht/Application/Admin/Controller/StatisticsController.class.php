@@ -380,6 +380,9 @@ class StatisticsController extends BaseController
         $timeType = I("request.timetype", 1);    //时间类型
         $this->assign('timetype', $timeType);
 
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $this->assign('currency', $currency);
+
         $createtime = urldecode(I("request.createtime", '', 'string,strip_tags,htmlspecialchars'));
         if ($createtime) {
             list($cstime,$cetime) = explode('|',$createtime);
@@ -391,7 +394,7 @@ class StatisticsController extends BaseController
         $this->assign('createtime', $createtime);
 
 
-        $list = M('PayForAnother')->where(['status'=>1,'id' =>['gt',11]])->order('id desc')->select();
+        $list = M('PayForAnother')->where(['currency'=>$currency,'status'=>1,'id' =>['gt',11]])->order('id desc')->select();
         $countSuccess = $countFail = 0;
         $S_where = $F_where = [];
 //        $withOutArray = [4,5,6,12,13,24,25];    //排除测试的通道

@@ -212,7 +212,7 @@
                 <td>
                   <button class="layui-btn layui-btn-small" onclick="order_view('系统订单号:<{$vo.pay_orderid}>','<{:U('Admin/Order/show',['oid'=>$vo[id]])}>',600,400)">查看</button>
                   <eq name="vo.lock_status" value="1">
-                  <button class="layui-btn layui-btn-small layui-btn-danger" onclick="forzenOrder(this,'<{$vo.id}>')">解冻</button>
+                    <button class="layui-btn layui-btn-small layui-btn-danger" onclick="setOrderPaid('解冻订单','<{:U('Order/thawOrder', ['orderid'=>$vo['id']])}>',600,350)">解冻</button>
                   </eq>
                 </td>
               </tr>

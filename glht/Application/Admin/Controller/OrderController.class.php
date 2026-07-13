@@ -1249,62 +1249,162 @@ class OrderController extends BaseController
         $orderId = I('orderid/d', 0);
         if (!$orderId)
             $this->error("订单ID有误");
-        $order = M("order")->where(['id' => $orderId])->find();
+
+        $OrderModel = D('Order');
+        $tables = $OrderModel->getTables();
+        foreach ($tables as $v){
+            $order = $OrderModel->table($v)->where(['id' => $orderId])->find();
+            if(!empty($order)){
+                $realTableName = $v;
+                break;
+            }
+        }
+
         if ($order["pay_status"] < 1) {
             $this->error("该订单没有支付成功，不能冻结");
         }
         if ($order["lock_status"] > 0) {
             $this->error("该订单已冻结");
         }
-        $userId = (int)$order['pay_memberid'] - 10000;
 
-        M()->startTrans();
-        $info = M('Member')->where(['id' => $userId])->lock(true)->find();
-        if (empty($info)) {
-            $this->error("商户不存在");
+        $uid = session('admin_auth')['uid'];
+        $verifysms = 0;//是否可以短信验证
+        $sms_is_open = smsStatus();
+        if ($sms_is_open) {
+            $adminMobileBind = adminMobileBind($uid);
+            if ($adminMobileBind) {
+                $verifysms = 1;
+            }
         }
-        $ymoney = $info['balance']; //改动前的金额
-        $gmoney = $info['balance'] - $order['pay_actualamount']; //改动后的金额
-        $member_data['balance'] = ['exp', 'balance-' . $order['pay_actualamount']]; //防止数据库并发脏读
-        $member_data['blockedbalance'] = ['exp', "blockedbalance+" . $order['pay_actualamount']];
-        $order = M("order")->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['LT', 1]))->lock(true)->find();
+        //是否可以谷歌安全码验证
+        $verifyGoogle = adminGoogleBind($uid);
+        if (IS_POST) {
+            //设置redis标签，防止重复执行
+            $redis = $this->redis_connect();
+            $redis->set('doForzen' . $orderId,'1',120);
 
-        //需要检测是否已解冻，如果未解冻直接修改自动解冻状态，如果解冻，直接扣余额
-        $maps['status'] = array('eq', 0);
-        $maps['orderid'] = array('eq', $order['pay_orderid']);
-        $blockedLog = M('blockedlog')->where($maps)->find();
-        if ($blockedLog) {
-            $res = M('blockedlog')->where(array('id' => $blockedLog['id']))->save(array('status' => 1));
+            $payModel = D('Pay');
+            $auth_type = I('request.auth_type', 0, 'intval');
+            if ($verifyGoogle && $verifysms) {
+                if (!in_array($auth_type, [0, 1])) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            } elseif ($verifyGoogle && !$verifysms) {
+                if ($auth_type != 1) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            } elseif (!$verifyGoogle && $verifysms) {
+                if ($auth_type != 0) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            }
+            if ($verifyGoogle && $auth_type == 1) {//谷歌安全码验证
+                $res = check_auth_error($uid, 5);
+                if (!$res['status']) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => $res['msg']]);
+                }
+                $google_code = I('request.google_code');
+                if (!$google_code) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "谷歌安全码不能为空！"]);
+                } else {
+                    $ga = new \Org\Util\GoogleAuthenticator();
+                    $google_secret_key = M('Admin')->where(['id' => $uid])->getField('google_secret_key');
+                    if (!$google_secret_key) {
+                        $this->ajaxReturn(['status' => 0, 'msg' => "您未绑定谷歌身份验证器！"]);
+                    }
+                    if (false === $ga->verifyCode($google_secret_key, $google_code, C('google_discrepancy'))) {
+                        log_auth_error($uid, 5);
+                        $this->ajaxReturn(['status' => 0, 'msg' => "谷歌安全码错误！"]);
+                    } else {
+                        clear_auth_error($uid, 5);
+                    }
+                }
+            } elseif ($verifysms && $auth_type == 0) {//短信验证码
+                $res = check_auth_error($uid, 3);
+                if (!$res['status']) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => $res['msg']]);
+                }
+                $code = I('request.code');
+                if (!$code) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "短信验证码不能为空！"]);
+                } else {
+                    if (session('send.setOrderPaidSend') != $code || !$this->checkSessionTime('setOrderPaidSend', $code)) {
+                        log_auth_error($uid, 3);
+                        $this->ajaxReturn(['status' => 0, 'msg' => '验证码错误']);
+                    } else {
+                        clear_auth_error($uid, 3);
+                        session('send', null);
+                    }
+                }
+            }
+
+
+            $userId = (int)$order['pay_memberid'] - 10000;
+
+            M()->startTrans();
+            $info = M('Member')->where(['id' => $userId])->lock(true)->find();
+            if (empty($info)) {
+                $this->error("商户不存在");
+            }
+            $ymoney = $info['balance']; //改动前的金额
+            $gmoney = $info['balance'] - $order['pay_actualamount']; //改动后的金额
+            $member_data['balance'] = ['exp', 'balance-' . $order['pay_actualamount']]; //防止数据库并发脏读
+            $member_data['blockedbalance'] = ['exp', "blockedbalance+" . $order['pay_actualamount']];
+            $order = M("order")->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['LT', 1]))->lock(true)->find();
+
+            //需要检测是否已解冻，如果未解冻直接修改自动解冻状态，如果解冻，直接扣余额
+            $maps['status'] = array('eq', 0);
+            $maps['orderid'] = array('eq', $order['pay_orderid']);
+            $blockedLog = M('blockedlog')->where($maps)->find();
+            if ($blockedLog) {
+                $res = M('blockedlog')->where(array('id' => $blockedLog['id']))->save(array('status' => 1));
+            } else {
+                $res = M('member')->where(['id' => $userId])->save($member_data);
+            }
+
+            $orderRe = $OrderModel->table($realTableName)->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['LT', 1]))->save(['lock_status' => 1]);
+            $data = array();
+            $data['userid'] = $userId;
+            $data['ymoney'] = $ymoney;
+            $data['money'] = $order['pay_actualamount'];
+            $data['gmoney'] = $gmoney;
+            $data['datetime'] = date("Y-m-d H:i:s");
+            $data['tongdao'] = $order['pay_bankcode'];
+            $data['transid'] = $order['pay_orderid'];//交易流水号
+            $data['orderid'] = $order['pay_orderid'];
+            $data['paytype'] = $order['paytype'];
+            $data['currency'] = $order['currency'];
+            $data['lx'] = 7;//冻结
+            $data['contentstr'] = "手动冻结订单";
+
+            $Moneychange = D("Moneychange");
+            $tablename = $Moneychange -> getRealTableName($data['datetime']);
+            $change = $Moneychange->table($tablename)->add($data);
+            // $change = M('moneychange')->add($data);
+            if ($res !== false && $orderRe !== false && $change !== false) {
+                M()->commit();
+                UserLogService::HTwrite(3, '冻结订单成功', '冻结订单（' . $orderId . '）成功');
+                $this->success('冻结成功');
+            } else {
+                M()->rollback();
+                UserLogService::HTwrite(3, '冻结订单失败', '冻结订单（' . $orderId . '）失败');
+                $this->error('冻结失败' . $res . '=' . $orderRe);
+            }
         } else {
-            $res = M('member')->where(['id' => $userId])->save($member_data);
-        }
-
-        $orderRe = M("order")->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['LT', 1]))->save(['lock_status' => 1]);
-        $data = array();
-        $data['userid'] = $userId;
-        $data['ymoney'] = $ymoney;
-        $data['money'] = $order['pay_actualamount'];
-        $data['gmoney'] = $gmoney;
-        $data['datetime'] = date("Y-m-d H:i:s");
-        $data['tongdao'] = $order['pay_bankcode'];
-        $data['transid'] = $order['pay_orderid'];//交易流水号
-        $data['orderid'] = $order['pay_orderid'];
-        $data['currency'] = $order['currency'];
-        $data['lx'] = 7;//冻结
-        $data['contentstr'] = "手动冻结订单";
-
-        $Moneychange = D("Moneychange");
-        $tablename = $Moneychange -> getRealTableName($data['datetime']);
-        $change = $Moneychange->table($tablename)->add($data);
-        // $change = M('moneychange')->add($data);
-        if ($res !== false && $orderRe !== false && $change !== false) {
-            M()->commit();
-            UserLogService::HTwrite(3, '冻结订单成功', '冻结订单（' . $orderId . '）成功');
-            $this->success('冻结成功');
-        } else {
-            M()->rollback();
-            UserLogService::HTwrite(3, '冻结订单失败', '冻结订单（' . $orderId . '）失败');
-            $this->error('冻结失败' . $res . '=' . $orderRe);
+            if (empty($order)) {
+                $this->error('订单不存在');
+            }
+            if ($order['status'] != 0) {
+                $this->error("该订单状态为已支付！");
+            }
+            $uid = session('admin_auth')['uid'];
+            $user = M('Admin')->where(['id' => $uid])->find();
+            $this->assign('mobile', $user['mobile']);
+            $this->assign('order', $order);
+            $this->assign('verifysms', $verifysms);
+            $this->assign('verifyGoogle', $verifyGoogle);
+            $this->assign('auth_type', $verifyGoogle ? 1 : 0);
+            $this->display();
         }
     }
 
@@ -1318,52 +1418,158 @@ class OrderController extends BaseController
         $orderId = I('orderid/d', 0);
         if (!$orderId)
             $this->error("订单ID有误");
-        $order = M("order")->where(['id' => $orderId])->find();
+
+        $OrderModel = D('Order');
+        $tables = $OrderModel->getTables();
+        foreach ($tables as $v){
+            $order = $OrderModel->table($v)->where(['id' => $orderId])->find();
+            if(!empty($order)){
+                $realTableName = $v;
+                break;
+            }
+        }
         if ($order["pay_status"] < 1) {
             $this->error("该订单没有支付成功，不能解冻");
         }
         if ($order["lock_status"] != 1) {
             $this->error("该订单没有冻结");
         }
-        $userId = $order['pay_memberid'] - 10000;
-        M()->startTrans();
-        $info = M('Member')->where(['id' => $userId])->lock(true)->find();
-        if (empty($info)) {
-            $this->error("商户不存在");
-        }
-        $ymoney = $info['balance']; //改动前的金额
-        $gmoney = $info['balance'] + $order['pay_actualamount']; //改动后的金额
-        $member_data['balance'] = ['exp', 'balance+' . $order['pay_actualamount']]; //防止数据库并发脏读
-        $member_data['blockedbalance'] = ['exp', "blockedbalance-" . $order['pay_actualamount']];
-        $order = M("order")->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['eq', 1]))->lock(true)->find();
-        //需要检测是否已解冻，如果未解冻直接修改自动解冻状态，如果解冻，直接扣余额
-        $res = M('member')->where(array('id' => $userId))->save($member_data);
-        //记录日志
-        $orderRe = M("order")->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['eq', 1]))->save(array("lock_status" => 2));
-        $data = array();
-        $data['userid'] = $userId;
-        $data['ymoney'] = $ymoney;
-        $data['money'] = $order['pay_actualamount'];
-        $data['gmoney'] = $gmoney;
-        $data['datetime'] = date("Y-m-d H:i:s");
-        $data['tongdao'] = $order['pay_bankcode'];
-        $data['transid'] = $order['pay_orderid'];//交易流水号
-        $data['orderid'] = $order['pay_orderid'];
-        $data['lx'] = 8;//解冻
-        $data['contentstr'] = "手动解冻订单";
 
-        $Moneychange = D("Moneychange");
-        $tablename = $Moneychange -> getRealTableName($data['datetime']);
-        $change = $Moneychange->table($tablename)->add($data);
-        // $change = M('moneychange')->add($data);
-        if ($res !== false && $orderRe !== false && $change !== false) {
-            M()->commit();
-            UserLogService::HTwrite(3, '解冻已冻结订单成功', '解冻已冻结订单（' . $orderId . '）成功');
-            $this->success('解冻成功');
+
+        $uid = session('admin_auth')['uid'];
+        $verifysms = 0;//是否可以短信验证
+        $sms_is_open = smsStatus();
+        if ($sms_is_open) {
+            $adminMobileBind = adminMobileBind($uid);
+            if ($adminMobileBind) {
+                $verifysms = 1;
+            }
+        }
+        //是否可以谷歌安全码验证
+        $verifyGoogle = adminGoogleBind($uid);
+        if (IS_POST) {
+            //设置redis标签，防止重复执行
+            $redis = $this->redis_connect();
+            $redis->set('doForzen' . $orderId,'1',120);
+
+            $payModel = D('Pay');
+            $auth_type = I('request.auth_type', 0, 'intval');
+            if ($verifyGoogle && $verifysms) {
+                if (!in_array($auth_type, [0, 1])) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            } elseif ($verifyGoogle && !$verifysms) {
+                if ($auth_type != 1) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            } elseif (!$verifyGoogle && $verifysms) {
+                if ($auth_type != 0) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            }
+            if ($verifyGoogle && $auth_type == 1) {//谷歌安全码验证
+                $res = check_auth_error($uid, 5);
+                if (!$res['status']) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => $res['msg']]);
+                }
+                $google_code = I('request.google_code');
+                if (!$google_code) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "谷歌安全码不能为空！"]);
+                } else {
+                    $ga = new \Org\Util\GoogleAuthenticator();
+                    $google_secret_key = M('Admin')->where(['id' => $uid])->getField('google_secret_key');
+                    if (!$google_secret_key) {
+                        $this->ajaxReturn(['status' => 0, 'msg' => "您未绑定谷歌身份验证器！"]);
+                    }
+                    if (false === $ga->verifyCode($google_secret_key, $google_code, C('google_discrepancy'))) {
+                        log_auth_error($uid, 5);
+                        $this->ajaxReturn(['status' => 0, 'msg' => "谷歌安全码错误！"]);
+                    } else {
+                        clear_auth_error($uid, 5);
+                    }
+                }
+            } elseif ($verifysms && $auth_type == 0) {//短信验证码
+                $res = check_auth_error($uid, 3);
+                if (!$res['status']) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => $res['msg']]);
+                }
+                $code = I('request.code');
+                if (!$code) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "短信验证码不能为空！"]);
+                } else {
+                    if (session('send.setOrderPaidSend') != $code || !$this->checkSessionTime('setOrderPaidSend', $code)) {
+                        log_auth_error($uid, 3);
+                        $this->ajaxReturn(['status' => 0, 'msg' => '验证码错误']);
+                    } else {
+                        clear_auth_error($uid, 3);
+                        session('send', null);
+                    }
+                }
+            }
+            $userId = $order['pay_memberid'] - 10000;
+            M()->startTrans();
+            $info = M('Member')->where(['id' => $userId])->lock(true)->find();
+            if (empty($info)) {
+                $this->error("商户不存在");
+            }
+            if(getPaytypeCurrency($order['paytype']) ==='PHP'){        //菲律宾余额
+                $ymoney = $info['balance_php']; //改动前的金额
+                $gmoney = $info['balance_php'] + $order['pay_actualamount']; //改动后的金额
+                $member_data['balance_php'] = ['exp', 'balance_php+' . $order['pay_actualamount']]; //防止数据库并发脏读
+                $member_data['blockedbalance_php'] = ['exp', "blockedbalance_php-" . $order['pay_actualamount']];
+            }
+            if(getPaytypeCurrency($order['paytype']) ==='INR'){        //越南余额
+                $ymoney = $info['balance_inr']; //改动前的金额
+                $gmoney = $info['balance_inr'] + $order['pay_actualamount']; //改动后的金额
+                $member_data['balance_inr'] = ['exp', 'balance_inr+' . $order['pay_actualamount']]; //防止数据库并发脏读
+                $member_data['blockedbalance_inr'] = ['exp', "blockedbalance_inr-" . $order['pay_actualamount']];
+            }
+            $order = $OrderModel->table($realTableName)->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['eq', 1]))->lock(true)->find();
+            //需要检测是否已解冻，如果未解冻直接修改自动解冻状态，如果解冻，直接扣余额
+            $res = M('member')->where(array('id' => $userId))->save($member_data);
+            //记录日志
+            $orderRe = $OrderModel->table($realTableName)->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['eq', 1]))->save(array("lock_status" => 2));
+            $data = array();
+            $data['userid'] = $userId;
+            $data['ymoney'] = $ymoney;
+            $data['money'] = $order['pay_actualamount'];
+            $data['gmoney'] = $gmoney;
+            $data['datetime'] = date("Y-m-d H:i:s");
+            $data['tongdao'] = $order['pay_bankcode'];
+            $data['transid'] = $order['pay_orderid'];//交易流水号
+            $data['orderid'] = $order['pay_orderid'];
+            $data['currency'] = $order['currency'];
+            $data['lx'] = 8;//解冻
+            $data['contentstr'] = "手动解冻订单";
+
+            $Moneychange = D("Moneychange");
+            $tablename = $Moneychange -> getRealTableName($data['datetime']);
+            $change = $Moneychange->table($tablename)->add($data);
+            // $change = M('moneychange')->add($data);
+            if ($res !== false && $orderRe !== false && $change !== false) {
+                M()->commit();
+                UserLogService::HTwrite(3, '解冻已冻结订单成功', '解冻已冻结订单（' . $orderId . '）成功');
+                $this->success('解冻成功');
+            } else {
+                M()->rollback();
+                UserLogService::HTwrite(3, '解冻已冻结订单失败', '解冻已冻结订单（' . $orderId . '）失败');
+                $this->error('解冻失败');
+            }
         } else {
-            M()->rollback();
-            UserLogService::HTwrite(3, '解冻已冻结订单失败', '解冻已冻结订单（' . $orderId . '）失败');
-            $this->error('解冻失败');
+            if (empty($order)) {
+                $this->error('订单不存在');
+            }
+            if ($order['status'] != 0) {
+                $this->error("该订单状态为已支付！");
+            }
+            $uid = session('admin_auth')['uid'];
+            $user = M('Admin')->where(['id' => $uid])->find();
+            $this->assign('mobile', $user['mobile']);
+            $this->assign('order', $order);
+            $this->assign('verifysms', $verifysms);
+            $this->assign('verifyGoogle', $verifyGoogle);
+            $this->assign('auth_type', $verifyGoogle ? 1 : 0);
+            $this->display();
         }
     }
 
@@ -1384,54 +1590,67 @@ class OrderController extends BaseController
 
         $memberid = I("request.memberid", 0, 'intval');
         if ($memberid) {
-            $where['O.pay_memberid'] = array('eq', $memberid);
+            $where['pay_memberid'] = array('eq', $memberid);
         }
         $this->assign('memberid', $memberid);
         $orderid = I("request.orderid", '', 'trim,string,strip_tags,htmlspecialchars');
         if ($orderid) {
-            $where['O.out_trade_id'] = $orderid;
+            $where['out_trade_id'] = $orderid;
         }
         $this->assign('orderid', $orderid);
         $ddlx = I("request.ddlx", '', 'trim,string,strip_tags,htmlspecialchars');
         if ($ddlx != "") {
-            $where['O.ddlx'] = array('eq', $ddlx);
+            $where['ddlx'] = array('eq', $ddlx);
         }
         $this->assign('ddlx', $ddlx);
         $tongdao = I("request.tongdao", '', 'trim,string,strip_tags,htmlspecialchars');
         if ($tongdao) {
-            $where['O.channel_id'] = array('eq', $tongdao);
+            $where['channel_id'] = array('eq', $tongdao);
         }
         $this->assign('tongdao', $tongdao);
         $bank = I("request.bank", '', 'trim,string,strip_tags,htmlspecialchars');
         if ($bank) {
-            $where['O.pay_bankcode'] = array('eq', $bank);
+            $where['pay_bankcode'] = array('eq', $bank);
         }
         $this->assign('bank', $bank);
         $payOrderid = I('get.pay_orderid', '', 'trim,string,strip_tags,htmlspecialchars');
         if ($payOrderid) {
-            $where['O.pay_orderid'] = array('eq', $payOrderid);
+            $where['pay_orderid'] = array('eq', $payOrderid);
         }
         $this->assign('pay_orderid', $payOrderid);
         $body = I("request.body", '', 'trim,string,strip_tags,htmlspecialchars');
         if ($body) {
-            $where['O.pay_productname'] = array('eq', $body);
+            $where['pay_productname'] = array('eq', $body);
         }
         $this->assign('body', $body);
-        $createtime = urldecode(I("request.createtime", '', 'trim,string,strip_tags,htmlspecialchars'));
-        if ($createtime) {
-            list($cstime, $cetime) = explode('|', $createtime);
-            $where['O.pay_applydate'] = ['between', [strtotime($cstime), strtotime($cetime) ? strtotime($cetime) : time()]];
-        }
-        $this->assign('createtime', $createtime);
+
         $successtime = urldecode(I("request.successtime", '', 'trim,string,strip_tags,htmlspecialchars'));
         if ($successtime) {
             list($sstime, $setime) = explode('|', $successtime);
-            $where['O.pay_successdate'] = ['between', [strtotime($sstime), strtotime($setime) ? strtotime($setime) : time()]];
+            $where['pay_successdate'] = ['between', [strtotime($sstime), strtotime($setime) ? strtotime($setime) : time()]];
         }
         $this->assign('successtime', $successtime);
+
+        $createtime = urldecode(I("request.createtime", '', 'trim,string,strip_tags,htmlspecialchars'));
+        if ($createtime) {
+            list($cstime, $cetime) = explode('|', $createtime);
+            $where['pay_applydate'] = ['between', [strtotime($cstime), strtotime($cetime) ? strtotime($cetime) : time()]];
+        }
+
+        if (!$createtime && !$successtime && !$payOrderid && !$orderid) {
+            $todayBegin = date('Y-m-d') . ' 00:00:00';
+            $todyEnd = date('Y-m-d') . ' 23:59:59';
+            if (!$createtime && !$successtime) {
+                $where['pay_applydate'] = ['between', [strtotime($todayBegin), strtotime($todyEnd)]];
+            }
+            $createtime = $todayBegin . ' | ' . $todyEnd;
+        }
+        $this->assign('createtime', $createtime);
+
+
         $where['pay_status'] = ['in', '1,2'];
         $where['lock_status'] = ['GT', 0];
-        $count = M('Order')->alias('as O')->where($where)->count();
+        // $count = M('Order')->alias('as O')->where($where)->count();
 
         $size = 15;
         $rows = I('get.rows', $size, 'intval');
@@ -1439,12 +1658,19 @@ class OrderController extends BaseController
             $rows = $size;
         }
 
+        // $page = new Page($count, $rows);
+
+        $OrderModel = D('Order');
+
+        $count = $OrderModel->getCount($where);
         $page = new Page($count, $rows);
-        $list = M('Order')->alias('as O')
-            ->where($where)
-            ->limit($page->firstRow . ',' . $page->listRows)
-            ->order('id desc')
-            ->select();
+        $list = $OrderModel->getOrderByDateRange($field, $where, $page->firstRow . ',' . $page->listRows, 'id desc');
+
+        // $list = M('Order')->alias('as O')
+        //     ->where($where)
+        //     ->limit($page->firstRow . ',' . $page->listRows)
+        //     ->order('id desc')
+        //     ->select();
 
 
         $this->assign('rows', $rows);

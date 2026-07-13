@@ -1350,7 +1350,7 @@ class OrderController extends BaseController
             $gmoney = $info['balance'] - $order['pay_actualamount']; //改动后的金额
             $member_data['balance'] = ['exp', 'balance-' . $order['pay_actualamount']]; //防止数据库并发脏读
             $member_data['blockedbalance'] = ['exp', "blockedbalance+" . $order['pay_actualamount']];
-            $order = M("order")->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['LT', 1]))->lock(true)->find();
+            $orderLock = M("order")->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['LT', 1]))->lock(true)->find();
 
             //需要检测是否已解冻，如果未解冻直接修改自动解冻状态，如果解冻，直接扣余额
             $maps['status'] = array('eq', 0);

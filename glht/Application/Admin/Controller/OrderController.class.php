@@ -155,7 +155,7 @@ class OrderController extends BaseController
 
         $where['lock_status'] = ['neq', '1'];
 
-        $field = 'id,pay_amount,pay_poundage,pay_actualamount,pay_bankname,pay_zh_tongdao,pay_channel_account,pay_memberid,pay_orderid,out_trade_id,pay_applydate,pay_successdate,pay_productname,pay_status,ddlx,three_orderid,pay_ytongdao';
+        $field = 'id,pay_amount,pay_poundage,pay_actualamount,pay_bankname,pay_zh_tongdao,pay_channel_account,pay_memberid,pay_orderid,out_trade_id,pay_applydate,pay_successdate,pay_productname,pay_status,ddlx,three_orderid,pay_ytongdao,lock_status';
         $size = 50;
         $rows = I('get.rows', $size, 'intval');
         if (!$rows) {

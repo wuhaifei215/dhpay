@@ -21,6 +21,8 @@ class WinPayPakWapController extends PayController
         $orderid = I("request.pay_orderid", '');
         $body = I('request.pay_productname', '');
         $pay_callbackurl = I('request.pay_callbackurl', '');
+        $pay_extends = I("request.pay_extends", '');
+        $extends = json_decode(base64_decode($pay_extends),true);
         $parameter = [
             'code' => $this->code,
             'title' => 'PAK-WinPay-直连',
@@ -50,7 +52,7 @@ class WinPayPakWapController extends PayController
             'custId' => $return['mch_id'],
             'type' => '0101',       //0101返回url收银台，0502返回支付信息
             'userName' => randpw(8,'CHAR'),
-            'userPhone' => randpw(10,'NUMBER'),
+            'userPhone' => $extends['phone'],
         );
         $native['sign'] = $this->sign($native, $return['signkey']);
         log_place_order($this->code, $return['orderid'] . "----提交", json_encode($native, JSON_UNESCAPED_UNICODE));    //日志
@@ -85,12 +87,12 @@ class WinPayPakWapController extends PayController
                 $userpost = $redis->get('userpost_' . $return['out_trade_id']);
                 $userpost = json_decode($userpost,true);
                 
-                logApiAddReceipt('下游商户提交YunPay', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, $return_arr, '0', '0', '1', '2');
+                logApiAddReceipt('下游商户提交', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, $return_arr, '0', '0', '1', '2');
                 
                 // 结束并输出执行时间
                 $endTime = microtime(TRUE);
                 $doTime = floor(($endTime-$beginTime)*1000);
-                logApiAddReceipt('YunPay订单提交上游WinPay', __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $native, $ans, $doTime, '0', '1', '2');
+                logApiAddReceipt('订单提交上游' . $this->code, __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $native, $ans, $doTime, '0', '1', '2');
             }catch (\Exception $e) {
                 // var_dump($e);
             }

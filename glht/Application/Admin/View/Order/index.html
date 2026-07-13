@@ -240,7 +240,7 @@
 
                 <neq name="vo.pay_status" value="0">
                   <if condition="$vo['lock_status']==0">
-                    <button class="layui-btn layui-btn-small layui-btn-danger" onclick="setOrderPaid('冻结订单','<{:U('Order/doForzen', ['orderid'=>$vo['id']])}>',600,350)">冻结订单</button>
+                    <button class="layui-btn layui-btn-small layui-btn-danger" onclick="setOrderPaid('冻结订单','<{:U('Order/doForzen', ['orderid'=>$vo['pay_orderid']])}>',600,350)">冻结订单</button>
                   </if>
                 </neq>
                 

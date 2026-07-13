@@ -1524,7 +1524,7 @@ class OrderController extends BaseController
                 $member_data['balance_inr'] = ['exp', 'balance_inr+' . $order['pay_actualamount']]; //防止数据库并发脏读
                 $member_data['blockedbalance_inr'] = ['exp', "blockedbalance_inr-" . $order['pay_actualamount']];
             }
-            $order = $OrderModel->table($realTableName)->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['eq', 1]))->lock(true)->find();
+            $orderLock = $OrderModel->table($realTableName)->where(array("id" => $orderId, "pay_status" => ['in', '1,2'], "lock_status" => ['eq', 1]))->lock(true)->find();
             //需要检测是否已解冻，如果未解冻直接修改自动解冻状态，如果解冻，直接扣余额
             $res = M('member')->where(array('id' => $userId))->save($member_data);
             //记录日志

@@ -68,7 +68,7 @@ class AccountController extends UserController
                 }
             }
             $p = I('post.');
-            
+
             if(strtolower($p['fromUsername']) == strtolower($p['toUsername'])){
                 UserLogService::write(3, '商户内转', '原因：转出商户与目标商户相同');
                 $this->ajaxReturn(['status' => 0, 'msg' => "转出商户与目标商户相同"]);
@@ -169,6 +169,9 @@ class AccountController extends UserController
             }
             M()->commit();
             UserLogService::write(3, '商户内转', '转账成功');
+
+            $this->sendTelegramForMoneyChange($info['telegram_id'], $bgmoney, $info2['username'], 1);     //转出
+            $this->sendTelegramForMoneyChange($info2['telegram_id'], $bgmoney, $info['username'], 2);     //转入
             $this->ajaxReturn(['status' => 1, 'msg' => '转账成功']);
         } else {
             //可用余额
@@ -225,7 +228,7 @@ class AccountController extends UserController
                     clear_auth_error($fromUserid, 4);
                 }
             }
-            
+
             $toUsername = $p['toUsername'];
             if (!$toUsername || $toUsername == '') {
                 UserLogService::write(3, '商户内转', '原因：未填写目标商户');
@@ -262,7 +265,7 @@ class AccountController extends UserController
                 }
 
             }
-            
+
             M()->startTrans();
             $bgmoney = $p['money'];
             $info = M("Member")->where(["id" => $fromUserid])->lock(true)->find();
@@ -293,7 +296,7 @@ class AccountController extends UserController
             $gmoney2 = $info2['balance'] + $bgmoney;
             $res2 = M('Member')->where($where)->save($data2);
             UserLogService::write(3, '商户内转', '增加商户 (' . $toUserid . ') 可用余额');
-            
+
             $orderid = $fromUserid . 'TO' . $toUserid . date("YmdHis");
             $fromUid = 10000 + $fromUserid;
             $touid = 10000 + $toUserid;
@@ -332,6 +335,9 @@ class AccountController extends UserController
             }
             M()->commit();
             UserLogService::write(3, '商户内转', '转账成功');
+
+            $this->sendTelegramForMoneyChange($info['telegram_id'], $bgmoney, $info2['username'], 1);     //转出
+            $this->sendTelegramForMoneyChange($info2['telegram_id'], $bgmoney, $info['username'], 2);     //转入
             $this->ajaxReturn(['status' => 1, 'msg' => '转账成功']);
         } else {
             //可用余额
@@ -344,6 +350,24 @@ class AccountController extends UserController
             $this->assign('allbalance', $allbalance);
             $this->display();
         }
+    }
+
+    //发送机器人转账提醒
+    public function sendTelegramForMoneyChange($telegram_id, $bgmoney, $Uid, $type)
+    {
+        $message = '';
+        if($type === 1){
+            $message .= "\r\n【余额转出提醒】 ：\r\n\r\n";
+            $message .= "转 出 时 间 :  " . date("Y-m-d H:i:s") . "\r\n";
+            $message .= "转 出 金 额 :  " . $bgmoney . "\r\n";
+            $message .= "接 收 商 户 :   " . $Uid . "\r\n";
+        }else{
+            $message .= "\r\n【余额转入提醒】 ：\r\n\r\n";
+            $message .= "转 入 时 间 :  " . date("Y-m-d H:i:s") . "\r\n";
+            $message .= "转 入 金 额 :  " . $bgmoney . "\r\n";
+            $message .= "来 源 商 户 :   " . $Uid . "\r\n";
+        }
+        $result = R('Telegram/Api/send', [$telegram_id, $message, '', 'HTML']);
     }
 
     // /**
@@ -1028,7 +1052,7 @@ class AccountController extends UserController
             $member_arr = M('Member')->where(['parentid' => (string)$this->fans['uid']])->select();
             if(!empty($member_arr) && $member_arr!=''){
                 foreach ($member_arr as $v){
-                   $usersId_arr[] = $v['id'];
+                    $usersId_arr[] = $v['id'];
                 }
                 $usersId = implode(',',$usersId_arr);
             }
@@ -1043,12 +1067,12 @@ class AccountController extends UserController
         if (!$rows) {
             $rows = $size;
         }
-        
+
         $MoneychangeModel = D('Moneychange');
         $count = $MoneychangeModel->getCount($where);
         $page = new Page($count, $rows);
         $list = $MoneychangeModel->getOrderByDateRange('*', $where, $page->firstRow . ',' . $page->listRows, 'id desc');
-        
+
         $this->assign('uid', 10000+session("user_auth.uid"));
         $this->assign('rows', $rows);
         $this->assign('list', $list);
@@ -1086,7 +1110,7 @@ class AccountController extends UserController
             $this->ajaxReturn(['status' => 0, 'msg' => "缺少条件参数"]);
         }
         $where['userid'] = $this->fans['uid'];
-        
+
         $file_path = "./Uploads/download/". date('Ymd') ."/" ;
         @mkdirs($file_path);
         $uid = 10000+$this->fans['uid'];
@@ -1097,7 +1121,7 @@ class AccountController extends UserController
         $filed = 'transid,userid,lx,ymoney,money,gmoney,datetime,contentstr';
         // $title = array('订单号', '用户名', '类型', '提成用户名', '提成级别', '原金额', '变动金额', '变动后金额', '变动时间', '通道', '备注');
         // $filed = 'transid,userid,lx,tcuserid,tcdengji,ymoney,money,gmoney,datetime,tongdao,contentstr';
-        
+
         $MoneychangeModel = D('Moneychange');
         $tables = $MoneychangeModel->getTables($where);
         $datas =[];
@@ -1119,9 +1143,9 @@ class AccountController extends UserController
                 $fileNameArr[] = $mark . '_' .  $i . '.csv';
                 // 将数据通过fputcsv写到文件句柄
                 fputcsv($fp, $title);
-                
+
                 $data = $MoneychangeModel->table($table)->field($filed)->where($where)->order('id desc')->limit($i * $sqlLimit,$sqlLimit)->select();
-                
+
                 foreach ($data as $value) {
                     $list['transid'] = "\t" .$value["transid"];
                     $list['parentname'] = "\t" .getParentName($value["userid"], 1);
@@ -1426,7 +1450,7 @@ class AccountController extends UserController
     //         $productList[$k]['fail_count'] = $productList[$k]['count'] - $productList[$k]['success_count'];
     //         $productList[$k]['success_rate'] = bcdiv($productList[$k]['success_count'],$productList[$k]['count'],4) * 100;
     //     }
-        
+
     //     $this->assign('list', $productList);
     //     $this->assign('createtime', $createtime);
     //     $this->display();
@@ -1740,7 +1764,7 @@ class AccountController extends UserController
         }
         if(empty($data) || (!empty($data) && (diffBetweenTwoDays(date('Y-m-d'),$date)<=7) || $data['ctime'] < (strtotime($date)+86400))) {//7天内账单实时更新数据
             $data['date'] = $date;
-            
+
             //代收信息
             $where = [
                 'pay_memberid'=>$this->fans['memberid'],
@@ -1748,11 +1772,11 @@ class AccountController extends UserController
                 'pay_applydate' => ['between', [strtotime($begin)-86400*7, strtotime($end)]],
                 'pay_successdate' => ['between', [strtotime($begin), strtotime($end)]],
             ];
-            
+
             $OrderModel = D('Order');
             $Order_datas = $OrderModel->getSum('pay_amount,pay_poundage', $where);
             $order_success_count = $OrderModel->getCount($where);
-            
+
             $data['order_success_amount'] = $Order_datas['pay_amount']?:'0.00';
             $data['order_success_poundage'] = $Order_datas['pay_poundage']?:'0.00';
             $data['order_success_count'] = $order_success_count?:0;
@@ -1761,7 +1785,7 @@ class AccountController extends UserController
             $where = [
                 'userid'=>$this->fans['memberid'] - 10000,
                 'status' => ['between', ['2', '3']],
-                'sqdatetime' => ['between', [date('Y-m-d',strtotime($begin)-86400*7), $end]], 
+                'sqdatetime' => ['between', [date('Y-m-d',strtotime($begin)-86400*7), $end]],
                 'cldatetime' => ['between', [$begin, $end]],
             ];
             $Wttklist = D('Wttklist');
@@ -1770,7 +1794,7 @@ class AccountController extends UserController
             $data['wttklist_success_amount'] = $Wttklist_datas['tkmoney']?:'0.00';
             $data['wttklist_success_poundage'] = $Wttklist_datas['sxfmoney']?:'0.00';
             $data['wttklist_success_count'] = $wttklist_success_count?:0;
-            
+
             $MoneychangeModel = D('Moneychange');
             $table = $MoneychangeModel->getRealTableName($begin);
             $lastMoneychange = $MoneychangeModel->table($table)->field('id,gmoney')->where(['userid'=>$this->fans['memberid'] - 10000])->order('id desc')->find();
@@ -1787,7 +1811,7 @@ class AccountController extends UserController
         // var_dump($data);die;
         unset($data['userid']);
         unset($data['ctime']);
-        unset($data['id']);            
+        unset($data['id']);
         foreach ($data as $k => $v) {
             if ($k != 'date') {
                 $data[$k] += 0;

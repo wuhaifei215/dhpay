@@ -169,6 +169,9 @@ class AccountController extends UserController
             }
             M()->commit();
             UserLogService::write(3, '商户内转', '转账成功');
+
+            $this->sendTelegramForMoneyChange($info['telegram_id'], $bgmoney, $info2['username'], 1);     //转出
+            $this->sendTelegramForMoneyChange($info2['telegram_id'], $bgmoney, $info['username'], 2);     //转入
             $this->ajaxReturn(['status' => 1, 'msg' => '转账成功']);
         } else {
             //可用余额
@@ -332,6 +335,9 @@ class AccountController extends UserController
             }
             M()->commit();
             UserLogService::write(3, '商户内转', '转账成功');
+
+            $this->sendTelegramForMoneyChange($info['telegram_id'], $bgmoney, $info2['username'], 1);     //转出
+            $this->sendTelegramForMoneyChange($info2['telegram_id'], $bgmoney, $info['username'], 2);     //转入
             $this->ajaxReturn(['status' => 1, 'msg' => '转账成功']);
         } else {
             //可用余额
@@ -344,6 +350,24 @@ class AccountController extends UserController
             $this->assign('allbalance', $allbalance);
             $this->display();
         }
+    }
+
+    //发送机器人转账提醒
+    public function sendTelegramForMoneyChange($telegram_id, $bgmoney, $Uid, $type)
+    {
+        $message = '';
+        if($type === 1){
+            $message .= "\r\n【余额转出提醒】 ：\r\n\r\n";
+            $message .= "转 出 时 间 :  " . date("Y-m-d H:i:s") . "\r\n";
+            $message .= "转 出 金 额 :  " . $bgmoney . "\r\n";
+            $message .= "接 收 商 户 :   " . $Uid . "\r\n";
+        }else{
+            $message .= "\r\n【余额转入提醒】 ：\r\n\r\n";
+            $message .= "转 入 时 间 :  " . date("Y-m-d H:i:s") . "\r\n";
+            $message .= "转 入 金 额 :  " . $bgmoney . "\r\n";
+            $message .= "来 源 商 户 :   " . $Uid . "\r\n";
+        }
+        $result = R('Telegram/Api/send', [$telegram_id, $message, '', 'HTML']);
     }
 
     // /**

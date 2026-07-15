@@ -109,9 +109,41 @@ class ApiController extends Controller
     }
 
     public function send($chatId, $text,$message_id='',$parse_mode='',$markup=''){
-        return $this -> sendMessage($chatId, $text, $message_id, $parse_mode,$markup);
+        return $this->sendMessage($chatId, $text, $message_id, $parse_mode,$markup);
     }
 
+    // 编辑消息的内联键盘（用于更新按钮状态）
+    public function editMessageReplyMarkup($chatId, $messageId, $markup='')
+    {
+        $url = 'https://api.telegram.org/bot' . $this->token . '/editMessageReplyMarkup';
+        $data = [
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+        ];
+        if($markup != ''){
+            $data['reply_markup'] = json_encode($markup, JSON_UNESCAPED_UNICODE);
+        }
+        log_place_order($this->code . '_editMessageReplyMarkup', "更新按钮", json_encode($data, JSON_UNESCAPED_UNICODE));
+        $result = curlPost($url, $data);
+        $result = json_decode($result, true);
+        return $result;
+    }
+
+    // 发送处理完成后的新键盘（按钮变灰/显示已处理）
+    private function sendProcessedKeyboard($chatId, $messageId, $action, $username)
+    {
+        if ($action === 'pass') {
+            $btn_text = '已通过';
+        } else {
+            $btn_text = '已驳回';
+        }
+        $markup = [
+            'inline_keyboard' => [[
+                ['text' => $username . "：" . $btn_text, 'callback_data' => 'processed']
+            ]]
+        ];
+        return $this->editMessageReplyMarkup($chatId, $messageId, $markup);
+    }
 
     // 回复用户信息
     private function sendMessage($chatId, $text,$message_id='',$parse_mode='',$markup='')
@@ -309,6 +341,9 @@ class ApiController extends Controller
 
             $message = '订单号：' . $str[1] . "\r\n用户：" . $username . '，' . $do . '该订单，执行成功';
             $this->sendMessage($chat_id, $message, $message_id);
+
+            // 更新按钮状态为已处理
+            $this->sendProcessedKeyboard($chat_id, $message_id, $str[0], $username);
             return;
         }
 

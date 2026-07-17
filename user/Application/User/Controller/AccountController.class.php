@@ -170,8 +170,8 @@ class AccountController extends UserController
             M()->commit();
             UserLogService::write(3, '商户内转', '转账成功');
 
-            $this->sendTelegramForMoneyChange($info['telegram_id'], $bgmoney, $info2['username'], 1);     //转出
-            $this->sendTelegramForMoneyChange($info2['telegram_id'], $bgmoney, $info['username'], 2);     //转入
+            $this->sendTelegramForMoneyChange($info['telegram_id'], $bgmoney, ($info2['id'] + 10000) . '-' . $info2['username'], 1);     //转出
+            $this->sendTelegramForMoneyChange($info2['telegram_id'], $bgmoney, ($info['id'] + 10000) . '-' . $info['username'], 2);     //转入
             $this->ajaxReturn(['status' => 1, 'msg' => '转账成功']);
         } else {
             //可用余额
@@ -336,8 +336,8 @@ class AccountController extends UserController
             M()->commit();
             UserLogService::write(3, '商户内转', '转账成功');
 
-            $this->sendTelegramForMoneyChange($info['telegram_id'], $bgmoney, $info2['username'], 1);     //转出
-            $this->sendTelegramForMoneyChange($info2['telegram_id'], $bgmoney, $info['username'], 2);     //转入
+            $this->sendTelegramForMoneyChange($info['telegram_id'], $bgmoney, ($info2['id'] + 10000) . '-' . $info2['username'], 1);     //转出
+            $this->sendTelegramForMoneyChange($info2['telegram_id'], $bgmoney, ($info['id'] + 10000) . '-' . $info['username'], 2);     //转入
             $this->ajaxReturn(['status' => 1, 'msg' => '转账成功']);
         } else {
             //可用余额

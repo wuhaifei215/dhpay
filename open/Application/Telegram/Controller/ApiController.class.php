@@ -205,7 +205,7 @@ class ApiController extends Controller
     }
 
     // 回复用户信息
-    private function sendPhoto($chatId, $photo, $text='', $message_thread_id='')
+    private function sendPhoto($chatId, $photo, $text='', $message_thread_id='', $parse_mode='')
     {
         $url = 'https://api.telegram.org/bot' . $this->token . '/sendPhoto';
         $data = [
@@ -388,8 +388,8 @@ class ApiController extends Controller
             $message .= $this->title . "，7*24小时服务\r\n 可以帮助您查询余额，收款订单详情、出款订单详情\r\n ";
             $message .= "输入 /show 可查看群组信息及提示，无需再添加其他参数\r\n ";
             $message .= "输入 /balance 可查询当前账户的查询余额，无需再添加其他参数\r\n ";
-            $message .= "输入 /ds 可查询收款订单详情，后面+空格+订单号；例如:/ds 928271637212\r\n ";
-            $message .= "输入 /df 可查询出款订单详情，后面+空格+订单号；例如:/df 928271637212\r\n ";
+            $message .= "输入 /ds 可查询收款订单详情，格式：/ds 订单号1 订单号2 或 /ds 订单号1\n订单号2（最多10个）；例如:/ds 928271637212 928271637213\r\n ";
+            $message .= "输入 /df 可查询出款订单详情，格式：/df 订单号1 订单号2 或 /df 订单号1\n订单号2（最多10个）；例如:/df 928271637212 928271637213\r\n ";
             // $message .= "输入 /pz 可查询出款凭证，后面+空格+订单号；例如:/pz 928271637212\r\n ";
             $this->sendMessage($chat_id, $message, $message_id);
             return;
@@ -406,8 +406,8 @@ class ApiController extends Controller
                     $message .= $this->title . "，7*24小时服务\r\n 可以帮助您查询余额，收款订单详情、出款订单详情\r\n ";
                     $message .= "输入 /show 可查看群组信息及提示，无需再添加其他参数\r\n ";
                     $message .= "输入 /balance 可查询当前账户的查询余额，无需再添加其他参数\r\n ";
-                    $message .= "输入 /ds 可查询收款订单详情，后面+空格+订单号；例如:/ds 928271637212\r\n ";
-                    $message .= "输入 /df 可查询出款订单详情，后面+空格+订单号；例如:/df 928271637212\r\n ";
+                    $message .= "输入 /ds 可查询收款订单详情，格式：/ds 订单号1 订单号2 或 /ds 订单号1\n订单号2（最多10个）；例如:/ds 928271637212 928271637213\r\n ";
+                    $message .= "输入 /df 可查询出款订单详情，格式：/df 订单号1 订单号2 或 /df 订单号1\n订单号2（最多10个）；例如:/df 928271637212 928271637213\r\n ";
                     // $message .= "输入 /pz 可查询出款凭证，后面+空格+订单号；例如:/pz 928271637212\r\n ";
                     $this->sendMessage($chat_id, $message, $message_id);
                     return;
@@ -428,8 +428,8 @@ class ApiController extends Controller
                         $message .= $this->title . "，7*24小时服务\r\n 可以帮助您查询余额，收款订单详情、出款订单详情\r\n ";
                         $message .= "输入 /show 可查看群组信息及提示，无需再添加其他参数\r\n ";
                         $message .= "输入 /balance 可查询当前账户的查询余额，无需再添加其他参数\r\n ";
-                        $message .= "输入 /ds 可查询收款订单详情，后面+空格+订单号；例如:/ds 928271637212\r\n ";
-                        $message .= "输入 /df 可查询出款订单详情，后面+空格+订单号；例如:/df 928271637212\r\n ";
+                        $message .= "输入 /ds 可查询收款订单详情，格式：/ds 订单号1 订单号2 或 /ds 订单号1\n订单号2（最多10个）；例如:/ds 928271637212 928271637213\r\n ";
+                        $message .= "输入 /df 可查询出款订单详情，格式：/df 订单号1 订单号2 或 /df 订单号1\n订单号2（最多10个）；例如:/df 928271637212 928271637213\r\n ";
                         // $message .= "输入 /pz 可查询出款凭证，后面+空格+订单号；例如:/pz 928271637212\r\n ";
                         $this->sendMessage($chat_id, $message, $message_id);
                     } else {
@@ -698,19 +698,65 @@ class ApiController extends Controller
         //     return;
         // }
 
-        //查询代付订单
+        //查询代付订单（支持多订单查询，用换行或空格分隔）
         if (strpos($text, '/df') !== false) {
-            $order_info = self:: get_dforder($str[1], $userInfo['info']['id']);
-            $this->doDF($order_info, $chat_id, $message_id);
+            $text = str_replace("\n", " ", $text);
+            $text = preg_replace('/\s+/', ' ', $text);
+            $parts = explode(' ', $text);
+            $order_ids = [];
+            foreach ($parts as $part) {
+                if ($part !== '/df' && $part !== ('/df@' . $this->bot_name) && !empty($part)) {
+                    $order_ids[] = $part;
+                }
+            }
+            if (empty($order_ids)) {
+                $this->sendMessage($chat_id, '请输入订单号，格式：/df 订单号1 订单号2 或 /df 订单号1\n订单号2', $message_id);
+                return;
+            }
+            $count = count($order_ids);
+            if ($count > 10) {
+                $this->sendMessage($chat_id, '最多支持同时查询10个订单', $message_id);
+                return;
+            }
+            $all_messages = [];
+            foreach ($order_ids as $orderid) {
+                $order_info = self::get_dforder($orderid, $userInfo['info']['id']);
+                $order_msg = $this->buildDFMessage($order_info, $orderid);
+                $all_messages[] = $order_msg;
+            }
+            $final_message = implode("\r\n", $all_messages);
+            $this->sendMessage($chat_id, $final_message, $message_id);
             return;
         }
 
-        //查询订单
+        //查询订单（支持多订单查询，用换行或空格分隔）
         if (strpos($text, '/ds') !== false) {
-            // log_place_order($this->code . '_get_order', $message_id . "用户", $userInfo['info']['id']);    //日志
-            $order_info = self:: get_order($str[1], $userInfo['info']['id']);
-            // log_place_order($this->code . '_get_order', $message_id . "订单", json_encode($order_info, JSON_UNESCAPED_UNICODE));    //日志
-            $this->doDS($order_info, $chat_id, $message_id);
+            $text = str_replace("\n", " ", $text);
+            $text = preg_replace('/\s+/', ' ', $text);
+            $parts = explode(' ', $text);
+            $order_ids = [];
+            foreach ($parts as $part) {
+                if ($part !== '/ds' && $part !== ('/ds@' . $this->bot_name) && !empty($part)) {
+                    $order_ids[] = $part;
+                }
+            }
+            if (empty($order_ids)) {
+                $this->sendMessage($chat_id, '请输入订单号，格式：/ds 订单号1 订单号2 或 /ds 订单号1\n订单号2', $message_id);
+                return;
+            }
+            $count = count($order_ids);
+            if ($count > 10) {
+                $this->sendMessage($chat_id, '最多支持同时查询10个订单', $message_id);
+                return;
+            }
+            $all_messages = [];
+            foreach ($order_ids as $orderid) {
+                $order_info = self::get_order($orderid, $userInfo['info']['id']);
+                $order_msg = $this->buildDSMessage($order_info, $orderid);
+                $all_messages[] = $order_msg;
+            }
+            $final_message = implode("\r\n", $all_messages);
+            $this->sendMessage($chat_id, $final_message, $message_id);
             return;
         }
 
@@ -973,29 +1019,63 @@ class ApiController extends Controller
         $this->sendMessage($chat_id, $message, $message_id, $parse_mode);
     }
 
-    //代收处理
-    public function doDS($order_info, $chat_id, $message_id, $parse_mode='Markdown'){
-
+    //构建代付消息内容
+    public function buildDFMessage($order_info, $orderid = ''){
         if ($order_info && $order_info['status'] === 1) {
             $info = $order_info['info'];
             $message = '';
-            // if ($info['pay_status'] == 0) {
-            //     $message .= "系统订单号：`" . $info['pay_orderid'] . "`\r\n";
-            //     $message .= "外部订单号：`" . $info['out_trade_id'] . "`\r\n";
-            //     $message .= "订单金额：" . $info['pay_amount'] . "\r\n";
-            //     $message .= "请稍等，正在为您查询...\r\n";
-            //     $message .= "Please wait, we are querying for you ...";
-            //     $add_data = [
-            //         'pay_orderid' => $info['pay_orderid'],
-            //         'member_id' =>$info['pay_memberid'],
-            //         'chat_id' => $chat_id,
-            //         'message_id' => $message_id,
-            //         'create_time'=>time(),
-            //     ];
-            //     // log_place_order($this->code . '_get_order', "ApiOrder", json_encode($add_data, JSON_UNESCAPED_UNICODE));    //日志
-            //     $re = M('TelegramApiOrder')->add($add_data);
-            //     // log_place_order($this->code . '_get_order', "sql", M('TelegramApiOrder')->getLastSql());    //日志
-            // }else{
+            if ($info['status'] == 0) {
+                $status_str = "未处理";
+            } elseif ($info['status'] == 1) {
+                $status_str = "处理中";
+            } elseif ($info['status'] == 2) {
+                $status_str = "成功未回调";
+            } elseif ($info['status'] == 3) {
+                $status_str = "成功已回调";
+            } elseif ($info['status'] == 4) {
+                $status_str = "失败未回调";
+            } elseif ($info['status'] == 5) {
+                $status_str = "失败已回调";
+            } elseif ($info['status'] == 6) {
+                $status_str = "已驳回";
+            }
+
+            $message .= "\r\n最新代付订单详情\r\n---------------------------------------------\r\n";
+            $message .= "系统订单号：`" . $info['orderid'] . "`\r\n";
+            $message .= "外部订单号：`" . $info['out_trade_no'] . "`\r\n";
+            $message .= "订单金额：" . $info['tkmoney'] . "\r\n";
+            if ($info['sqdatetime'] != '') {
+                $message .= "申请时间：" . $info['sqdatetime'] . "\r\n";
+            }
+            if ($info['cldatetime'] != '') {
+                $message .= "处理时间：" . $info['cldatetime'] . "\r\n";
+            }
+            $message .= "订单状态：" . $status_str . "\r\n";
+            $message .= "备注 ：" . $info['memo'] . "\r\n";
+            $message .= "通知次数 ：" . $info['notifycount'] . "\r\n";
+            $message .= "最后通知时间：" . date('Y-m-d H:i:s', $info['last_notify_time']) . "\r\n";
+            $message .= "\r\n=========银行信息=========\r\n";
+            $message .= "银行名称：" . $info['bankname'] . "\r\n";
+            if($info['bankzhiname'] != '') {
+                $message .= "支行名称：" . $info['bankzhiname'] . "\r\n";
+            }
+            $message .= "开户名 ：`" . $info['bankfullname'] . "`\r\n";
+            $message .= "账号 ：`" . $info['banknumber'] . "`\r\n";
+            if(isset($remark) && $remark!=''){
+                $message .= "凭证地址 ：" . $remark . "\r\n";
+            }
+        } else {
+            $message = "订单 " . ($orderid ?: '') . " 没有查询到代付订单，三种情况\r\n--------------------------------\r\n1.单号输入不正确，请确认单号；\r\n2.不是我们的订单，请确认收付款方是不是我们；\r\n3.订单没有提交到我们这里，请联系群里运营人员。";
+        }
+        return $message;
+    }
+
+    //构建代收消息内容
+    public function buildDSMessage($order_info, $orderid = ''){
+        if ($order_info && $order_info['status'] === 1) {
+            $info = $order_info['info'];
+            $message = '';
+
             $message .= "\r\n最新订单详情\r\n---------------------------------------------\r\n";
             $message .= "系统订单号：`" . $info['pay_orderid'] . "`\r\n";
             $message .= "外部订单号：`" . $info['out_trade_id'] . "`\r\n";
@@ -1020,9 +1100,9 @@ class ApiController extends Controller
             // log_place_order($this->code . '_get_order', "sql", M('TelegramApiOrder')->getLastSql());    //日志
             // }
         } else {
-            $message = "没有查询到订单，三种情况\r\n--------------------------------\r\n 1.单号输入不正确，请确认单号；\r\n 2.不是我们的订单，请确认收付款方是不是我们；\r\n 3.订单没有提交到我们这里，请联系群里运营人员。";
+            $message = "订单 " . ($orderid ?: '') . " 没有查询到订单，三种情况\r\n--------------------------------\r\n 1.单号输入不正确，请确认单号；\r\n 2.不是我们的订单，请确认收付款方是不是我们；\r\n 3.订单没有提交到我们这里，请联系群里运营人员。";
         }
-        return $this->sendMessage($chat_id, $message, $message_id, $parse_mode);
+        return $message;
     }
 
     //获取集团账号下的用户余额信息

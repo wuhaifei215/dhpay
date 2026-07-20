@@ -16,14 +16,48 @@ class InPayPakDFController extends PaymentController
     //代付提交
     public function PaymentExec($data, $config)
     {
-        if($data['bankname']=='JAZZCASH'){
-            $bankCode = '097';
-        }elseif($data['bankname']=='EASYPAISA'){
-            $bankCode = '096';
-        }else{
-            $return = ['status' => 3, 'msg' => '支付类型错误'];
+        // 银行编码映射表
+        $bankCodeMap = [
+            'JAZZCASH'   => '097',
+            'EASYPAISA'  => '096',
+            'DIB_PAK'    => '013',
+            'ALLIED'     => '014',
+            'ALBARAKA'   => '016',
+            'ASKARI'     => '017',
+            'JS_BANK'    => '018',
+            'BANKISLAMI' => '021',
+            'ALHABIB'    => '023',
+            'SAMBA'      => '028',
+            'STANCHART'  => '038',
+            'CITIBANK'   => '046',
+            'BAF'        => '051',
+            'HBL'        => '054',
+            'FAYSAL'     => '060',
+            'BOKHYBER'   => '061',
+            'MCB'        => '062',
+            'MCB_ISLAMIC'=> '063',
+            'HABIB_METRO'=> '064',
+            'SILKBANK'   => '066',
+            'NBP'        => '070',
+            'SUMMIT'     => '081',
+            'BOP'        => '083',
+            'SONERI'     => '085',
+            'UBL'        => '086',
+            'MEEZAN'     => '089',
+            'NRSP'       => '090',
+            'FINCA'      => '091',
+            'FIRST_MICRO'=> '094',
+            'UBAIS'      => '095',
+            'MODEL_BANK' => '166',
+        ];
+
+        $bankName = strtoupper(trim($data['bankname']));
+        if (!isset($bankCodeMap[$bankName])) {
+            $return = ['status' => 3, 'msg' => '不支持的银行类型: ' . $bankName];
             return $return;
         }
+        $bankCode = $bankCodeMap[$bankName];
+
         $post_data = array(
             "mch_id" => $config['mch_id'], //商户号
             "out_trade_no" => $data['orderid'], //订单号

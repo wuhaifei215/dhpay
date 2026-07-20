@@ -16,14 +16,84 @@ class FlowPayPakDFController extends PaymentController
     //代付提交
     public function PaymentExec($data, $config)
     {
-        if( $data['bankname'] === 'JAZZCASH'){
-            $ifscCode = '097';
-        }elseif( $data['bankname'] === 'EASYPAISA'){
-            $ifscCode = '096';
-        }else{
-            $return = ['status' => 3, 'msg' => '不支持类型'];
+        // 银行编码映射表
+        $bankCodeMap = [
+            'JAZZCASH'   => '097',
+            'EASYPAISA'  => '096',
+            'DIB_PAK'    => '013',
+            'ALLIED'     => '014',
+            'ALBARAKA'   => '016',
+            'ASKARI'     => '017',
+            'JS_BANK'    => '018',
+            'BANKISLAMI' => '021',
+            'ALHABIB'    => '023',
+            'SAMBA'      => '028',
+            'STANCHART'  => '038',
+            'CITIBANK'   => '046',
+            'BAF'        => '051',
+            'HBL'        => '054',
+            'FAYSAL'     => '060',
+            'BOKHYBER'   => '061',
+            'MCB'        => '062',
+            'MCB_ISLAMIC'=> '063',
+            'HABIB_METRO'=> '064',
+            'SILKBANK'   => '066',
+            'NBP'        => '070',
+            'SUMMIT'     => '081',
+            'BOP'        => '083',
+            'SONERI'     => '085',
+            'UBL'        => '086',
+            'MEEZAN'     => '089',
+            'NRSP'       => '090',
+            'FINCA'      => '091',
+            'FIRST_MICRO'=> '094',
+            'UBAIS'      => '095',
+            'MODEL_BANK' => '166',
+        ];
+
+        $bankName = strtoupper(trim($data['bankname']));
+        if (!isset($bankCodeMap[$bankName])) {
+            $return = ['status' => 3, 'msg' => '不支持的银行类型: ' . $bankName];
             return $return;
         }
+        $ifscCode = $bankCodeMap[$bankName];
+
+        // 银行名称映射表
+        $bankNameMap = [
+            'JAZZCASH'   => 'JazzCash',
+            'EASYPAISA'  => 'Easypaisa-TelenorBank',
+            'DIB_PAK'    => 'Dubai Islamic Bank Pakistan',
+            'ALLIED'     => 'Allied Bank Limited',
+            'ALBARAKA'   => 'Al Baraka Bank Limited',
+            'ASKARI'     => 'Askari Bank Limited',
+            'JS_BANK'    => 'JS Bank',
+            'BANKISLAMI' => 'Bank Islami Pakistan Limited',
+            'ALHABIB'    => 'Bank Al Habib Limited',
+            'SAMBA'      => 'Samba Bank Limited',
+            'STANCHART'  => 'Standard Chartered Bank',
+            'CITIBANK'   => 'Citi Bank',
+            'BAF'        => 'Bank Al Falah Limited',
+            'HBL'        => 'Habib Bank Limited',
+            'FAYSAL'     => 'Faysal Bank Limited',
+            'BOKHYBER'   => 'Bank of Khyber',
+            'MCB'        => 'MCB Bank Limited',
+            'MCB_ISLAMIC'=> 'MCB Islamic',
+            'HABIB_METRO'=> 'Habib Metropolitan Bank',
+            'SILKBANK'   => 'Silkbank Limited',
+            'NBP'        => 'National Bank Limited',
+            'SUMMIT'     => 'Summit Bank',
+            'BOP'        => 'Bank of Punjab',
+            'SONERI'     => 'Soneri Bank Limited',
+            'UBL'        => 'United Bank Limited',
+            'MEEZAN'     => 'Meezan Bank Limited',
+            'NRSP'       => 'NRSP Bank',
+            'FINCA'      => 'FINCA Microfinance',
+            'FIRST_MICRO'=> 'The First Microfinance Bank',
+            'UBAIS'      => 'UBank/UPaisa',
+            'MODEL_BANK' => 'Model Bank',
+        ];
+        $bankNameCn = $bankNameMap[$bankName];
+
         $post_data = array(
             "mchId" => $config['mch_id'], //商户号
             "productId" => '5004',
@@ -34,7 +104,7 @@ class FlowPayPakDFController extends PaymentController
             "userName" => $data['bankfullname'],  //户名
             "cardNumber" => $data['banknumber'],    //账号
             "ifscCode" => $ifscCode,
-            "bankName" => $data['bankname'],
+            "bankName" => $bankNameCn,
         );
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code, $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志

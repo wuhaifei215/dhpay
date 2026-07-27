@@ -248,6 +248,20 @@ class ApiController extends Controller
         }
     }
 
+    // 删除消息
+    private function deleteMessage($chatId, $messageId)
+    {
+        $url = 'https://api.telegram.org/bot' . $this->token . '/deleteMessage';
+        $data = [
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+        ];
+        log_place_order($this->code . '_deleteMessage', "删除消息", json_encode($data, JSON_UNESCAPED_UNICODE));
+        $result = curlPost($url, $data);
+        $result = json_decode($result, true);
+        return $result;
+    }
+
     private function to_do($input)
     {
         $callback_query = $input['callback_query'];
@@ -352,8 +366,22 @@ class ApiController extends Controller
         $message_id = $input['message']['message_id'];
         $photo = $input['message']['photo'];
         $caption = $input['message']['caption'];
+
+        $document = $input['message']['document'];
         if($photo){
             $text = $caption;
+        }
+
+        // 检测并删除 exe 文件
+        if($document){
+            $file_name = isset($document['file_name']) ? $document['file_name'] : '';
+            if(stripos($file_name, '.exe') !== false){
+                $from_username = isset($input['message']['from']['username']) ? $input['message']['from']['username'] : $input['message']['from']['first_name'];
+                $warning_msg = "请勿发送该类型文件 【" . $from_username . "】";
+                $this->sendMessage($chat_id, $warning_msg, $message_id);
+                $this->deleteMessage($chat_id, $message_id);
+                return;
+            }
         }
         $str = explode(' ', $text);
 

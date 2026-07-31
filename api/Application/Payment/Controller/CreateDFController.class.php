@@ -32,7 +32,7 @@ class CreateDFController extends Controller
         parent::__construct();
         $this->_site = ((is_https()) ? 'https' : 'http') . '://' . C("DOMAIN") . '/';
     }
-    
+
     public function index(){
         $this->showmessage("请使用正确的接口地址！");
     }
@@ -164,7 +164,7 @@ class CreateDFController extends Controller
         }else{
             $this->userid = $this->userid-10000;
         }
-        
+
         $this->bankcode = I("request.bankcode", 0, 'intval');
         if ($this->bankcode == 0) {
             $this->showmessage('代付通道编码不能为空！');
@@ -275,7 +275,7 @@ class CreateDFController extends Controller
             }
         }
     }
-    
+
     /**
      * [channelIsOpen 判断通道是否开启]
      * 修改说明: 增加策略路由功能，根据金额档位自动分配通道
@@ -315,6 +315,7 @@ class CreateDFController extends Controller
                         // 设置策略路由标记
                         $this->userPayForAnother = $info;
                         $this->userPayForAnother['_isStrategyRoute'] = true;
+                        $this->userPayForAnother['channelId'] = $info['id']; // 确保channelId正确
                         return; // 策略路由成功，直接返回
                     }
                 }
@@ -336,7 +337,7 @@ class CreateDFController extends Controller
         if (!$this->userPayForAnother) {
             $this->showmessage('该代付通道已关闭!');
         }
-        
+        $this->userPayForAnother['channelId'] = $userPayForAnother['channel'];
         //进入支付
         if ($this->userPayForAnother['channel']) {
             $info_redis = $redis->get('PayForAnother_'. $this->userPayForAnother['channel']);
@@ -381,18 +382,24 @@ class CreateDFController extends Controller
         }
 
         //商户通道信息
-        $channel = M('pay_for_another')->alias('as A')->field('A.*')
-        ->join('LEFT JOIN `pay_user_pay_for_another` AS B ON A.id = B.channel')
-        ->where(['B.userid' => $this->userid,'B.pid' => $this->bankcode])->find();
-        if($this->userid ==2){
+        $channel = null;
+
+        // 策略路由优先：直接使用策略分配的通道ID查询
+        if (!empty($this->userPayForAnother['_isStrategyRoute']) && !empty($this->userPayForAnother['channelId'])) {
             $channel = M('pay_for_another')->where(['id' => $this->userPayForAnother['channelId']])->find();
-             var_dump($channel);
+        }
+
+        // 如果策略路由未生效，使用原有逻辑
+        if (empty($channel)) {
+            $channel = M('pay_for_another')->alias('as A')->field('A.*')
+                ->join('LEFT JOIN `pay_user_pay_for_another` AS B ON A.id = B.channel')
+                ->where(['B.userid' => $this->userid, 'B.pid' => $this->bankcode])->find();
         }
 
         $channelConfig = $Tikuanconfig->where(['channel'=> $channel['id'] , 'userid' => 1 , 'tkzt' => 1])->find();       //通道规则
 
         $tkConfig = $Tikuanconfig->where(['userid' => $this->userid, 'tkzt' => 1])->find();       //个人规则
-        
+
         //判断是否设置个人规则
         if ($tkConfig && $tkConfig['tkzt'] == 1 && $tkConfig['systemxz'] == 1) {
             //个人规则，但是提现时间规则要按照系统规则
@@ -406,7 +413,7 @@ class CreateDFController extends Controller
         } else {
             $tkConfig = $defaultConfig;
         }
-        
+
         $money = sprintf("%.2f", $this->dfmoney);
         //单笔最小提款金额
         if ($tkConfig['tkzxmoney'] > $money) {
@@ -490,11 +497,11 @@ class CreateDFController extends Controller
             }
             $this->extends = base64_decode($this->extends);
         }
-        
+
         //验签
         if ($this->verify($_POST)) {
             M()->startTrans();
-            
+
             $info = M('Member')->where(['id' => $this->userid])->lock(true)->find();
             $balance = $info['balance'];
             if ($balance < $money2) {
@@ -531,7 +538,7 @@ class CreateDFController extends Controller
                 "currency" =>$this->currency,
                 "extends" => $this->extends,
                 "memo" => $this->memo,
-                
+
                 "df_charge_type" => $tkConfig['tk_charge_type'],
                 'df_id' => $channel['id'],
                 'code' => $channel['code'],
@@ -559,7 +566,7 @@ class CreateDFController extends Controller
             $Member = M('Member');
             $member_data['balance'] = ['exp', 'balance-' . $money]; //防止数据库并发脏读
             $res1 = $Member->where(['id' => $this->userid])->save($member_data);
-            
+
             //获取数据表名称
             $Wttklist = D('Wttklist');
             $table = $Wttklist->getRealTableName($time);
@@ -591,7 +598,7 @@ class CreateDFController extends Controller
                 $Member->where(['id' => $this->userid])->save($member_sxf_data);
                 $Moneychange->table($Moneychangetable)->add($chargeData);
             }
-            
+
             /**************************************2019年06月06日 增加的代付代理资金变动*************************************************/
 //            //上级代理
 //            $parentid = $Member->where(["id" => $this->userid])->getField("parentid");
@@ -616,14 +623,14 @@ class CreateDFController extends Controller
 //                ];
 //            }
             /**************************************2019年06月06日 增加的代付代理资金变动*************************************************/
-            
+
             if ($res1 && $res2 && $res3) {
-                
+
                 //代付代理佣金变动
 //                if($parentid > 1){
                 //     $dl_member_data['balance'] = ['exp', 'balance+' . $dl_balance]; //防止数据库并发脏读
-                    // $res6 = $Member->where(['id' => $parentid])->save($dl_member_data);
-                    // $res7 = M('Moneychange')->add($dl_mcData);
+                // $res6 = $Member->where(['id' => $parentid])->save($dl_member_data);
+                // $res7 = M('Moneychange')->add($dl_mcData);
 //                }
                 M()->commit();
 
@@ -645,11 +652,11 @@ class CreateDFController extends Controller
                 }
                 if($wttkData['money'] < $auto_tkmoney && $this->userid!=3){
                     $id = $res2;
-    
+
                     //加锁防止重复提交
                     $lock_res = $Wttklist->table($table)->where(['id'=>$id, 'df_lock'=>0])->save(['df_lock' => 1, 'lock_time' => time()]);
                     if(!$lock_res) {
-        //                return ['status' => 0, 'msg' => '系统出错，请您联系管理员处理!'];
+                        //                return ['status' => 0, 'msg' => '系统出错，请您联系管理员处理!'];
                     }
                     try {
                         $wttkData['money'] = round($wttkData['money'],2);
@@ -681,7 +688,7 @@ class CreateDFController extends Controller
                     $message .= "开户名 ：" . $wttkData['bankfullname'] . "\r\n";
                     $message .= "账号 ：" . $wttkData['banknumber'] . "\r\n";
                     $message .= "申请时间：" . $wttkData['sqdatetime'] . "\r\n";
-                    
+
                     $btn['text'] = '驳回(reject)';
                     $btn['callback_data'] = 'reject '.$wttkData['orderid'];
                     $btn2['text'] = '通过(pass)';
@@ -691,8 +698,8 @@ class CreateDFController extends Controller
                             $btn,
                             $btn2
                         ]],
-                     ];
-    
+                    ];
+
                     $member_list = M('Member')->field('telegram_id')->where(['id'=>$this->userid])->find();
                     $result = R('Telegram/Api/send', [$member_list['telegram_id'], $message, '', 'HTML', $markup]);
                 }
@@ -797,40 +804,40 @@ class CreateDFController extends Controller
         echo json_encode($data, 320);
         exit;
     }
-    
+
     protected function changeStatus($id, $status = 1, $return,$table='Wttklist'){
         $redis = redis_connect();
         if($redis->get('changestatus' . $status . $id)){
             return;
         }
         $redis->set('changestatus' . $status . $id,'1',120);
-	    //处理成功返回的数据
+        //处理成功返回的数据
         $Wttklist = D('Wttklist');
         $withdraw = $Wttklist->table($table)->where(['id' => $id])->find();
         $memo = $withdraw['memo'];
         $data = array();
-		switch($status){
-			case 1:
-				//提交代付成功
-			   $data['status'] = 1;
-			   $data['memo']  = '申请成功！-'. $return['memo']. date('Y-m-d H:i:s').'-'.$memo;
-			   break;
-			case 2:
-				 //支付成功
-			   $data['status'] = 2;
-			   $data['cldatetime'] = date('Y-m-d H:i:s', time());
-			   $data['memo']  = '代付成功！-'. $return['memo']. date('Y-m-d H:i:s').'-'.$memo;
-			   break;
-			case 3:
-                    // log_place_order( 'DFadd_error', $withdraw['orderid'],  json_encode($withdraw, JSON_UNESCAPED_UNICODE));    //日志
-			     try {
-			        $contentstr = '申请失败';
+        switch($status){
+            case 1:
+                //提交代付成功
+                $data['status'] = 1;
+                $data['memo']  = '申请成功！-'. $return['memo']. date('Y-m-d H:i:s').'-'.$memo;
+                break;
+            case 2:
+                //支付成功
+                $data['status'] = 2;
+                $data['cldatetime'] = date('Y-m-d H:i:s', time());
+                $data['memo']  = '代付成功！-'. $return['memo']. date('Y-m-d H:i:s').'-'.$memo;
+                break;
+            case 3:
+                // log_place_order( 'DFadd_error', $withdraw['orderid'],  json_encode($withdraw, JSON_UNESCAPED_UNICODE));    //日志
+                try {
+                    $contentstr = '申请失败';
                     M()->startTrans();
-    				 //各种失败未返回 并退回金额
+                    //各种失败未返回 并退回金额
                     $Member     = M('Member');
                     $memberInfo = $Member->where(['id' => $withdraw['userid']])->lock(true)->find();
-                     $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['tkmoney']}")]);
-                     $ymoney = $memberInfo['balance'];
+                    $res1 = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['tkmoney']}")]);
+                    $ymoney = $memberInfo['balance'];
                     //2,记录流水订单号
                     $arrayField = array(
                         "userid"     => $withdraw['userid'],
@@ -877,34 +884,34 @@ class CreateDFController extends Controller
                             $sxf_re = false;
                         }
                     }
-    				$message = isset($return['memo'])?$return['memo']:'代付失败！';
-    				$message = $message .'-'.date('Y-m-d H:i:s').'-'.$memo;
-    				
-    			    $data['status'] = 4;
-    			    $data['cldatetime'] = date('Y-m-d H:i:s', time());
-    			    $data['memo']  = $message;
-    			 //   log_place_order( 'DFadd_error', $withdraw['orderid'], '$res1:' . $res1);    //日志
-    			 //   log_place_order( 'DFadd_error', $withdraw['orderid'], '$res2:' . $res2);    //日志
-    			 //   log_place_order( 'DFadd_error', $withdraw['orderid'], '$sxf_re:' . $sxf_re);    //日志
-    			    
+                    $message = isset($return['memo'])?$return['memo']:'代付失败！';
+                    $message = $message .'-'.date('Y-m-d H:i:s').'-'.$memo;
+
+                    $data['status'] = 4;
+                    $data['cldatetime'] = date('Y-m-d H:i:s', time());
+                    $data['memo']  = $message;
+                    //   log_place_order( 'DFadd_error', $withdraw['orderid'], '$res1:' . $res1);    //日志
+                    //   log_place_order( 'DFadd_error', $withdraw['orderid'], '$res2:' . $res2);    //日志
+                    //   log_place_order( 'DFadd_error', $withdraw['orderid'], '$sxf_re:' . $sxf_re);    //日志
+
                     if($res1 && $res2 && $sxf_re === true){
-                    // log_place_order( 'DFadd_error', $withdraw['orderid'],   11111);    //日志
-            		    M()->commit();
-            		}else{
+                        // log_place_order( 'DFadd_error', $withdraw['orderid'],   11111);    //日志
+                        M()->commit();
+                    }else{
                         log_place_order( 'DFadd_error', $withdraw['orderid'],   '数据回滚了');    //日志
-            		    M()->rollback();
-            		}
-			    } catch (\Exception $e) {
+                        M()->rollback();
+                    }
+                } catch (\Exception $e) {
                     log_place_order( 'DFadd_error', $withdraw['orderid'] . 'error',  $e);    //日志
                 }
-			    break;
-			default:
-				 //订单状态不改变
-				 $sta = $Wttklist->table($table)->where(['id' => $id])->getField('status');
-				 $data['status'] = $sta;
-				 $data['memo']  = '状态不改变！-'. $return['memo']. date('Y-m-d H:i:s').'-'.$memo;
-				 break;
-		}
+                break;
+            default:
+                //订单状态不改变
+                $sta = $Wttklist->table($table)->where(['id' => $id])->getField('status');
+                $data['status'] = $sta;
+                $data['memo']  = '状态不改变！-'. $return['memo']. date('Y-m-d H:i:s').'-'.$memo;
+                break;
+        }
         $where = ['id'=>$id, 'status'=>['in', '0,1']];
         $ad = $Wttklist->table($table)->where($where)->save($data);
         if($status == 2 || $status == 3){
@@ -914,7 +921,7 @@ class CreateDFController extends Controller
             Automatic_Notify($withdraw['orderid']);
         }
         return;
-	}
+    }
 
     /**
      * 判断是否可以重复提交订单

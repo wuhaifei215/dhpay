@@ -19,7 +19,7 @@ class G196PayDFController extends PaymentController
         if($data['type'] == 'Gcash'){
             $url = $config['exec_gateway'] . '/php/gcash/api/v2/dfApi';
         } elseif ($data['type'] == 'Maya'){
-            $url = $config['exec_gateway'] . '//php/maya/api/v2/dfApi';
+            $url = $config['exec_gateway'] . '/php/maya/api/v2/dfApi';
             // } elseif ($data['type'] == 'Bank'){
             //     $type = $data['bankname'];
         } else {
@@ -70,7 +70,8 @@ class G196PayDFController extends PaymentController
                 $return = ['status' => 1, 'msg' => '申请正常'];
                 break;
             default:
-                $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
+                $return = ['status' => 0, 'msg' => $result['msg']];
+//                $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
                 break;
         }
         return $return;

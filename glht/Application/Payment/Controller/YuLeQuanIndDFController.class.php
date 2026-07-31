@@ -66,7 +66,8 @@ class YuLeQuanIndDFController extends PaymentController
                 $return = ['status' => 1, 'msg' => '申请正常'];
                 break;
             default:
-                $return = ['status' => 3, 'msg' => '申请失败--'. $result['errorMsg']];
+                $return = ['status' => 0, 'msg' => $result['errorMsg']];
+//                $return = ['status' => 3, 'msg' => '申请失败--'. $result['errorMsg']];
                 break;
         }
         return $return;

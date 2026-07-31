@@ -109,7 +109,8 @@ class InPayPakDFController extends PaymentController
         if ($result['result_code'] === 0) {
             $return = ['status' => 1, 'msg' => '申请正常'];
         }else{
-            $return = ['status' => 3, 'msg' => '申请失败--'. $result['err_msg']];
+            $return = ['status' => 0, 'msg' => $result['err_msg']];
+//            $return = ['status' => 3, 'msg' => '申请失败--'. $result['err_msg']];
         }
         return $return;
     }

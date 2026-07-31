@@ -92,7 +92,7 @@ class GlobalPayDFController extends PaymentController
         if($result['code'] === "10000"){
             $return = ['status' => 1, 'msg' => '申请正常'];
         }else{
-            $return = ['status' => 3, 'msg' => '申请失败--'.$result['msg']];
+            $return = ['status' => 0, 'msg' => $result['info']];
         }
         try{
             $redis = $this->redis_connect();

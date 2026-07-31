@@ -68,7 +68,8 @@ class DFHPayIndDFController extends PaymentController
                     break;
             }
         }  else {
-            $return = ['status' => 3, 'msg' => $result['message']];
+            $return = ['status' => 0, 'msg' => $result['message']];
+//            $return = ['status' => 3, 'msg' => $result['message']];
         }
 
         return $return;

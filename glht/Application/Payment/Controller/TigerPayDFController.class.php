@@ -83,7 +83,7 @@ class TigerPayDFController extends PaymentController
                 $return = ['status' => 1, 'msg' => '申请正常'];
             }
         }elseif($result['code'] === 400){
-                    $return = ['status' => 3, 'msg' => '申请失败:' . $result['message']];
+            $return = ['status' => 3, 'msg' => '申请失败:' . $result['message']];
         }else{
             $return = ['status' => 0, 'msg' => $result['message']];
         }

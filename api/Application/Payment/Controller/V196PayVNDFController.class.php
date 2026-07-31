@@ -57,7 +57,8 @@ class V196PayVNDFController extends PaymentController
                 $return = ['status' => 1, 'msg' => '申请正常'];
                 break;
             default:
-                $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
+                $return = ['status' => 0, 'msg' => $result['msg']];
+//                $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
                 break;
         }
         return $return;

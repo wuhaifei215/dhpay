@@ -62,7 +62,8 @@ class InrInPayDFController extends PaymentController
         if ($result['code'] === 'success') {
             $return = ['status' => 1, 'msg' => '申请正常'];
         }else{
-            $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
+            $return = ['status' => 0, 'msg' => $result['msg']];
+//            $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
         }
         return $return;
     }

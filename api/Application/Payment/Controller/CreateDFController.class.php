@@ -384,6 +384,11 @@ class CreateDFController extends Controller
         $channel = M('pay_for_another')->alias('as A')->field('A.*')
         ->join('LEFT JOIN `pay_user_pay_for_another` AS B ON A.id = B.channel')
         ->where(['B.userid' => $this->userid,'B.pid' => $this->bankcode])->find();
+        if($this->userid ==2){
+            $channel = M('pay_for_another')->where(['id' => $this->userPayForAnother['channelId']])->find();
+             var_dump($channel);
+        }
+
         $channelConfig = $Tikuanconfig->where(['channel'=> $channel['id'] , 'userid' => 1 , 'tkzt' => 1])->find();       //通道规则
 
         $tkConfig = $Tikuanconfig->where(['userid' => $this->userid, 'tkzt' => 1])->find();       //个人规则

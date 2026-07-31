@@ -289,7 +289,6 @@ class CreateDFController extends Controller
         if ($this->bankcode == 0) {
             $this->showmessage('bankcode error');
         }
-        $userid = $this->memberid - 10000;
 
         // ================== 策略路由 (优先执行) ==================
         // 获取代付金额和订单号
@@ -299,7 +298,7 @@ class CreateDFController extends Controller
         if ($money > 0) {
             $strategyService = new \Common\Service\StrategyRouteService();
             $strategyChannel = $strategyService->routeChannel(
-                $userid,              // 商户ID
+                $this->userid,              // 商户ID
                 $money,              // 代付金额
                 2,                   // 2:代付
                 $out_trade_no        // 订单号

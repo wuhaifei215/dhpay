@@ -21,7 +21,11 @@ class HiPayDFGcashController extends PaymentController
         } elseif ($data['type'] == 'Maya'){
             $type = 'paymaya';
         } elseif ($data['type'] == 'Bank'){
-            $type = $data['bankname'];
+            if($data['bankname'] == "Coins"){
+                $type = "coins";
+            }else{
+                $type = $data['bankname'];
+            }
         } else {
             $return = ['status' => 0, 'msg' => '支付类型错误'];
             return $return;

@@ -25,20 +25,22 @@ class ExportController extends Controller
             }
         }
         $this->_site= 'https://' . C("DOMAIN") . '/';
+        ini_set('default_charset', 'UTF-8');
+        ini_set('memory_limit', '2048M');
     }
     public function index(){
-        echo "[" . date('Y-m-d H:i:s'). "] 自动代付任务触发\n";
+        echo "[" . date('Y-m-d H:i:s'). "] 自动导出任务触发\n";
         $redis = $this->redis_connect();
-        
+
         // $count = $redis->lLen('downList_now');
-        if($count >= 3){        //允许5条导出同时进行
-            echo "[" . date('Y-m-d H:i:s'). "] 有执行中的任务\n";
-            return;
-        }
+//        if($count >= 3){        //允许5条导出同时进行
+//            echo "[" . date('Y-m-d H:i:s'). "] 有执行中的任务\n";
+//            return;
+//        }
         //取出第一个
         $downKey = $redis->lPop('downList');
         // $redis->rPush('downList', $downKey);
-        // $downKey = 'download_admin_54_20241018195520';
+        // $downKey = 'download_admin_9_20250112034041';
         $list_msg = $redis->get($downKey);
         if(!empty($list_msg)){
             $list =  json_decode($list_msg,true);
@@ -48,7 +50,7 @@ class ExportController extends Controller
                 if($ttl > 60){
                     $redis->set($downKey , json_encode($list, JSON_UNESCAPED_UNICODE) ,$ttl);
                 }
-                
+
                 $re = false;
                 //插入正在下载列表
                 $redis->rPush('downList_now', $downKey);
@@ -77,7 +79,7 @@ class ExportController extends Controller
                             $redis->set($downKey , json_encode($list, JSON_UNESCAPED_UNICODE) ,$ttl);
                         }
                     }
-                    
+
                 }
                 // 获取队列中的所有元素
                 $queueItems = $redis->lrange('downList_now', 0, -1);
@@ -93,9 +95,9 @@ class ExportController extends Controller
         }else{
             echo "[" . date('Y-m-d H:i:s'). "] 不需要处理\n";
         }
-        echo "[" . date('Y-m-d H:i:s'). "] 自动代付任务结束\n\n";
+        echo "[" . date('Y-m-d H:i:s'). "] 自动导出任务结束\n\n";
     }
-    
+
     public function redis_connect(){
         //创建一个redis对象
         $redis = new \Redis();
@@ -109,7 +111,7 @@ class ExportController extends Controller
         // $redis->expire('downloadList',3600);
         //获取value
         // $list = $redis->get('downloadList');
-        
+
         // 在列表头部插入元素
         // $redis->lPush('list', 'value1');
         // 从列表左侧弹出元素
@@ -128,65 +130,75 @@ class ExportController extends Controller
         // $redis->sort($key, ['by' => $key.*.*, 'get' => '#']));
         return $redis;
     }
-    
-    
+
+
     /**
      * 导出交易订单
      * */
     public function exportorder($where, $uid='', $type='')
     {
         if($where['memberid']){
-            $where['pay_order.pay_memberid'] = $where['memberid'];
+            $where['pay_memberid'] = $where['memberid'];
             unset($where['memberid']);
         }
         if($where['status']){
             if ($where['status'] == '1or2') {
-                $where['pay_order.pay_status'] = array('between', array('1', '2'));
+                $where['pay_status'] = array('between', array('1', '2'));
             }else{
-                $where['pay_order.pay_status'] = $where['status'];
+                $where['pay_status'] = $where['status'];
             }
             unset($where['status']);
         }
         if($where['orderid']){
-            $where['pay_order.pay_orderid'] = $where['orderid'];
+            $where['pay_orderid'] = $where['orderid'];
             unset($where['orderid']);
         }
         if($where['tongdao']){
-            $where['pay_order.channel_id'] = $where['tongdao'];
+            $where['channel_id'] = $where['tongdao'];
             unset($where['tongdao']);
         }
         if($where['bank']){
-            $where['pay_order.pay_bankcode'] = $where['bank'];
+            $where['pay_bankcode'] = $where['bank'];
             unset($where['bank']);
         }
         if ($where['createtime']) {
             list($cstime, $cetime) = explode('|', $where['createtime']);
-            $where['pay_order.pay_applydate'] = ['between', [strtotime($cstime), strtotime($cetime) ? strtotime($cetime) : time()]];
+            $where['pay_applydate'] = ['between', [strtotime($cstime), strtotime($cetime) ? strtotime($cetime) : time()]];
             unset($where['createtime']);
         }
         if ($where['successtime']) {
             list($sstime, $setime) = explode('|', $where['successtime']);
-            $where['pay_order.pay_successdate']   = ['between', [strtotime($sstime), strtotime($setime) ? strtotime($setime) : time()]];
+            $where['pay_successdate']   = ['between', [strtotime($sstime), strtotime($setime) ? strtotime($setime) : time()]];
             unset($where['successtime']);
         }
-        
+
         $file_path = "./Uploads/download/". date('Ymd') ."/" ;
         @mkdirs($file_path, 0777);
         @chmod($file_path, 0777);
         $fileName = $file_path . $uid . '_order' .time();
         $fileNameArr = array();
         $title = ['外部订单号', '系统订单号', '商户编号', '商户用户名', '交易金额', '手续费', '实际金额', '提交时间', '成功时间', '状态', '通道'];
-        $filed = "pay_member.username,pay_order.id,pay_order.out_trade_id,pay_order.pay_orderid,pay_order.pay_memberid,pay_order.pay_amount,pay_order.pay_poundage,pay_order.pay_actualamount,pay_order.pay_applydate,pay_order.pay_successdate,pay_order.pay_bankname,pay_order.pay_zh_tongdao,pay_order.memberid,pay_order.pay_status";
+        foreach ($title as $tk => $tv){
+            $title[$tk]=iconv('utf-8','gb2312//ignore',$tv);
+        }
+        $filed = "id,out_trade_id,pay_orderid,pay_memberid,pay_amount,pay_poundage,pay_actualamount,pay_applydate,pay_successdate,pay_bankname,pay_zh_tongdao,memberid,pay_status";
 
         $OrderModel = D('Order');
         $tables = $OrderModel->getTables($where);
+
+        $members = M('Member')->select();
+        foreach ($members as $mv){
+            $mid = 10000+$mv['id'];
+            $member_arr[$mid]=$mv['username'];
+        }
+
         foreach ($tables as $table) {
             $sqlCount = $OrderModel->table($table)
-                    ->alias('as pay_order')
-                    ->join('LEFT JOIN pay_member ON pay_member.id+10000 = pay_order.pay_memberid')
-                    ->where($where)
-                    ->count();
-                    echo $OrderModel->table($table)->getLastSql();
+                ->alias('as pay_order')
+                // ->join('LEFT JOIN pay_member ON pay_member.id+10000 = pay_memberid')
+                // ->where($where)
+                ->count();
+            echo $OrderModel->table($table)->getLastSql();
             if($sqlCount < 1){
                 continue;
             }
@@ -205,11 +217,11 @@ class ExportController extends Controller
                 fputcsv($fp, $title);
 
                 $dataArr = $OrderModel->table($table)
-                    ->alias('as pay_order')
-                    ->join('LEFT JOIN pay_member ON pay_member.id+10000 = pay_order.pay_memberid')
+                    // ->alias('as pay_order')
+                    // ->join('LEFT JOIN pay_member ON pay_member.id+10000 = pay_memberid')
                     ->field($filed)->where($where)->order('id desc')
                     ->limit($i * $sqlLimit,$sqlLimit)->select();
-                    // var_dump($dataArr);die;
+                // var_dump($dataArr);die;
                 foreach ($dataArr as $item) {
                     switch ($item['pay_status']) {
                         case 0:
@@ -231,18 +243,18 @@ class ExportController extends Controller
                         'out_trade_id' => "\t" .$item['out_trade_id'],
                         'pay_orderid' =>"\t" .$item['pay_orderid'],
                         'pay_memberid' => "\t" . $item['pay_memberid'],
-                        'username' => "\t" .$item['username'],
+                        'username' => "\t" . iconv('utf-8','gb2312//ignore',$member_arr[$item['pay_memberid']]),
                         'pay_amount' => $item['pay_amount'],
                         'pay_poundage' => $item['pay_poundage'],
                         'pay_actualamount' => $item['pay_actualamount'],
                         'pay_applydate' => "\t" .date('Y-m-d H:i:s', $item['pay_applydate']),
-                        'pay_successdate' => "\t" .$pay_successdate,
-                        'pay_status' => "\t" .$status,
+                        'pay_successdate' => "\t" . iconv('utf-8','gb2312//ignore',$pay_successdate),
+                        'pay_status' => "\t" . iconv('utf-8','gb2312//ignore',$status),
                     ];
                     if($type==1){
-                        $list['pay_zh_tongdao'] = "\t" .$item['pay_zh_tongdao'];
+                        $list['pay_zh_tongdao'] = "\t" . iconv('utf-8','gb2312//ignore',$item['pay_zh_tongdao']);
                     }else{
-                        $list['pay_bankname'] = "\t" .$item['pay_bankname'];
+                        $list['pay_bankname'] = "\t" . iconv('utf-8','gb2312//ignore',$item['pay_bankname']);
                     }
                     $cnt++;
                     if ($limit == $cnt) {
@@ -274,14 +286,164 @@ class ExportController extends Controller
             return 'noData';
         }
     }
-    
-    
+
+
+    // /**
+    //  * 导出交易订单
+    //  * */
+    // public function exportorder($where, $uid='', $type='')
+    // {
+    //     if($where['memberid']){
+    //         $where['pay_order.pay_memberid'] = $where['memberid'];
+    //         unset($where['memberid']);
+    //     }
+    //     if($where['status']){
+    //         if ($where['status'] == '1or2') {
+    //             $where['pay_order.pay_status'] = array('between', array('1', '2'));
+    //         }else{
+    //             $where['pay_order.pay_status'] = $where['status'];
+    //         }
+    //         unset($where['status']);
+    //     }
+    //     if($where['orderid']){
+    //         $where['pay_order.pay_orderid'] = $where['orderid'];
+    //         unset($where['orderid']);
+    //     }
+    //     if($where['tongdao']){
+    //         $where['pay_order.channel_id'] = $where['tongdao'];
+    //         unset($where['tongdao']);
+    //     }
+    //     if($where['bank']){
+    //         $where['pay_order.pay_bankcode'] = $where['bank'];
+    //         unset($where['bank']);
+    //     }
+    //     $table_where=[];
+    //     if ($where['createtime']) {
+    //         list($cstime, $cetime) = explode('|', $where['createtime']);
+    //         $where['pay_order.pay_applydate'] = ['between', [strtotime($cstime), strtotime($cetime) ? strtotime($cetime) : time()]];
+    //         $table_where['pay_applydate'] = ['between', [strtotime($cstime), strtotime($cetime) ? strtotime($cetime) : time()]];
+    //         unset($where['createtime']);
+    //     }
+    //     if ($where['successtime']) {
+    //         list($sstime, $setime) = explode('|', $where['successtime']);
+    //         $where['pay_order.pay_successdate']   = ['between', [strtotime($sstime), strtotime($setime) ? strtotime($setime) : time()]];
+    //         $table_where['pay_successdate'] = ['between', [strtotime($sstime), strtotime($setime) ? strtotime($setime) : time()]];
+    //         unset($where['successtime']);
+    //     }
+
+    //     $file_path = "./Uploads/download/". date('Ymd') ."/" ;
+    //     @mkdirs($file_path, 0777);
+    //     @chmod($file_path, 0777);
+    //     $fileName = $file_path . $uid . '_order' .time();
+    //     $fileNameArr = array();
+    //     $title = ['外部订单号', '系统订单号', '商户编号', '商户用户名', '交易金额', '手续费', '实际金额', '提交时间', '成功时间', '状态', '通道'];
+    //     $filed = "pay_member.username,pay_order.id,pay_order.out_trade_id,pay_order.pay_orderid,pay_order.pay_memberid,pay_order.pay_amount,pay_order.pay_poundage,pay_order.pay_actualamount,pay_order.pay_applydate,pay_order.pay_successdate,pay_order.pay_bankname,pay_order.pay_zh_tongdao,pay_order.memberid,pay_order.pay_status";
+
+    //     $OrderModel = D('Order');
+    //     $tables = $OrderModel->getTables($table_where);
+    //     foreach ($tables as $table) {
+    //         $sqlCount = $OrderModel->table($table)
+    //                 ->alias('as pay_order')
+    //                 ->join('LEFT JOIN pay_member ON pay_member.id+10000 = pay_order.pay_memberid')
+    //                 ->where($where)
+    //                 ->count();
+    //                 echo $OrderModel->table($table)->getLastSql();
+    //                 // echo "<br><br>";
+    //         if($sqlCount < 1){
+    //             continue;
+    //         }
+
+    //         $mark = "order" . str_replace("pay_order", "", $table);
+    //         $sqlLimit = 50000;//每次只从数据库取100000条以防变量缓存太大
+    //         // 每隔$limit行，刷新一下输出buffer，不要太大，也不要太小
+    //         $limit = 50000;
+    //         // buffer计数器
+    //         $cnt = 0;
+    //         for ($i = 0; $i < ceil($sqlCount / $sqlLimit); $i++) {
+    //             $fp = fopen($mark . '_' . $i . '.csv', 'w'); //生成临时文件
+    //             //     chmod('attack_ip_info_' . $i . '.csv',777);//修改可执行权限
+    //             $fileNameArr[] = $mark . '_' .  $i . '.csv';
+    //             // 将数据通过fputcsv写到文件句柄
+    //             fputcsv($fp, $title);
+
+    //             $dataArr = $OrderModel->table($table)
+    //                 ->alias('as pay_order')
+    //                 ->join('LEFT JOIN pay_member ON pay_member.id+10000 = pay_order.pay_memberid')
+    //                 ->field($filed)->where($where)->order('id desc')
+    //                 ->limit($i * $sqlLimit,$sqlLimit)->select();
+    //                 // var_dump($dataArr);die;
+    //             foreach ($dataArr as $item) {
+    //                 switch ($item['pay_status']) {
+    //                     case 0:
+    //                         $status = '未处理';
+    //                         break;
+    //                     case 1:
+    //                         $status = '成功，未返回';
+    //                         break;
+    //                     case 2:
+    //                         $status = '成功，已返回';
+    //                         break;
+    //                 }
+    //                 if ($item['pay_successdate']) {
+    //                     $pay_successdate = date('Y-m-d H:i:s', $item['pay_successdate']);
+    //                 } else {
+    //                     $pay_successdate = '---';
+    //                 }
+    //                 $list = [
+    //                     'out_trade_id' => "\t" .$item['out_trade_id'],
+    //                     'pay_orderid' =>"\t" .$item['pay_orderid'],
+    //                     'pay_memberid' => "\t" . $item['pay_memberid'],
+    //                     'username' => "\t" .$item['username'],
+    //                     'pay_amount' => $item['pay_amount'],
+    //                     'pay_poundage' => $item['pay_poundage'],
+    //                     'pay_actualamount' => $item['pay_actualamount'],
+    //                     'pay_applydate' => "\t" .date('Y-m-d H:i:s', $item['pay_applydate']),
+    //                     'pay_successdate' => "\t" .$pay_successdate,
+    //                     'pay_status' => "\t" .$status,
+    //                 ];
+    //                 if($type==1){
+    //                     $list['pay_zh_tongdao'] = "\t" .$item['pay_zh_tongdao'];
+    //                 }else{
+    //                     $list['pay_bankname'] = "\t" .$item['pay_bankname'];
+    //                 }
+    //                 $cnt++;
+    //                 if ($limit == $cnt) {
+    //                     //刷新一下输出buffer，防止由于数据过多造成问题
+    //                     ob_flush();
+    //                     flush();
+    //                     $cnt = 0;
+    //                 }
+    //                 fputcsv($fp, $list);
+    //             }
+    //             fclose($fp);  //每生成一个文件关闭
+    //         }
+    //     }
+    //     if(!empty($fileNameArr)){
+    //         //进行多个文件压缩
+    //         $zip = new \ZipArchive();
+    //         $filename = $fileName . ".zip";
+    //         // log_place_order('down', "文件地址", $filename);
+    //         $zip->open($filename, \ZipArchive::CREATE);   //打开压缩包
+    //         foreach ($fileNameArr as $file) {
+    //             $zip->addFile($file, basename($file));   //向压缩包中添加文件
+    //         }
+    //         $zip->close();  //关闭压缩包
+    //         foreach ($fileNameArr as $file) {
+    //             unlink($file); //删除csv临时文件
+    //         }
+    //         return $filename;
+    //     }else{
+    //         return 'noData';
+    //     }
+    // }
+
+
     //导出委托提款记录
     public function exportweituo($where,$uid='', $type='')
     {
-        if(!$where['type'] || $where['type']!=2){
-            $where['type'] = ['neq',2];
-        }
+//        if(!$where['type'] || $where['type']!=2){
+//            $where['type'] = ['neq',2];
+//        }
         if($where['memberid']){
             $where['userid'] = $where['memberid']-10000;
             unset($where['memberid']);
@@ -310,7 +472,7 @@ class ExportController extends Controller
             $where['cldatetime']   = ['between', [$sstime, $setime ? $setime : date('Y-m-d')]];
             unset($where['successtime']);
         }
-        
+
         $file_path = "./Uploads/download/". date('Ymd') ."/" ;
         @mkdirs($file_path, 0777);
         @chmod($file_path, 0777);
@@ -322,10 +484,14 @@ class ExportController extends Controller
         }else{
             $title = array('商户编号', '系统订单号', '外部订单号', '结算金额', '手续费', '到账金额', '银行名称', '支行名称', '银行卡号', '开户名', '申请时间', '处理时间', '状态', "备注");
         }
+        foreach ($title as $tk => $tv){
+            $title[$tk]=iconv('utf-8','gb2312//ignore',$tv);
+        }
+
         $filed = 'userid,df_name,channel_mch_id,orderid,out_trade_no,tkmoney,sxfmoney,money,bankname,bankzhiname,banknumber,bankfullname,sqdatetime,cldatetime,status,memo';
         $Wttklist = D('Wttklist');
         $tables = $Wttklist->getTables($where);
-        
+
         $datas =[];
         foreach ($tables as $table) {
             $sqlCount = $Wttklist->table($table)->field($filed)->where($where)->count();
@@ -346,9 +512,9 @@ class ExportController extends Controller
                 $fileNameArr[] = $mark . '_' .  $i . '.csv';
                 // 将数据通过fputcsv写到文件句柄
                 fputcsv($fp, $title);
-                
+
                 $data = $Wttklist->table($table)->field($filed)->where($where)->order('id desc')->limit($i * $sqlLimit,$sqlLimit)->select();
-                
+
                 foreach ($data as $item) {
                     switch ($item['status']) {
                         case 0:
@@ -373,8 +539,8 @@ class ExportController extends Controller
                             $status = "已驳回";
                             break;
                     }
-        
-                    
+
+
                     if($type==3){
                         $list = array(
                             'memberid'       => "\t" .$item['userid'] + 10000,
@@ -383,34 +549,34 @@ class ExportController extends Controller
                             'tkmoney'        => $item['tkmoney'],
                             'sxfmoney'       => $item['sxfmoney'],
                             'money'          => $item['money'],
-                            'bankname'       => "\t" .$item['bankname'],
-                            'bankzhiname'    => "\t" .$item['bankzhiname'],
+                            'bankname'       => "\t" .iconv('utf-8','gb2312//ignore',$item['bankname']),
+                            'bankzhiname'    => "\t" .iconv('utf-8','gb2312//ignore',$item['bankzhiname']),
                             'banknumber'     => "\t" .$item['banknumber'],
-                            'bankfullname'   => "\t" .$item['bankfullname'],
+                            'bankfullname'   => "\t" .iconv('utf-8','gb2312//ignore',$item['bankfullname']),
                             'sqdatetime'     => "\t" .$item['sqdatetime'],
                             'cldatetime'     => "\t" .$item['cldatetime'],
-                            'status'         => "\t" .$status,
-                            "memo"           => "\t" .$item["memo"],
-                            "df_name"        => "\t" .$item["df_name"]
+                            'status'         => "\t" .iconv('utf-8','gb2312//ignore',$status),
+                            "memo"           => "\t" .iconv('utf-8','gb2312//ignore',$item["memo"]),
+                            "df_name"        => "\t" .iconv('utf-8','gb2312//ignore',$item["df_name"])
                         );
                         $title = array_push($title,'通道');
                     }else{
                         $list = array(
-                        'memberid'       => "\t" .$item['userid'] + 10000,
-                        'orderid'        => "\t" .$item['orderid'],
-                        'out_trade_no'   => "\t" .$item['out_trade_no'],
-                        'tkmoney'        => $item['tkmoney'],
-                        'sxfmoney'       => $item['sxfmoney'],
-                        'money'          => $item['money'],
-                        'bankname'       => "\t" .$item['bankname'],
-                        'bankzhiname'    => "\t" .$item['bankzhiname'],
-                        'banknumber'     => "\t" .$item['banknumber'],
-                        'bankfullname'   => "\t" .$item['bankfullname'],
-                        'sqdatetime'     => "\t" .$item['sqdatetime'],
-                        'cldatetime'     => "\t" .$item['cldatetime'],
-                        'status'         => "\t" .$status,
-                        "memo"           => "\t" .$item["memo"],
-                    );
+                            'memberid'       => "\t" .$item['userid'] + 10000,
+                            'orderid'        => "\t" .$item['orderid'],
+                            'out_trade_no'   => "\t" .$item['out_trade_no'],
+                            'tkmoney'        => $item['tkmoney'],
+                            'sxfmoney'       => $item['sxfmoney'],
+                            'money'          => $item['money'],
+                            'bankname'       => "\t" .iconv('utf-8','gb2312//ignore',$item['bankname']),
+                            'bankzhiname'    => "\t" .iconv('utf-8','gb2312//ignore',$item['bankzhiname']),
+                            'banknumber'     => "\t" .$item['banknumber'],
+                            'bankfullname'   => "\t" .iconv('utf-8','gb2312//ignore',$item['bankfullname']),
+                            'sqdatetime'     => "\t" .$item['sqdatetime'],
+                            'cldatetime'     => "\t" .$item['cldatetime'],
+                            'status'         => "\t" .iconv('utf-8','gb2312//ignore',$status),
+                            "memo"           => "\t" .iconv('utf-8','gb2312//ignore',$item["memo"]),
+                        );
                     }
                     $cnt++;
                     if ($limit == $cnt) {
@@ -423,7 +589,7 @@ class ExportController extends Controller
                 }
                 fclose($fp);  //每生成一个文件关闭
             }
-            
+
         }
         if(!empty($fileNameArr)){
             //进行多个文件压缩
@@ -462,20 +628,12 @@ class ExportController extends Controller
             $where['lx'] = array('eq', $where['bank']);
             unset($where['bank']);
         }
-        if($where['currency'] ==='PHP'){
-            $where['paytype'] = ['between', [1,3]];
-            unset($where['currency']);
-        }
-        if($where['currency'] ==='INR'){
-            $where['paytype'] = ['eq', 4];
-            unset($where['currency']);
-        }
         if ($where['createtime']) {
             list($cstime, $cetime) = explode('|', $where['createtime']);
             $where['datetime'] = ['between', [$cstime, $cetime ? $cetime : date('Y-m-d')]];
             unset($where['createtime']);
         }
-        
+
         $file_path = "./Uploads/download/". date('Ymd') ."/" ;
         @mkdirs($file_path, 0777);
         @chmod($file_path, 0777);
@@ -483,8 +641,11 @@ class ExportController extends Controller
         $fileNameArr = array();
 
         $title = array('订单号', '外部订单号','用户名', '类型', '原金额', '变动金额', '变动后金额', '变动时间', '备注');
+        foreach ($title as $tk => $tv){
+            $title[$tk]=iconv('utf-8','gb2312//ignore',$tv);
+        }
         $filed = 'transid,orderid,userid,lx,ymoney,money,gmoney,datetime,contentstr';
-        
+
         $MoneychangeModel = D('Moneychange');
         $tables = $MoneychangeModel->getTables($where);
         $datas =[];
@@ -507,12 +668,12 @@ class ExportController extends Controller
                 $fileNameArr[] = $mark . '_' .  $i . '.csv';
                 // 将数据通过fputcsv写到文件句柄
                 fputcsv($fp, $title);
-                
+
                 $data = $MoneychangeModel->table($table)->field($filed)->where($where)->order('id desc')->limit($i * $sqlLimit,$sqlLimit)->select();
                 foreach ($data as $value) {
                     $list['transid'] = "\t" .$value["transid"];
                     $list['orderid'] = "\t" .$value["orderid"];
-                    $list['parentname'] = "\t" .getParentName($value["userid"], 1);
+                    $list['parentname'] = "\t" .iconv('utf-8','gb2312//ignore',getParentName($value["userid"], 1));
                     switch ($value["lx"]) {
                         case 1:
                             $list['lxstr'] = "付款";
@@ -536,7 +697,7 @@ class ExportController extends Controller
                             $list['lxstr'] = "提成";
                             break;
                         case 10:
-                            $list['lxstr'] = "委托结算";
+                            $list['lxstr'] = "代付结算";
                             break;
                         case 11:
                             $list['lxstr'] = "提款驳回";
@@ -559,9 +720,22 @@ class ExportController extends Controller
                         case 17:
                             $list['lxstr'] = "手动结算驳回退回手续费";
                             break;
+                        case 18:
+                            $list['lxstr'] = "代付失败退回";
+                            break;
+                        case 19:
+                            $list['lxstr'] = "代付失败退回手续费";
+                            break;
+                        case 20:
+                            $list['lxstr'] = "商户内转";
+                            break;
+                        case 21:
+                            $list['lxstr'] = "冲正退款";
+                            break;
                         default:
                             $list['lxstr'] = "未知";
                     }
+                    $list['lxstr'] = iconv('utf-8','gb2312//ignore',$list['lxstr']);
                     // $list['tcuserid'] = "\t" .getParentName($value["tcuserid,"], 1);
                     // $list['tcdengji'] = "\t" .$value["tcdengji"];
                     $list['ymoney'] = $value["ymoney"];
@@ -569,7 +743,7 @@ class ExportController extends Controller
                     $list['gmoney'] = $value["gmoney"];
                     $list['datetime'] = "\t" .$value["datetime"];
                     // $list['tongdao'] = "\t" .getProduct($value["tongdao"]);
-                    $list['contentstr'] = "\t" .$value["contentstr"];
+                    $list['contentstr'] = "\t" .iconv('utf-8','gb2312//ignore',$value["contentstr"]);
                     $cnt++;
                     if ($limit == $cnt) {
                         //刷新一下输出buffer，防止由于数据过多造成问题
@@ -600,7 +774,7 @@ class ExportController extends Controller
             return 'noData';
         }
     }
-    
+
     /**
      * 导出Utr
      * */
@@ -615,24 +789,27 @@ class ExportController extends Controller
             $where['datetime'] = ['between', [$cstime, $cetime ? $cetime : date('Y-m-d')]];
             unset($where['createtime']);
         }
-        
+
         $file_path = "./Uploads/download/". date('Ymd') ."/" ;
         @mkdirs($file_path, 0777);
         @chmod($file_path, 0777);
         $fileName = $file_path . $uid . '_utrOrder' .time();
         $fileNameArr = array();
-        
+
         $utrModel = M('Utr');
         $title = [
-                '商户编号',
-                '系统订单号',
-                '下游订单号',
-                'UTR',
-                '支付通道',
-                '订单状态',
-                '查询状态',
-                '创建时间',
-            ];
+            '商户编号',
+            '系统订单号',
+            '下游订单号',
+            'UTR',
+            '支付通道',
+            '订单状态',
+            '查询状态',
+            '创建时间',
+        ];
+        foreach ($title as $tk => $tv){
+            $title[$tk]=iconv('utf-8','gb2312//ignore',$tv);
+        }
         $filed = '*';
         $sqlCount = $utrModel->where($where)->count();
         echo $utrModel->getLastSql();
@@ -652,12 +829,12 @@ class ExportController extends Controller
             $fileNameArr[] = $mark . '_' .  $i . '.csv';
             // 将数据通过fputcsv写到文件句柄
             fputcsv($fp, $title);
-                
+
             $data = $utrModel->field($filed)->where($where)->order('id desc')->limit($i * $sqlLimit,$sqlLimit)->select();
-                
-    //        echo $utrModel->getLastSql();
+
+            //        echo $utrModel->getLastSql();
             foreach ($data as $item) {
-    
+
                 switch ($item['pay_status']) {
                     case 0:
                         $status = '未处理';
@@ -699,12 +876,12 @@ class ExportController extends Controller
                     'pay_orderid' => "\t" .$item['pay_orderid'],
                     'out_trade_id' => "\t" .$item['out_trade_id'],
                     'utr' => "\t" .$item['utr'],
-                    'pay_tongdao' => "\t" .$item['pay_tongdao'],
-                    'pay_status' => "\t" .$status,
-                    'check_status' => "\t" .$check_status,
+                    'pay_tongdao' => "\t" .iconv('utf-8','gb2312//ignore',$item['pay_tongdao']),
+                    'pay_status' => "\t" .iconv('utf-8','gb2312//ignore',$status),
+                    'check_status' => "\t" .iconv('utf-8','gb2312//ignore',$check_status),
                     'datetime' => "\t" .$datetime,
                 ];
-                
+
                 $cnt++;
                 if ($limit == $cnt) {
                     //刷新一下输出buffer，防止由于数据过多造成问题

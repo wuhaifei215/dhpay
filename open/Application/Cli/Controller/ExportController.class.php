@@ -697,7 +697,7 @@ class ExportController extends Controller
                             $list['lxstr'] = "提成";
                             break;
                         case 10:
-                            $list['lxstr'] = "委托结算";
+                            $list['lxstr'] = "代付结算";
                             break;
                         case 11:
                             $list['lxstr'] = "提款驳回";
@@ -719,6 +719,18 @@ class ExportController extends Controller
                             break;
                         case 17:
                             $list['lxstr'] = "手动结算驳回退回手续费";
+                            break;
+                        case 18:
+                            $list['lxstr'] = "代付失败退回";
+                            break;
+                        case 19:
+                            $list['lxstr'] = "代付失败退回手续费";
+                            break;
+                        case 20:
+                            $list['lxstr'] = "商户内转";
+                            break;
+                        case 21:
+                            $list['lxstr'] = "冲正退款";
                             break;
                         default:
                             $list['lxstr'] = "未知";

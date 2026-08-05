@@ -18,20 +18,61 @@ class UserLogService {
 
     /**
      * 写入操作日志
-	 * @param string $type 操作类型 1：查看 2：新增 3：修改 4：删除 5:导出
+     * @param string $type 操作类型 1：查看 2：新增 3：修改 4：删除 5:导出
      * @param string $action
      * @param string $content
      * @return bool
      */
     public static function write($type = '1', $action = '行为', $content = "内容描述")
     {
-        if(isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+        if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif(isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
             $ip = $_SERVER['REMOTE_ADDR'];
         } else {
             $ip = get_client_ip();
         }
         $node = strtolower(join('/', [MODULE_NAME, CONTROLLER_NAME, ACTION_NAME]));
-        $data = ['ip' => $ip, 'node' => $node, 'user_id' => session("user_auth.uid"), 'username' => session("user_auth.username"), 'action' => $action, 'type' => $type, 'content' => $content];
+        $data = [
+            'ip' => $ip,
+            'node' => $node,
+            'user_id' => session("user_auth.uid"),
+            'username' => session("user_auth.username"),
+            'action' => $action,
+            'type' => $type,
+            'content' => $content,
+            'create_at' => date('Y-m-d H:i:s')
+        ];
         return M('user_log')->add($data) !== false;
+    }
+
+    /**
+     * 写入系统操作日志
+     * @param string $type 操作类型 1：查看 2：新增 3：修改 4：删除 5:导出
+     * @param string $action
+     * @param string $content
+     * @return bool
+     */
+    public static function HTwrite($type = '1', $action = '行为', $content = "内容描述")
+    {
+        if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif(isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        } else {
+            $ip = get_client_ip();
+        }
+        $node = strtolower(join('/', [MODULE_NAME, CONTROLLER_NAME, ACTION_NAME]));
+        $data = [
+            'ip' => $ip,
+            'node' => $node,
+            'user_id' => session("admin_auth.uid"),
+            'username' => session("admin_auth.username"),
+            'action' => $action,
+            'type' => $type,
+            'content' => $content,
+            'create_at' => date('Y-m-d H:i:s')
+        ];
+        return M('admin_log')->add($data) !== false;
     }
 }//类定义结束

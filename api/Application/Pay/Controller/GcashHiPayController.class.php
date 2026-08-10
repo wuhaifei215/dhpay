@@ -63,7 +63,7 @@ class GcashHiPayController extends PayController
         // 记录初始执行时间
         $beginTime = microtime(TRUE);
         
-        $returnContent = $this->http_post_json($return['gateway'], $native, $head_arr);
+        $returnContent = $this->http_post_json($return['gateway'], $native);
         log_place_order($this->code, $return['orderid'] . "----返回", $returnContent);    //日志
         // print_r($returnContent);
         $ans = json_decode($returnContent, true);

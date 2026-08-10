@@ -88,7 +88,7 @@ class HiPayDFGcashController extends PaymentController
                     $return = ['status' => 1, 'msg' => '申请正常'];
                     break;
             }
-        }elseif($result['code'] === "10011"){
+        }elseif($result['code'] === 10011){
             $return = ['status' => 3, 'msg' => '申请失败--'.$result['msg']];
         }else{
             $return = ['status' => 0, 'msg' => $result['msg']];

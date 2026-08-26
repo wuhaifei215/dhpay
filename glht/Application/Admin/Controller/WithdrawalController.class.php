@@ -358,7 +358,7 @@ class WithdrawalController extends BaseController
             $this->ajaxReturn(['status' => 0,'msg' => '设置U汇率失败!']);
         }
     }
-    
+
     /**
      * 代付记录
      */
@@ -372,7 +372,7 @@ class WithdrawalController extends BaseController
         $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $where['currency'] = ['eq', $currency];
         $this->assign('currency', $currency);
-        
+
         $type = I("request.type",  0, 'intval');
         if($type === 2){
             $where['df_type'] = ['eq', 2];
@@ -390,7 +390,7 @@ class WithdrawalController extends BaseController
             $where['memo'] = ['like', "%" . $memo . "%"];
         }
         $this->assign("memo", $memo);
-        
+
         $memberid = I("get.memberid", 0, 'intval');
         if ((intval($memberid) - 10000) > 0) {
             $where['userid'] = array('eq', $memberid - 10000);
@@ -421,7 +421,7 @@ class WithdrawalController extends BaseController
         //     $where['t'] = array('eq', $T);
         // }
         // $this->assign("T", $T);
-        
+
         $status = I("request.status", '', 'trim,string,strip_tags,htmlspecialchars');
         if ($status != "") {
             if ($status == '2or3') {
@@ -433,7 +433,7 @@ class WithdrawalController extends BaseController
             }
         }
         $this->assign('status', $status);
-        
+
         $bankcode = I("request.bankcode");
         if ($bankcode) {
             $where['bankcode'] = array('eq', $bankcode);
@@ -441,7 +441,7 @@ class WithdrawalController extends BaseController
             $where['bankcode'] = array('gt', 900);
         }
         $this->assign("bankcode", $bankcode);
-        
+
         $dfid = I("get.dfid", '', 'string,strip_tags,htmlspecialchars');
         if ($dfid != '') {
             $where['df_id'] = array('eq', $dfid);
@@ -469,7 +469,7 @@ class WithdrawalController extends BaseController
             $createtime = $todayBegin . ' | ' . $todyEnd;
         }
         $this->assign("createtime", $createtime);
-        
+
         $size  = 50;
         $rows  = I('get.rows', $size, 'intval');
         if (!$rows) {
@@ -492,7 +492,7 @@ class WithdrawalController extends BaseController
 
         $pfa_lists = M('PayForAnother')->where(['status' => 1])->select();
         $df_list = M('PayForAnother')->select();
-        
+
         $this->assign('uid', session("admin_auth.uid"));
         $this->assign('rows', $rows);
         $this->assign("pfa_lists", $pfa_lists);
@@ -522,7 +522,7 @@ class WithdrawalController extends BaseController
 
         $df_list = M('PayForAnother')->where($where)->select();
         $all_balance = M('member')->where($where)->sum('balance');
-        
+
         $memberid = I("request.memberid", '', 'string,strip_tags,htmlspecialchars');
         if ($memberid) {
             $where['userid'] = array('eq', $memberid-10000);
@@ -538,13 +538,13 @@ class WithdrawalController extends BaseController
             $where['df_type'] = ['neq', 2];
         }
         $this->assign('type', $type);
-        
+
         $dfid = I("get.dfid", '', 'string,strip_tags,htmlspecialchars');
         if ($dfid != '') {
             $where['df_id'] = array('eq', $dfid);
         }
         $this->assign("dfid", $dfid);
-        
+
         $successtime = urldecode(I("request.successtime", '', 'string,strip_tags,htmlspecialchars'));
         if ($successtime) {
             list($sstime, $setime) = explode('|', $successtime);
@@ -556,7 +556,7 @@ class WithdrawalController extends BaseController
         }
         $this->assign("successtime", $successtime);
 
-        
+
         $cstime =  date('Y-m-d 00:00:00' ,strtotime($sstime)- 3600 * 24 * 7);
         $cetime = $setime;
         $where['sqdatetime']   = ['between', [$cstime, $cetime]];
@@ -602,15 +602,15 @@ class WithdrawalController extends BaseController
 
         $df_list = M('PayForAnother')->where($where)->select();
         $all_balance = M('member')->sum('balance');
-        
+
         $where['df_type'] = ['eq', 2];
-        
+
         $memberid = I("request.memberid", '', 'string,strip_tags,htmlspecialchars');
         if ($memberid) {
             $where['userid'] = array('eq', $memberid-10000);
         }
         $this->assign("memberid", $memberid);
-        
+
         $money = I("request.money", '', 'string,strip_tags,htmlspecialchars');
         if ($money) {
             $where['money'] = array('eq', $money);
@@ -621,7 +621,7 @@ class WithdrawalController extends BaseController
             $where['memo'] = ['like', "%" . $memo . "%"];
         }
         $this->assign("memo", $memo);
-        
+
         //U下发
         $type = I("request.type",  0, 'intval');
         $bankfullname = I("request.bankfullname", '', 'string,strip_tags,htmlspecialchars');
@@ -639,13 +639,13 @@ class WithdrawalController extends BaseController
             $where['t'] = array('eq', $T);
         }
         $this->assign("T", $T);
-        
+
         $dfid = I("get.dfid", '', 'string,strip_tags,htmlspecialchars');
         if ($dfid != '') {
             $where['df_id'] = array('eq', $dfid);
         }
         $this->assign("dfid", $dfid);
-        
+
         $createtime = urldecode(I("request.createtime", '', 'string,strip_tags,htmlspecialchars'));
         if ($createtime) {
             list($cstime, $cetime) = explode('|', $createtime);
@@ -667,21 +667,21 @@ class WithdrawalController extends BaseController
             $createtime = $todayBegin . ' | ' . $todyEnd;
         }
         $this->assign("createtime", $createtime);
-        
+
         $Wttklist = D('Wttklist');
 
         //统计总结算信息
         $totalMap           = $where;
         // $totalMap['status'] = ['in', '2,3'];
         $totalMap['status']   = array('between', ['2','3']);
-        
+
         //结算金额
         $stat_total = $Wttklist->getSum('tkmoney',$totalMap);
         $stat['total_tk'] = round($stat_total['tkmoney'], 2);
         //结算U金额
         $stat_total = $Wttklist->getSum('money',$totalMap);
         $stat['total'] = round($stat_total['money'], 2);
-        
+
         //待结算
         // $totalMap['status'] = ['in', '0,1'];
         $totalMap['status']   = array('between', ['0','1']);
@@ -692,7 +692,7 @@ class WithdrawalController extends BaseController
         $totalMap['status']   = array('between', ['0','1']);
         $stat_total_wait = $Wttklist->getSum('money',$totalMap);
         $stat['total_wait'] = round($stat_total_wait['money'], 2);
-        
+
         //完成笔数
         // $totalMap['status']          = ['in', '2,3'];
         $totalMap['status']   = array('between', ['2','3']);
@@ -717,7 +717,7 @@ class WithdrawalController extends BaseController
         $this->assign('uid', session("admin_auth.uid"));
         $this->display();
     }
-    
+
     /**
      * 查看订单日志
      */
@@ -781,17 +781,17 @@ class WithdrawalController extends BaseController
             $todyEnd = date('Y-m-d') . ' 23:59:59';
             $where['sqdatetime'] = ['between', [$todayBegin, $todyEnd]];
         }
-        
+
         $file_path = "./Uploads/download/". date('Ymd') ."/" ;
         @mkdirs($file_path);
         $uid = session('admin_auth')['uid'];
         $fileName = $file_path . $uid . '_dforder' .time();
         $fileNameArr = array();
-        
+
 
         $title = array('商户编号', '系统订单号', '外部订单号', '结算金额', '手续费', '到账金额', '银行名称', '支行名称', '银行卡号', '开户名', '申请时间', '处理时间', '状态', "备注");
         $filed = 'userid,df_name,channel_mch_id,orderid,out_trade_no,tkmoney,sxfmoney,money,bankname,bankzhiname,banknumber,bankfullname,sqdatetime,cldatetime,status,memo';
-        
+
         $Wttklist = D('Wttklist');
         $tables = $Wttklist->getTables($where);
         $datas =[];
@@ -813,9 +813,9 @@ class WithdrawalController extends BaseController
                 $fileNameArr[] = $mark . '_' .  $i . '.csv';
                 // 将数据通过fputcsv写到文件句柄
                 fputcsv($fp, $title);
-                
+
                 $data = $Wttklist->table($table)->field($filed)->where($where)->order('id desc')->limit($i * $sqlLimit,$sqlLimit)->select();
-                
+
                 foreach ($data as $item) {
                     switch ($item['status']) {
                         case 0:
@@ -840,7 +840,7 @@ class WithdrawalController extends BaseController
                             $status = "已驳回";
                             break;
                     }
-        
+
                     $list = array(
                         'memberid'       => "\t" .$item['userid'] + 10000,
                         'orderid'        => "\t" .$item['orderid'],
@@ -891,7 +891,7 @@ class WithdrawalController extends BaseController
     {
         $uid = session('admin_auth')['uid'];
         $id = I("request.id", 0, 'intval');
-        
+
         $verifysms = 0;//是否可以短信验证
         $sms_is_open = smsStatus();
         if($sms_is_open) {
@@ -902,10 +902,10 @@ class WithdrawalController extends BaseController
         }
         //是否可以谷歌安全码验证
         $verifyGoogle = adminGoogleBind($uid);
-        
+
         if (IS_POST) {
             UserLogService::HTwrite(3, '保存委托提现', '保存委托提现');
-            
+
             $auth_type = I('request.auth_type', 0, 'intval');
 
             if($verifyGoogle && $verifysms) {
@@ -995,20 +995,20 @@ class WithdrawalController extends BaseController
             if($status == $wtStatus){
                 $this->ajaxReturn(['status' => 0,'msg' => '订单状态设置失败1!']);
             }
-            
+
             //设置redis标签，防止重复执行
             $redis = $this->redis_connect();
             if($redis->get('handle' . $id . $status)){
                 $this->ajaxReturn(['status' => 0, 'msg' => '重复操作']);
             }
             $redis->set('handle' . $id . $status,'1',120);
-            
-            
+
+
             //判断状态
             switch ($status) {
                 case '2':
                     $data["cldatetime"] = date("Y-m-d H:i:s");
-                   
+
                     break;
                 case '4':
                     if($wtStatus ==4 || $wtStatus ==5){
@@ -1076,17 +1076,17 @@ class WithdrawalController extends BaseController
                     break;
                 }
             }
-            
+
             $this->assign('verifysms', $verifysms);
             $this->assign('verifyGoogle', $verifyGoogle);
             $this->assign('auth_type', $verifyGoogle ? 1 : 0);
-            
+
             $this->assign('info', $withdraw);
             $this->display();
         }
     }
 
-    
+
     /**
      * 订单退款
      */
@@ -1102,7 +1102,7 @@ class WithdrawalController extends BaseController
         }
         //是否可以谷歌安全码验证
         $verifyGoogle = adminGoogleBind($uid);
-        
+
         $orderid = I("request.orderid", '', 'trim,string,strip_tags,htmlspecialchars');
         $Wttklistmodel = D('Wttklist');
         $date = date('Ymd',strtotime(substr($orderid, 1, 8)));  //获取订单日期
@@ -1116,10 +1116,10 @@ class WithdrawalController extends BaseController
         if (!$withdraw || empty($withdraw)) {
             $this->ajaxReturn(['status' => 0, 'msg' => '提款申请不存在']);
         }
-        
+
         if (IS_POST) {
              UserLogService::HTwrite(3, '退款操作', '退款操作');
-            
+
             $auth_type = I('request.auth_type', 0, 'intval');
 
             if($verifyGoogle && $verifysms) {
@@ -1176,8 +1176,8 @@ class WithdrawalController extends BaseController
                     }
                 }
             }
-            
-            
+
+
             //设置redis标签，防止重复执行
             $redis = $this->redis_connect();
             if($redis->get('refund_' . $orderid)){
@@ -1185,10 +1185,10 @@ class WithdrawalController extends BaseController
                 $this->ajaxReturn(['status' => 0, 'msg' => '重复操作']);
             }
             $redis->set('refund_' . $orderid,'1',60);
-            
+
             //开启事物
             M()->startTrans();
-            
+
             $Member     = M('Member');
             $memberInfo = $Member->where(['id' => $withdraw['userid']])->lock(true)->find();
             $res = $Member->where(['id' => $withdraw['userid']])->save(['balance' => array('exp', "balance+{$withdraw['tkmoney']}")]);
@@ -1198,7 +1198,7 @@ class WithdrawalController extends BaseController
                 UserLogService::HTwrite(3, '退款操作失败', '退款操作失败');
                 $this->ajaxReturn(['status' => 0, 'msg' => '退款失败1']);
             }
-    
+
             //2,记录流水订单号
             $arrayField = array(
                 "userid"     => $withdraw['userid'],
@@ -1243,7 +1243,7 @@ class WithdrawalController extends BaseController
                     'contentstr' => ' 冲正退款',
                     "currency" => $withdraw['currency'],
                 );
-                    
+
                 $Moneychange = D("Moneychange");
                 $tablename = $Moneychange -> getRealTableName($chargeField['datetime']);
                 $res2 = $Moneychange->table($tablename)->add($chargeField);
@@ -1258,11 +1258,11 @@ class WithdrawalController extends BaseController
             $data["cldatetime"] = date("Y-m-d H:i:s");
             $data["memo"] = '冲正退款 - ' . date('Y-m-d H:i:s') . ';' . $withdraw['memo'];
             $res5 = $Wttklistmodel->table($WttklistTableName)->where($where)->save($data);
-            
+
             //更新回调信息
             $withdraw['status'] = 4;
             $redis->set($withdraw['orderid'],json_encode($withdraw));
-            
+
             if ($res5 === false) {
                 M()->rollback();
                 UserLogService::HTwrite(3, '退款操作失败', '退款操作失败');
@@ -1276,7 +1276,7 @@ class WithdrawalController extends BaseController
             $this->assign('verifysms', $verifysms);
             $this->assign('verifyGoogle', $verifyGoogle);
             $this->assign('auth_type', $verifyGoogle ? 1 : 0);
-            
+
             $this->assign('info', $withdraw);
             $this->display();
         }
@@ -1411,6 +1411,170 @@ class WithdrawalController extends BaseController
                 $this->ajaxReturn(['status' => 'seccess']);
             }
             $this->ajaxReturn(['status' => 'error']);
+        }
+    }
+
+    public function refundAll() {
+        $uid = session('admin_auth')['uid'];
+        $verifysms = 0; //是否可以短信验证
+        $sms_is_open = smsStatus();
+        if ($sms_is_open) {
+            $adminMobileBind = adminMobileBind($uid);
+            if ($adminMobileBind) {
+                $verifysms = 1;
+            }
+        }
+        //是否可以谷歌安全码验证
+        $verifyGoogle = 0;
+        $googleAuth   = M('Websiteconfig')->getField('google_auth');
+        if ($googleAuth) {
+            $verifyGoogle = adminGoogleBind($uid);
+        }
+
+        if (IS_POST) {
+            $auth_type = I('request.auth_type', 0, 'intval');
+
+            if($verifyGoogle && $verifysms) {
+                if(!in_array($auth_type,[0,1])) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            } elseif($verifyGoogle && !$verifysms) {
+                if($auth_type != 1) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            } elseif(!$verifyGoogle && $verifysms) {
+                if($auth_type != 0) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "参数错误！"]);
+                }
+            }
+            if ($verifyGoogle && $auth_type == 1) {
+                $res = check_auth_error($uid, 5);
+                if(!$res['status']) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => $res['msg']]);
+                }
+                //谷歌安全码验证
+                $google_code = I('request.google_code');
+                if (!$google_code) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "谷歌安全码不能为空！"]);
+                } else {
+                    $ga                = new \Org\Util\GoogleAuthenticator();
+                    $google_secret_key = M('Admin')->where(['id' => $uid])->getField('google_secret_key');
+                    if (!$google_secret_key) {
+                        $this->ajaxReturn(['status' => 0, 'msg' => "您未绑定谷歌身份验证器！"]);
+                    }
+                    if(false === $ga->verifyCode($google_secret_key, $google_code, C('google_discrepancy'))) {
+                        log_auth_error($uid,5);
+                        $this->ajaxReturn(['status' => 0, 'msg' => "谷歌安全码错误！"]);
+                    } else {
+                        clear_auth_error($uid,5);
+                    }
+                }
+            } elseif ($verifysms && $auth_type == 0) {
+                $res = check_auth_error($uid, 3);
+                if(!$res['status']) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => $res['msg']]);
+                }
+                //短信验证码
+                $code = I('request.code');
+                if (!$code) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => "短信验证码不能为空！"]);
+                } else {
+                    if (session('send.submitDfSend') != $code || !$this->checkSessionTime('submitDfSend', $code)) {
+                        log_auth_error($uid,3);
+                        $this->ajaxReturn(['status' => 0, 'msg' => '短信验证码错误']);
+                    } else {
+                        clear_auth_error($uid,3);
+                        session('send', null);
+                    }
+                }
+            }
+
+            $ids = I('post.id', '');
+            UserLogService::HTwrite(3, '批量驳回代付', '批量驳回：'. $ids);
+            $ids = explode(',', trim($ids, ','));
+            if(empty($ids)){
+                UserLogService::HTwrite(3, '批量驳回代付', '批量驳回代付,失败：缺少订单ID');
+                $this->ajaxReturn(['status' => 0, 'msg' => '缺少订单ID']);
+            }
+            $tableName = 'Wttklist';
+            $Wttklist = D('Wttklist');
+            $tables = $Wttklist->getTables();
+
+            $success = $fail = 0;
+            foreach ($ids as $k => $iv) {
+                M()->startTrans();
+                try {
+                    if (intval($iv)) {
+                        foreach ($tables as $v){
+                            $withdraw = $Wttklist->table($v)->where('id='.$iv)->find();
+                            if(!empty($withdraw)){
+                                $tableName = $v;
+                                break;
+                            }
+                        }
+                        $orderid = $withdraw['orderid'];
+                        if($withdraw['status']!=0){
+                            UserLogService::HTwrite(3, '批量驳回代付', $iv . '-驳回代付,失败。状态:' . $withdraw['status']);
+                            $fail++;
+                            continue;
+                        }
+
+                        //设置redis标签，防止重复执行
+                        $redis = $this->redis_connect();
+                        if($redis->get('refund_' . $orderid)){
+                            UserLogService::HTwrite(3, '批量驳回代付', $iv . '-驳回操作，重复操作');
+                            $fail++;
+                            continue;
+                        }
+                        $redis->set('refund_' . $orderid,'1',60);
+
+                        $memo = '驳回代付-' . date('Y-m-d H:i:s') . ';' . $withdraw['memo'];
+
+                        $Rejsct = Reject(['id' => $iv, 'status' => '6','message'=> '驳回代付']);
+                        if($Rejsct){
+                            M()->commit();
+                            UserLogService::HTwrite(3, '批量驳回代付', $iv . '-驳回代付,成功。');
+                            Automatic_Notify($orderid);
+                            $success++;
+                            continue;
+                        }else{
+                            M()->rollback();
+                            UserLogService::HTwrite(3, '批量驳回代付', $iv . '-驳回代付,失败。数据回滚');
+                            $fail++;
+                            continue;
+                        }
+                    } else {
+                        M()->rollback();
+                        $fail++;
+                        continue;
+                    }
+                } catch (\Exception $e) {
+                    M()->rollback();
+                    $fail++;
+                    continue;
+                }
+            }
+            if ($success > 0) {
+                UserLogService::HTwrite(3, '成功批量驳回代付申请', '成功驳回：' . $success . '，失败：' . $fail);
+                $this->ajaxReturn(['status' => 1, 'msg' => '成功驳回：' . $success . '，失败：' . $fail]);
+            } else {
+                UserLogService::HTwrite(3, '批量驳回代付失败', '成功批量驳回代付失败');
+                $this->ajaxReturn(['status' => 0, 'msg' => '驳回失败!']);
+            }
+        } else {
+            $ids = I('request.ids');
+            if (!$ids) {
+                $this->error('缺少参数');
+            }
+
+            $uid         = session('admin_auth')['uid'];
+            $user        = M('Admin')->where(['id' => $uid])->find();
+            $this->assign('mobile', $user['mobile']);
+            $this->assign('ids', $ids);
+            $this->assign('verifysms', $verifysms);
+            $this->assign('verifyGoogle', $verifyGoogle);
+            $this->assign('auth_type', $verifyGoogle ? 1 : 0);
+            $this->display();
         }
     }
 

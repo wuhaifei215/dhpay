@@ -164,15 +164,15 @@
                     </div>
                 </form>
                 <!--<p>-->
-                    <!--<a href="javascript:;" id="checkAll" class="layui-btn layui-btn-sm layui-btn-danger">全选</a>-->
+                    <a href="javascript:;" id="checkAll" class="layui-btn layui-btn-sm layui-btn-danger">全选</a>
                     <!--<a href="javascript:;" id="submitAllOrder" class="layui-btn layui-btn-sm layui-btn-warm">提交代付</a>-->
-                    <!--<a href="javascript:;" id="rejectAllOrder" class="layui-btn layui-btn-sm layui-btn-danger">一键驳回</a>-->
+                    <a href="javascript:;" id="rejectAllOrder" class="layui-btn layui-btn-sm layui-btn-danger">一键驳回</a>
                     <!--<a href="javascript:;" id="queryAllOrder" class="layui-btn layui-btn-sm layui-btn-warnning">代付查询</a>-->
                     <!--<a href="javascript:;" id="exportpayment" class="layui-btn layui-btn-sm layui-btn-warnning">导出员工信息</a>-->
                     <!--<a href="javascript:;" id="exportpayment2" class="layui-btn layui-btn-sm layui-btn-warnning">导出工资</a>-->
                 <!--</p>-->
                 <!--交易列表-->
-                <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;color:red;">
+                <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;margin:10px 0;color:red;">
                     <volist name="country" id="co">
                         <if condition="$currency eq $co['currency']"><span style="color:#333;">当前国家：</span><{$co['title']}>(<{$co['currency']}>)</if>
                     </volist>
@@ -554,33 +554,36 @@
             }
         });
         if(id){
-            layer.confirm('确认要一键驳回吗？',function(index) {
-                $.ajax({
-                    url: "<{:U('Admin/Withdrawal/rejectAllDf')}>",
-                    type: 'post',
-                    data: {'id':id},
-                    beforeSend:function(){
-                      loading=layer.load();
-    			    },
-                    success: function (res) {
-                        layer.close(loading);
-                        if (res.status) {
-                            layer.msg(res.msg, {icon: 1, time: 1000},function () {
-                                location.replace(location.href);
-                            });
-                        }else{
-                            layer.msg(res.msg, {icon: 2, time: 1000});
-                        }
-                    },
-                    complete: function(){
-                        layer.close(loading);
-    			    },
-        			error:function(){
-                        layer.close(loading);
-                        layer.alert('连接错误');
-    			    }
-                });
-            });
+
+            df_view('一键驳回', "<{:U('Admin/Withdrawal/refundAll')}>?ids="+id, 640 , 480);
+
+            // layer.confirm('确认要一键驳回吗？',function(index) {
+            //     $.ajax({
+            //         url: "<{:U('Admin/Withdrawal/rejectAllDf')}>",
+            //         type: 'post',
+            //         data: {'id':id},
+            //         beforeSend:function(){
+            //           loading=layer.load();
+    		// 	    },
+            //         success: function (res) {
+            //             layer.close(loading);
+            //             if (res.status) {
+            //                 layer.msg(res.msg, {icon: 1, time: 1000},function () {
+            //                     location.replace(location.href);
+            //                 });
+            //             }else{
+            //                 layer.msg(res.msg, {icon: 2, time: 1000});
+            //             }
+            //         },
+            //         complete: function(){
+            //             layer.close(loading);
+    		// 	    },
+        	// 		error:function(){
+            //             layer.close(loading);
+            //             layer.alert('连接错误');
+    		// 	    }
+            //     });
+            // });
         }else{
             layer.msg('请选择代付申请', {icon: 2, time: 1000},function () {});
         }

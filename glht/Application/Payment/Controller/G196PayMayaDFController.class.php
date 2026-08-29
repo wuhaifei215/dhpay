@@ -34,7 +34,7 @@ class G196PayMayaDFController extends PaymentController
             "accountName" => $data['bankfullname'],  //姓名
             "receivingAccount" => $data['banknumber'],    //账号
             "withdrawalType" => $withdrawalType,    //代付（提现）类型 1、同类型转（Gcash转Gcash） 2、转银行卡(Gcash转其他银行)
-            'withdrawalBankCode' =>$type,
+//            'withdrawalBankCode' =>$type,
         );
 
         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);

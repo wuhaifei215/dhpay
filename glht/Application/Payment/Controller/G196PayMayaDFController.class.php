@@ -68,6 +68,9 @@ class G196PayMayaDFController extends PaymentController
             case 0:
                 $return = ['status' => 1, 'msg' => '申请正常'];
                 break;
+            case -1:
+                $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];
+                break;
             default:
                 $return = ['status' => 0, 'msg' => $result['info']];
 //                $return = ['status' => 3, 'msg' => '申请失败--'. $result['msg']];

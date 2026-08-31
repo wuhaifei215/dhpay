@@ -166,7 +166,7 @@
                 <!--<p>-->
                     <a href="javascript:;" id="checkAll" class="layui-btn layui-btn-sm layui-btn-danger">全选</a>
                     <!--<a href="javascript:;" id="submitAllOrder" class="layui-btn layui-btn-sm layui-btn-warm">提交代付</a>-->
-                    <a href="javascript:;" id="rejectAllOrder" class="layui-btn layui-btn-sm layui-btn-danger">一键驳回</a>
+                    <a href="javascript:;" id="rejectAllOrder" class="layui-btn layui-btn-sm layui-btn-danger">批量驳回</a>
                     <!--<a href="javascript:;" id="queryAllOrder" class="layui-btn layui-btn-sm layui-btn-warnning">代付查询</a>-->
                     <!--<a href="javascript:;" id="exportpayment" class="layui-btn layui-btn-sm layui-btn-warnning">导出员工信息</a>-->
                     <!--<a href="javascript:;" id="exportpayment2" class="layui-btn layui-btn-sm layui-btn-warnning">导出工资</a>-->
@@ -555,7 +555,7 @@
         });
         if(id){
 
-            df_view('一键驳回', "<{:U('Admin/Withdrawal/refundAll')}>?ids="+id, 640 , 480);
+            df_view('批量驳回', "<{:U('Admin/Withdrawal/refundAll')}>?ids="+id, 640 , 480);
 
             // layer.confirm('确认要一键驳回吗？',function(index) {
             //     $.ajax({

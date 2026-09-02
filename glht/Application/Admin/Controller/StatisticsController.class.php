@@ -720,7 +720,7 @@ class StatisticsController extends BaseController
             
             // echo $MemberModel->getLastSql();
         //入金通道费率
-        $channel = M('Channel')->field('id,title')->where(['status' => 1,'id' =>['neq',6]])->select();
+        $channel = M('Channel')->field('id,title')->where(['currency' => $currency,'status' => 1,'id' =>['neq',6]])->select();
         if ($members) {
             $OrderModel = D('Order');
             $data=[];
@@ -816,7 +816,7 @@ class StatisticsController extends BaseController
             ->order('id asc')
             ->select();
         //入金通道费率
-        $channel = M('Channel')->field('id,title')->where(['status' => 1])->select();
+        $channel = M('Channel')->field('id,title')->where(['currency' => $currency,'status' => 1])->select();
         if ($members) {
             $OrderModel = D('Order');
             $data=[];
@@ -851,6 +851,9 @@ class StatisticsController extends BaseController
      * 包网报表
      */
     public function agencyReport() {
+
+        $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $where['currency'] = ['eq', $currency];
 
         $date = urldecode(I("request.date", ''));
         $agency = M('Agency')->select();
@@ -889,7 +892,7 @@ class StatisticsController extends BaseController
             // echo $MemberModel->getLastSql();
         
         //入金通道费率
-        $channel = M('Channel')->field('id,title')->where(['status' => 1,'id' =>['neq',6]])->select();
+        $channel = M('Channel')->field('id,title')->where(['currency' => $currency,'status' => 1,'id' =>['neq',6]])->select();
         if ($agencys) {
                 $data=[];
             foreach ($agencys as $k => $av) {
@@ -942,6 +945,7 @@ class StatisticsController extends BaseController
                 }
             }
         }
+        $this->assign('currency', $currency);
         $this->assign('channel', $channel);
         $this->assign('rows', $rows);
         $this->assign('page', $Page->show());

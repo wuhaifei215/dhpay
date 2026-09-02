@@ -1159,7 +1159,7 @@ class ApiController extends Controller
         if ($chat_id) {
             $where=[];
             $where['telegram_id'] = $chat_id;
-            $info = M('Member')->field('id, username, balance, blockedbalance, df_api, status, df_ip, operators,currency')->where($where)->find();
+            $info = M('Member')->field('id, username, balance, blockedbalance, df_api, status, df_ip, operators, currency, groupid')->where($where)->find();
             // log_place_order($this->code . '_get_user', "sql", M('Member')->getLastSql());    //日志
             if ($info) {
                 $status = 1;

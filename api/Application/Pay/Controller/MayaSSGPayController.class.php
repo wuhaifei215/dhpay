@@ -40,9 +40,9 @@ class MayaSSGPayController extends PayController
         
         $native = array(
             'merchant' => $return['mch_id'],
-            'payment_type' => '7',
+            'payment_type' => '3',
             'amount' => sprintf('%.2f', $return['amount']),
-            'bank_code' => 'mya',
+            'bank_code' => 'PMP',
             'order_id' => $return['orderid'],
             'callback_url' => $return["notifyurl"],
             'return_url' =>$pay_callbackurl,        //支付后重定向地址

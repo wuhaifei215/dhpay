@@ -69,7 +69,7 @@ class MayaSSGPayController extends PayController
                     'out_trade_id' => $return['orderid'],
                     'amount' => $return['amount'],
                     'datetime' => date('Y-m-d')
-                ];12
+                ];
             }
         }else{
             $return_arr = [

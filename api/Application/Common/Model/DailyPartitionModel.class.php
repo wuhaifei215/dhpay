@@ -3,7 +3,7 @@ namespace Common\Model;
 
 use Think\Model;
 
-/** Daily table lifecycle shared by orders, payouts and balance logs. */
+/** 订单、代付和资金流水共用的每日分表管理逻辑。 */
 abstract class DailyPartitionModel extends Model
 {
     protected $partitionDb;
@@ -19,7 +19,7 @@ abstract class DailyPartitionModel extends Model
     protected function getPartitionDb()
     {
         if (!$this->partitionDb) {
-            // A separate, non-persistent connection keeps DDL out of payment transactions.
+            // 使用独立的非持久连接执行建表，避免隐式提交支付事务。
             $config = array();
             foreach (array('TYPE', 'USER', 'PWD', 'HOST', 'PORT', 'NAME', 'DSN',
                 'PARAMS', 'CHARSET', 'DEPLOY_TYPE', 'RW_SEPARATE', 'MASTER_NUM',
@@ -28,7 +28,7 @@ abstract class DailyPartitionModel extends Model
             }
             $config['DB_PARAMS'] = (array) $config['DB_PARAMS'];
             $config['DB_PARAMS'][\PDO::ATTR_PERSISTENT] = false;
-            // Db caches drivers by the entire config, including this discriminator.
+            // Db 按完整配置缓存数据库驱动，通过此标记与业务连接区分。
             $config['DAILY_PARTITION_CONNECTION'] = true;
             $this->partitionDb = \Think\Db::getInstance($config);
         }
@@ -52,7 +52,7 @@ abstract class DailyPartitionModel extends Model
         $tables = array();
         foreach ($rows as $row) {
             $table = reset($row);
-            // LIKE treats underscores as wildcards; accept only this model's tables.
+            // LIKE 将下划线视为通配符，因此还需校验表名，只保留当前模型的表。
             if (preg_match('/^' . preg_quote($prefix, '/') . '(?:[0-9]{4})?$/D', $table)) {
                 $tables[] = $table;
             }
@@ -73,7 +73,7 @@ abstract class DailyPartitionModel extends Model
                 $ids = $this->getLastIds();
                 $newId = $ids ? max($ids) + 1 : 1;
                 $db = $this->getPartitionDb();
-                // Another request may create the table after our existence check.
+                // 检查表是否存在后，其他并发请求仍可能抢先创建该表。
                 if ($db->execute($this->buildPartitionSql($tableName, $newId)) === false) {
                     throw new \RuntimeException('Partition creation failed: ' . $db->getError());
                 }
@@ -82,7 +82,7 @@ abstract class DailyPartitionModel extends Model
                     throw new \RuntimeException('Created partition is not visible');
                 }
             }
-            // Never cache failures; a later call must be able to retry.
+            // 仅在检查成功后缓存日期，失败时允许后续调用重试。
             $this->checkedPartitionDate = $date;
         } catch (\Throwable $error) {
             \Think\Log::write('Daily partition failed; table=' . $tableName
@@ -112,7 +112,7 @@ abstract class DailyPartitionModel extends Model
 
     protected function _parseOptions($options = array())
     {
-        // Also cover a model/table selected before midnight and executed afterwards.
+        // 兼容零点前选定模型或数据表、零点后才执行操作的场景。
         $this->createTable();
         return parent::_parseOptions($options);
     }

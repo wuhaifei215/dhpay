@@ -64,7 +64,7 @@ class WttklistModel extends Model {
                   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
                   `userid` int(11) NOT NULL,
                   `orderid` varchar(100) NOT NULL DEFAULT ' ' COMMENT '订单id',
-                  `out_trade_no` varchar(30) NOT NULL DEFAULT '' COMMENT '下游订单号',
+                  `out_trade_no` varchar(40) NOT NULL DEFAULT '' COMMENT '下游订单号',
                   `bankname` varchar(300) NOT NULL,
                   `bankzhiname` varchar(300) DEFAULT NULL,
                   `banknumber` varchar(300) NOT NULL,

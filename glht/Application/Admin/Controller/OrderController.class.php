@@ -194,6 +194,7 @@ class OrderController extends BaseController
         $where = array();
         $currency = I("request.currency", C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
         $where['currency'] = ['eq', $currency];
+        $profitMap['currency'] = ['eq', $currency];
         $this->assign('currency', $currency);
 
         //银行

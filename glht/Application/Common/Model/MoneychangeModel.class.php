@@ -3,9 +3,8 @@
 // | 订单模型
 // +----------------------------------------------------------------------
 namespace Common\Model;
-use Think\Model;
 
-class MoneychangeModel extends Model {
+class MoneychangeModel extends DailyPartitionModel {
     protected $expire_date;
     protected $tablePrefix = 'pay_'; // 分表前缀
     protected $tableName = 'moneychange'; // 默认表名
@@ -34,32 +33,10 @@ class MoneychangeModel extends Model {
     {
         parent::__construct();
         $this->expire_date = $this->loadEnv();
-        //获取所有订单分表表名
-        $orderTable_arr = $this->query("SHOW TABLES LIKE '". $this->tablePrefix . $this->tableName ."%'");
-        $orderTable_array=[];
-        foreach($orderTable_arr as $v){
-            foreach ($v as $vv){
-                $orderTable_array[] = $vv;
-            }
-        }
-        krsort($orderTable_array);
-        $this->orderTables = $orderTable_array;
         $this->createTable();
-        // $this->setRealTableName();
     }
-    protected function createTable(){
-        $tableName = $this->getRealTableName(date('Ymd',time()));
-        $isTable = $this->query("SHOW TABLES LIKE '". $tableName ."'");
-        if(!$isTable){
-            $lastId_array = $this->getLastIds();
-            array_push($this->orderTables,$tableName);
-            if($lastId_array){
-                $maxValue = max($lastId_array);
-                $newId = ($maxValue+1);
-            }else{
-                $newId = 1;
-            }
-            $creatSql = "CREATE TABLE `" . $tableName . "` (
+    protected function buildPartitionSql($tableName, $newId) {
+        $creatSql = "CREATE TABLE IF NOT EXISTS `" . $tableName . "` (
                   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
                   `userid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '商户编号',
                   `ymoney` decimal(15,4) unsigned NOT NULL DEFAULT '0.0000' COMMENT '原金额',
@@ -79,14 +56,16 @@ class MoneychangeModel extends Model {
                   `currency` varchar(10) NOT NULL COMMENT '国家货币',
                   PRIMARY KEY (`id`)
                 ) ENGINE=InnoDB AUTO_INCREMENT=" . $newId . " DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;";
-            $this->execute($creatSql);
-        }
+        return $creatSql;
     }
 
     public function getTables($data=array()){
+        $this->createTable();
+        $tables = array();
         if(!empty($data) && $data['datetime']){
             //获取时间范围内的表
             list($startdate, $enddate) = $this->new_parseDate($data);
+            $this->createTable();
             $data_arr = $this->getDateRange($startdate, $enddate);
             foreach ($data_arr as $date) {
                 $realTableName = $this->getRealTableName($date);
@@ -98,20 +77,6 @@ class MoneychangeModel extends Model {
             $tables = $this->orderTables;
         }
         return $tables;
-    }
-
-    public function getLastIds($returnAllArray = false){
-        foreach ($this->orderTables as $k => $v){
-            $lastIds = $this->query("SELECT id FROM " . $v . ' ORDER BY id DESC LIMIT 1');
-            $lastId_array[] = $lastIds[0]['id']+0;
-            $lastAllArray[$k]['table']=$v;
-            $lastAllArray[$k]['id']=$lastIds[0]['id']+0;
-        }
-        if(!$returnAllArray){
-            return $lastId_array;
-        }else{
-            return $lastAllArray;
-        }
     }
 
     // 获取实际表名的方法
@@ -164,6 +129,7 @@ class MoneychangeModel extends Model {
 
     // 按时间范围查询数据表
     public function getOrderByDateRange($field=array(), $options=array(), $limit='', $orderby='' , $groupby='') {
+        $this->createTable();
         if(!$field){
             $field = '*';
         }else{
@@ -186,6 +152,7 @@ class MoneychangeModel extends Model {
         }
         $result = [];
         list($startdate, $enddate) = $this->new_parseDate($options);
+        $this->createTable();
         if($startdate && $enddate){
             //获取时间段内的每一天
             $data_arr = $this->getDateRange($startdate, $enddate);        // 构建查询语句
@@ -267,6 +234,7 @@ class MoneychangeModel extends Model {
         // 根据创建时间计算应该使用的分表
         $date = isset($options['datetime']) ? $options['datetime'] : date('Ymd',time());
         $tableName = $this->getRealTableName($date);
+        $this->createTable();
         // 切换到对应的分表进行更新操作
         $options['where'] = $options;
         $options['table'] = $tableName;

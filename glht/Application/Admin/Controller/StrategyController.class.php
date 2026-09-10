@@ -312,8 +312,6 @@ class StrategyController extends BaseController
             if ($product['currency'] !== $strategy['currency']) {
                 $this->ajaxReturn(['status' => 0, 'msg' => '策略与产品币种不匹配']);
             }
-            $productChannelIds = $this->getProductChannelIds($product, $strategy['type']);
-
             // 构建通道配置
             $channelConfig = [];
             if (!empty($channelIds) && !empty($weights)) {
@@ -323,9 +321,6 @@ class StrategyController extends BaseController
                     $channelId = intval(trim($channelId));
                     $weight = isset($weightArr[$k]) ? intval(trim($weightArr[$k])) : 1;
                     if ($channelId > 0 && $weight > 0) {
-                        if (!in_array($channelId, $productChannelIds, true)) {
-                            $this->ajaxReturn(['status' => 0, 'msg' => '通道不属于当前产品：' . $channelId]);
-                        }
                         $channelModel = $strategy['type'] == 1 ? M('Channel') : M('PayForAnother');
                         if (!$channelModel->where([
                             'id' => $channelId,
@@ -395,10 +390,8 @@ class StrategyController extends BaseController
             $this->error('策略与产品币种不匹配');
         }
 
-        // 代收使用产品配置的精确通道集合；代付按现有 paytype 关系确定产品通道。
-        $productChannelIds = $this->getProductChannelIds($product, $strategy['type']);
+        // 当前数据模型通过 paytype 关联产品与实际通道。
         $channelWhere = [
-            'id' => ['in', empty($productChannelIds) ? [0] : $productChannelIds],
             'status' => 1,
             'currency' => $product['currency'],
             'paytype' => $product['paytype'],
@@ -1018,33 +1011,6 @@ class StrategyController extends BaseController
     {
         $model = intval($type) === 1 ? M('ProductUser') : M('UserPayForAnother');
         return (bool) $model->where(['userid' => intval($userid), 'pid' => intval($productId), 'status' => 1])->find();
-    }
-
-    private function getProductChannelIds($product, $type)
-    {
-        if (intval($type) === 2) {
-            $ids = M('PayForAnother')->where([
-                'status' => 1,
-                'currency' => $product['currency'],
-                'paytype' => $product['paytype'],
-            ])->getField('id', true);
-            return array_values(array_unique(array_map('intval', $ids ?: [])));
-        }
-
-        $ids = [];
-        if (intval($product['polling']) === 1) {
-            foreach (explode('|', (string) $product['weight']) as $item) {
-                $parts = explode(':', $item, 2);
-                $channelId = intval($parts[0]);
-                if ($channelId > 0) {
-                    $ids[] = $channelId;
-                }
-            }
-        } elseif (intval($product['channel']) > 0) {
-            $ids[] = intval($product['channel']);
-        }
-
-        return array_values(array_unique($ids));
     }
 
     private function clearMemberStrategyRedisCache($userid, $productId, $type)

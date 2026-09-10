@@ -157,14 +157,14 @@ getMemberStrategyByProduct($userid, $productId, $type)
 
 ### 5.1.1 档位通道归属规则
 
-当前数据库没有通道到产品的 `productid` 外键。代收产品通过 `pay_product.channel/weight` 保存精确通道集合；代付产品没有独立的通道集合，通过 `paytype` 关联。因此，档位管理和运行时路由必须先读取策略关联的产品，再确定可用通道。
+当前数据库没有通道到产品的 `productid` 外键，系统使用 `paytype` 表示产品类型，产品与实际通道通过 `paytype` 关联。因此，档位管理和运行时路由必须先读取策略关联的产品，再确定可用通道。
 
 ```text
-代收：通道 ID 位于产品 channel/weight + status=1 + paytype/币种匹配
-代付：通道 paytype=产品.paytype + currency=产品.currency + status=1
+代收：pay_channel.paytype=产品.paytype + currency=产品.currency + status=1
+代付：pay_pay_for_another.paytype=产品.paytype + currency=产品.currency + status=1
 ```
 
-- 代收策略查询 `pay_channel`，单通道产品读取 `channel`，轮询产品解析 `weight` 中的通道 ID；
+- 代收策略查询 `pay_channel`；
 - 代付策略查询 `pay_pay_for_another`；
 - 档位编辑页面只展示符合上述条件的通道；
 - 档位保存时必须逐个校验提交的通道，禁止仅依赖前端过滤；

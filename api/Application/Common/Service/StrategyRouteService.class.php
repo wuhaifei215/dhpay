@@ -205,7 +205,7 @@ class StrategyRouteService
         if ($currency !== '') {
             $where['currency'] = $currency;
         }
-        return M('Product')->where($where)->field('id,paytype,currency,polling,channel,weight')->find() ?: null;
+        return M('Product')->where($where)->field('id,paytype,currency')->find() ?: null;
     }
 
     public function validateMerchantProduct($userid, $productId, $type)
@@ -461,9 +461,6 @@ class StrategyRouteService
         if (isset($product['paytype']) && isset($channel['paytype']) && intval($channel['paytype']) !== intval($product['paytype'])) {
             return false;
         }
-        if ($type == 1 && !in_array(intval($channel['id']), $this->getCollectionProductChannelIds($product), true)) {
-            return false;
-        }
 
         // 检查金额是否在通道范围内
         if (isset($channel['min_amount']) && $amount < $channel['min_amount']) {
@@ -483,23 +480,6 @@ class StrategyRouteService
         }
 
         return true;
-    }
-
-    private function getCollectionProductChannelIds($product)
-    {
-        $ids = [];
-        if (intval($product['polling']) === 1) {
-            foreach (explode('|', (string) $product['weight']) as $item) {
-                $parts = explode(':', $item, 2);
-                $channelId = intval($parts[0]);
-                if ($channelId > 0) {
-                    $ids[] = $channelId;
-                }
-            }
-        } elseif (intval($product['channel']) > 0) {
-            $ids[] = intval($product['channel']);
-        }
-        return array_values(array_unique($ids));
     }
 
     /**

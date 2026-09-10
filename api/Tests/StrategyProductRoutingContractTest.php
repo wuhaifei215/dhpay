@@ -31,8 +31,6 @@ $contracts = [
     'Redis 故障使用空缓存降级' => strpos($service, 'new StrategyNullRedis()') !== false,
     '通道校验包含币种' => strpos($service, "\$channel['currency'] !== \$currency") !== false,
     '运行时通道校验产品类型' => strpos($service, "intval(\$channel['paytype']) !== intval(\$product['paytype'])") !== false,
-    '代收运行时校验产品精确通道' => strpos($service, 'getCollectionProductChannelIds($product)') !== false,
-    '管理端读取产品精确通道' => strpos($admin, 'getProductChannelIds($product, $strategy') !== false,
 ];
 
 $failed = array_keys(array_filter($contracts, function ($passed) {

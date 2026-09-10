@@ -239,10 +239,10 @@ class V8PayMayaDFController extends PaymentController
             return;
         }
         if ($state === 'done') {
-            $this->changeStatus($order['id'], 2, ['memo' => 'Maya代付成功'], $orderInfo['tableName']);
+            $this->changeStatus($order['id'], 2, ['memo' => '代付成功'], $orderInfo['tableName']);
         } elseif (in_array($state, ['delete', 'rejected'], true)) {
             $reason = !empty($payload['deleteReason']) ? (string)$payload['deleteReason'] : $state;
-            $this->changeStatus($order['id'], 3, ['memo' => 'Maya代付失败-' . $reason], $orderInfo['tableName']);
+            $this->changeStatus($order['id'], 3, ['memo' => '代付失败-' . $reason], $orderInfo['tableName']);
         }
         $this->writeNotifyLog($orderid, $notification, 'SUCCESS-' . $state);
         $this->respond('SUCCESS');

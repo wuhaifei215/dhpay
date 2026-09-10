@@ -114,12 +114,6 @@ class V8PayMayaController extends PayController
             return;
         }
 
-        $account = !empty($order['account_id'])
-            ? M('ChannelAccount')->where(['id' => (int)$order['account_id']])->find()
-            : [];
-        $channel = !empty($order['channel_id'])
-            ? M('Channel')->where(['id' => (int)$order['channel_id']])->find()
-            : [];
         if (!$this->verifyWebhook($notification, self::AES_KEY)) {
             $this->writeNotifyLog($orderid, $notification, 'AES签名错误');
             $this->respond('Sign FAIL', 401);
@@ -203,14 +197,17 @@ class V8PayMayaController extends PayController
         if (empty($notification['algorithm']['iv']) || strtolower((string)$notification['algorithm']['type']) !== 'aes-256-cbc') {
             return false;
         }
-        $decrypted = openssl_decrypt(
-            (string)$notification['checksum'],
-            'aes-256-cbc',
-            (string)$aesKey,
-            0,
-            (string)$notification['algorithm']['iv']
-        );
-        return is_string($decrypted) && hash_equals((string)$notification['md5'], $decrypted);
+
+        $bin = hex2bin($notification['checksum']);
+        $b64 = base64_encode($bin);
+        $decryptedData = self::decryptRJ256($aesKey, $notification['algorithm']['iv'], $b64);
+        return $decryptedData;
+    }
+    private function decryptRJ256($key, $iv, $string_to_decrypt)
+    {
+        $rtn = openssl_decrypt($string_to_decrypt, "aes-256-cbc", $key, 0, $iv);
+        $rtn = rtrim($rtn, "\0\4");
+        return ($rtn);
     }
 
     private function postJson($url, $json, $token, $checksum)

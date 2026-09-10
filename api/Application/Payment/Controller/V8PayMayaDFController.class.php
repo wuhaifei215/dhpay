@@ -10,7 +10,7 @@ class V8PayMayaDFController extends PaymentController
     private const BALANCE_PATH = '/org/balance';
     private const GCASH_BANK_CODE = 8355;
     private const MAYA_BANK_CODE = 8392;
-    private const AES_KEY = '5ywYrSChuJBcja3vGkBWyYLDCzoMZKD7';
+    private const AES_KEY = 'EpPt34Kc67SyyDZspl2KmfKeMHw5tfh7';
 
     private $code = '';
 
@@ -346,8 +346,17 @@ class V8PayMayaDFController extends PaymentController
         if (empty($notification['algorithm']['iv']) || strtolower((string)$notification['algorithm']['type']) !== 'aes-256-cbc') {
             return false;
         }
-        $decrypted = openssl_decrypt((string)$notification['checksum'], 'aes-256-cbc', (string)$aesKey, 0, (string)$notification['algorithm']['iv']);
-        return is_string($decrypted) && hash_equals((string)$notification['md5'], $decrypted);
+
+        $bin = hex2bin($notification['checksum']);
+        $b64 = base64_encode($bin);
+        $decryptedData = self::decryptRJ256($aesKey, $notification['algorithm']['iv'], $b64);
+        return $decryptedData;
+    }
+    private function decryptRJ256($key, $iv, $string_to_decrypt)
+    {
+        $rtn = openssl_decrypt($string_to_decrypt, "aes-256-cbc", $key, 0, $iv);
+        $rtn = rtrim($rtn, "\0\4");
+        return ($rtn);
     }
 
     private function postJson($url, $json, $token, $checksum)

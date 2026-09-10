@@ -737,17 +737,13 @@ class StrategyController extends BaseController
         }
         $userList = M('Member')->where($where)->order('id desc')->select();
 
-        // 获取策略列表
-        $strategies = M('Strategy')->where(['type' => $type, 'status' => 1])->order('id ASC')->select();
-
         // 国家列表
         $country = M('Country')->where(['status' => 1])->select();
 
         $this->assign('type', $type);
         $this->assign('currency', $currency);
         $this->assign('country', $country);
-        $this->assign('strategies', $strategies);
-        $this->assign('products', M('Product')->where(['status' => 1])->field('id,name,code,currency')->order('id DESC')->select());
+        $this->assign('products', $this->getBatchProducts($type, $currency));
         $this->assign('userList', $userList);
         $this->display();
     }
@@ -772,17 +768,13 @@ class StrategyController extends BaseController
             $agency = M('Agency')->select();
         }
 
-        // 获取策略列表
-        $strategies = M('Strategy')->where(['type' => $type, 'status' => 1])->order('id ASC')->select();
-
         // 国家列表
         $country = M('Country')->where(['status' => 1])->select();
 
         $this->assign('type', $type);
         $this->assign('currency', $currency);
         $this->assign('country', $country);
-        $this->assign('strategies', $strategies);
-        $this->assign('products', M('Product')->where(['status' => 1])->field('id,name,code,currency')->order('id DESC')->select());
+        $this->assign('products', $this->getBatchProducts($type, $currency));
         $this->assign('agency', $agency);
         $this->display();
     }
@@ -798,81 +790,23 @@ class StrategyController extends BaseController
 
         $ids = I('post.ids', '', 'trim');
         $type = I('post.type', 1, 'intval');
-        $strategyid = I('post.strategyid', 0, 'intval');
-        $productId = I('post.productid', 0, 'intval');
         $status = I('post.status', 1, 'intval');
 
         if (empty($ids)) {
             $this->error('请选择商户');
         }
 
-        // 解析用户ID列表
-        $useridArr = array_filter(array_map('intval', explode(',', $ids)));
+        $useridArr = array_values(array_unique(array_filter(array_map('intval', explode(',', $ids)))));
         if (empty($useridArr)) {
             $this->error('商户ID格式不正确');
         }
 
-        // 验证策略
-        if ($productId <= 0) {
-            $this->error('请选择产品');
-        }
-        if ($strategyid > 0) {
-            $strategy = M('Strategy')->where(['id' => $strategyid, 'productid' => $productId, 'type' => $type, 'status' => 1])->find();
-            if (!$strategy) {
-                $this->error('策略不存在或已禁用');
-            }
-        }
-
-        $successCount = 0;
-        $existCount = 0;
-        $skipCount = 0;
-        $db = M();
-        $db->startTrans();
-
         try {
-            foreach ($useridArr as $userid) {
-                // 检查商户国家是否与策略匹配
-                if ($strategyid > 0) {
-                    $member = M('Member')->find($userid);
-                    if (!$member || $member['currency'] !== $strategy['currency'] || !$this->merchantHasProduct($userid, $productId, $type)) {
-                        $skipCount++;
-                        continue;
-                    }
-                }
-
-                // 检查是否已存在配置
-                $exist = M('MemberStrategy')->where(['userid' => $userid, 'productid' => $productId])->find();
-
-                if ($exist) {
-                    M('MemberStrategy')->where(['userid' => $userid, 'productid' => $productId])->save([
-                        'strategyid' => $strategyid,
-                        'status' => $status,
-                        'updatetime' => date('Y-m-d H:i:s'),
-                    ]);
-                    $existCount++;
-                } else {
-                    M('MemberStrategy')->add([
-                        'userid' => $userid,
-                        'productid' => $productId,
-                        'type' => $type,
-                        'strategyid' => $strategyid,
-                        'status' => $status,
-                        'createtime' => date('Y-m-d H:i:s'),
-                    ]);
-                    $successCount++;
-                }
-
-                // 清除缓存
-                $this->clearMemberStrategyRedisCache($userid, $productId, $type);
-            }
-
-            $db->commit();
-
-            UserLogService::HTwrite(1, '批量分配策略', "批量分配策略：类型={$type}，策略ID={$strategyid}，新增={$successCount}，更新={$existCount}，跳过={$skipCount}");
-
-            $this->success("操作成功：新增 {$successCount} 条，更新 {$existCount} 条，跳过 {$skipCount} 条（国家不匹配）");
+            $assignments = $this->readBatchProductAssignments($type);
+            $result = $this->applyBatchProductAssignments($useridArr, $type, $assignments, $status);
+            UserLogService::HTwrite(1, '批量分配产品策略', "批量分配产品策略：类型={$type}，产品数=" . count($assignments) . "，新增={$result['inserted']}，更新={$result['updated']}，清除={$result['deleted']}，跳过={$result['skipped']}");
+            $this->success($this->formatBatchAssignResult($result));
         } catch (\Exception $e) {
-            $db->rollback();
             $this->error('操作失败：' . $e->getMessage());
         }
     }
@@ -889,90 +823,248 @@ class StrategyController extends BaseController
 
         $ids = I('post.ids', '', 'trim');
         $type = I('post.type', 1, 'intval');
-        $strategyid = I('post.strategyid', 0, 'intval');
-        $productId = I('post.productid', 0, 'intval');
         $status = I('post.status', 1, 'intval');
+        $currency = I('post.currency', '', 'trim,string,strip_tags,htmlspecialchars');
 
         if (empty($ids)) {
             $this->error('请选择包网');
         }
 
-        // 解析包网ID列表
-        $agencyArr = array_filter(array_map('intval', explode(',', $ids)));
+        $agencyArr = array_values(array_unique(array_filter(array_map('intval', explode(',', $ids)))));
         if (empty($agencyArr)) {
             $this->error('包网ID格式不正确');
         }
 
-        // 验证策略
-        if ($productId <= 0) {
-            $this->error('请选择产品');
+        $memberWhere = ['agency_id' => ['in', $agencyArr], 'status' => 1];
+        if ($currency !== '') {
+            $memberWhere['currency'] = $currency;
         }
-        if ($strategyid > 0) {
-            $strategy = M('Strategy')->where(['id' => $strategyid, 'productid' => $productId, 'type' => $type, 'status' => 1])->find();
-            if (!$strategy) {
-                $this->error('策略不存在或已禁用');
-            }
-        }
-
-        // 获取包网下的所有商户
-        $members = M('Member')->where(['agency_id' => ['in', $agencyArr], 'status' => 1])->select();
+        $members = M('Member')->where($memberWhere)->field('id')->select();
         if (empty($members)) {
             $this->error('所选包网下没有有效商户');
         }
 
-        $successCount = 0;
-        $existCount = 0;
-        $skipCount = 0;
-        $db = M();
-        $db->startTrans();
+        $useridArr = [];
+        foreach ($members as $member) {
+            $useridArr[] = intval($member['id']);
+        }
 
         try {
-            foreach ($members as $member) {
-                $userid = $member['id'];
-
-                // 检查商户国家是否与策略匹配
-                if ($strategyid > 0) {
-                    if ($member['currency'] !== $strategy['currency'] || !$this->merchantHasProduct($userid, $productId, $type)) {
-                        $skipCount++;
-                        continue;
-                    }
-                }
-
-                // 检查是否已存在配置
-                $exist = M('MemberStrategy')->where(['userid' => $userid, 'productid' => $productId])->find();
-
-                if ($exist) {
-                    M('MemberStrategy')->where(['userid' => $userid, 'productid' => $productId])->save([
-                        'strategyid' => $strategyid,
-                        'status' => $status,
-                        'updatetime' => date('Y-m-d H:i:s'),
-                    ]);
-                    $existCount++;
-                } else {
-                    M('MemberStrategy')->add([
-                        'userid' => $userid,
-                        'productid' => $productId,
-                        'type' => $type,
-                        'strategyid' => $strategyid,
-                        'status' => $status,
-                        'createtime' => date('Y-m-d H:i:s'),
-                    ]);
-                    $successCount++;
-                }
-
-                // 清除缓存
-                $this->clearMemberStrategyRedisCache($userid, $productId, $type);
-            }
-
-            $db->commit();
-
-            UserLogService::HTwrite(1, '按包网批量分配策略', "按包网批量分配策略：类型={$type}，策略ID={$strategyid}，包网数=" . count($agencyArr) . "，商户新增={$successCount}，商户更新={$existCount}，跳过={$skipCount}");
-
-            $this->success("操作成功：新增 {$successCount} 条，更新 {$existCount} 条，跳过 {$skipCount} 条（国家不匹配）");
+            $assignments = $this->readBatchProductAssignments($type);
+            $result = $this->applyBatchProductAssignments($useridArr, $type, $assignments, $status);
+            UserLogService::HTwrite(1, '按包网批量分配产品策略', "按包网批量分配产品策略：类型={$type}，产品数=" . count($assignments) . "，包网数=" . count($agencyArr) . "，新增={$result['inserted']}，更新={$result['updated']}，清除={$result['deleted']}，跳过={$result['skipped']}");
+            $this->success($this->formatBatchAssignResult($result));
         } catch (\Exception $e) {
-            $db->rollback();
             $this->error('操作失败：' . $e->getMessage());
         }
+    }
+
+    private function getBatchProducts($type, $currency)
+    {
+        $productWhere = ['status' => 1];
+        if ($currency !== '') {
+            $productWhere['currency'] = $currency;
+        }
+        $products = M('Product')->where($productWhere)->field('id,name,code,currency')->order('id DESC')->select();
+        $products = $products ?: [];
+
+        $productIds = [];
+        $productMap = [];
+        foreach ($products as $product) {
+            $productId = intval($product['id']);
+            $productIds[] = $productId;
+            $productMap[$productId] = $product;
+        }
+
+        $strategies = empty($productIds) ? [] : M('Strategy')->where([
+            'productid' => ['in', $productIds],
+            'type' => intval($type),
+            'status' => 1,
+        ])->field('id,name,productid,currency')->order('id ASC')->select();
+        $strategyMap = [];
+        foreach ($strategies ?: [] as $strategy) {
+            $productId = intval($strategy['productid']);
+            if (isset($productMap[$productId]) && $strategy['currency'] === $productMap[$productId]['currency']) {
+                $strategyMap[$productId][] = $strategy;
+            }
+        }
+
+        foreach ($products as $key => $product) {
+            $productId = intval($product['id']);
+            $products[$key]['strategies'] = isset($strategyMap[$productId]) ? $strategyMap[$productId] : [];
+        }
+        return $products;
+    }
+
+    private function readBatchProductAssignments($type)
+    {
+        if (!in_array(intval($type), [1, 2], true)) {
+            throw new \InvalidArgumentException('策略类型错误');
+        }
+
+        $productIds = I('post.productids/a', []);
+        $strategyIds = I('post.strategyids/a', []);
+        $productIds = array_values(array_unique(array_filter(array_map('intval', (array) $productIds))));
+        if (empty($productIds)) {
+            throw new \InvalidArgumentException('请至少选择一个产品');
+        }
+
+        $products = M('Product')->where([
+            'id' => ['in', $productIds],
+            'status' => 1,
+        ])->field('id,name,currency')->select();
+        $productMap = [];
+        foreach ($products ?: [] as $product) {
+            $productMap[intval($product['id'])] = $product;
+        }
+        foreach ($productIds as $productId) {
+            if (!isset($productMap[$productId])) {
+                throw new \InvalidArgumentException('所选产品不存在或已关闭：' . $productId);
+            }
+            if (!array_key_exists($productId, (array) $strategyIds) || trim((string) $strategyIds[$productId]) === '') {
+                throw new \InvalidArgumentException('请选择产品“' . $productMap[$productId]['name'] . '”的策略或清除操作');
+            }
+        }
+
+        $selectedStrategyIds = [];
+        foreach ($productIds as $productId) {
+            $strategyId = intval($strategyIds[$productId]);
+            if ($strategyId > 0) {
+                $selectedStrategyIds[] = $strategyId;
+            }
+        }
+        $strategies = empty($selectedStrategyIds) ? [] : M('Strategy')->where([
+            'id' => ['in', array_values(array_unique($selectedStrategyIds))],
+            'type' => intval($type),
+            'status' => 1,
+        ])->field('id,name,productid,currency')->select();
+        $strategyMap = [];
+        foreach ($strategies ?: [] as $strategy) {
+            $strategyMap[intval($strategy['id'])] = $strategy;
+        }
+
+        $assignments = [];
+        foreach ($productIds as $productId) {
+            $strategyId = intval($strategyIds[$productId]);
+            $strategy = $strategyId > 0 && isset($strategyMap[$strategyId]) ? $strategyMap[$strategyId] : null;
+            if ($strategyId > 0 && (!$strategy || intval($strategy['productid']) !== $productId || $strategy['currency'] !== $productMap[$productId]['currency'])) {
+                throw new \InvalidArgumentException('产品“' . $productMap[$productId]['name'] . '”的策略无效或不匹配');
+            }
+            $assignments[$productId] = [
+                'product' => $productMap[$productId],
+                'strategy' => $strategy,
+            ];
+        }
+        return $assignments;
+    }
+
+    private function applyBatchProductAssignments($useridArr, $type, $assignments, $status)
+    {
+        $useridArr = array_values(array_unique(array_filter(array_map('intval', (array) $useridArr))));
+        $productIds = array_keys($assignments);
+        $members = empty($useridArr) ? [] : M('Member')->where([
+            'id' => ['in', $useridArr],
+            'status' => 1,
+        ])->field('id,currency')->select();
+        $memberMap = [];
+        foreach ($members ?: [] as $member) {
+            $memberMap[intval($member['id'])] = $member;
+        }
+
+        $mappingModel = intval($type) === 1 ? M('ProductUser') : M('UserPayForAnother');
+        $openedRows = empty($memberMap) ? [] : $mappingModel->where([
+            'userid' => ['in', array_keys($memberMap)],
+            'pid' => ['in', $productIds],
+            'status' => 1,
+        ])->field('userid,pid')->select();
+        $openedMap = [];
+        foreach ($openedRows ?: [] as $opened) {
+            $openedMap[intval($opened['userid']) . '_' . intval($opened['pid'])] = true;
+        }
+
+        $existingRows = empty($memberMap) ? [] : M('MemberStrategy')->where([
+            'userid' => ['in', array_keys($memberMap)],
+            'productid' => ['in', $productIds],
+        ])->select();
+        $existingMap = [];
+        foreach ($existingRows ?: [] as $existing) {
+            $existingMap[intval($existing['userid']) . '_' . intval($existing['productid'])] = $existing;
+        }
+
+        $result = ['inserted' => 0, 'updated' => 0, 'deleted' => 0, 'skipped' => 0];
+        $status = intval($status) === 1 ? 1 : 0;
+        $changed = [];
+        $db = M();
+        $db->startTrans();
+        try {
+            foreach ($useridArr as $userid) {
+                if (!isset($memberMap[$userid])) {
+                    $result['skipped'] += count($assignments);
+                    continue;
+                }
+                foreach ($assignments as $productId => $assignment) {
+                    $key = $userid . '_' . $productId;
+                    $strategy = $assignment['strategy'];
+                    if (!$strategy) {
+                        if (isset($existingMap[$key])) {
+                            $saved = M('MemberStrategy')->where(['id' => $existingMap[$key]['id']])->delete();
+                            if ($saved === false) {
+                                throw new \RuntimeException('清除产品策略失败');
+                            }
+                            $result['deleted']++;
+                            $changed[$key] = [$userid, $productId];
+                        }
+                        continue;
+                    }
+
+                    if ($memberMap[$userid]['currency'] !== $assignment['product']['currency'] || !isset($openedMap[$key])) {
+                        $result['skipped']++;
+                        continue;
+                    }
+
+                    if (isset($existingMap[$key])) {
+                        $saved = M('MemberStrategy')->where(['id' => $existingMap[$key]['id']])->save([
+                            'strategyid' => intval($strategy['id']),
+                            'type' => intval($type),
+                            'status' => $status,
+                            'updatetime' => date('Y-m-d H:i:s'),
+                        ]);
+                        if ($saved === false) {
+                            throw new \RuntimeException('更新产品策略失败');
+                        }
+                        $result['updated']++;
+                    } else {
+                        $saved = M('MemberStrategy')->add([
+                            'userid' => $userid,
+                            'productid' => $productId,
+                            'strategyid' => intval($strategy['id']),
+                            'type' => intval($type),
+                            'status' => $status,
+                            'createtime' => date('Y-m-d H:i:s'),
+                        ]);
+                        if ($saved === false) {
+                            throw new \RuntimeException('新增产品策略失败');
+                        }
+                        $result['inserted']++;
+                    }
+                    $changed[$key] = [$userid, $productId];
+                }
+            }
+            $db->commit();
+        } catch (\Exception $e) {
+            $db->rollback();
+            throw $e;
+        }
+
+        foreach ($changed as $item) {
+            $this->clearMemberStrategyRedisCache($item[0], $item[1], $type);
+        }
+        return $result;
+    }
+
+    private function formatBatchAssignResult($result)
+    {
+        return "操作成功：新增 {$result['inserted']} 条，更新 {$result['updated']} 条，清除 {$result['deleted']} 条，跳过 {$result['skipped']} 条（产品未开通或国家不匹配）";
     }
 
     /**

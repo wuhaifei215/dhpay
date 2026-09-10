@@ -12,6 +12,8 @@ $payout = file_get_contents($root . '/api/Application/Payment/Controller/CreateD
 $migration = file_get_contents($root . '/api/Sql/20260905_strategy_product.sql');
 $admin = file_get_contents($root . '/glht/Application/Admin/Controller/StrategyController.class.php');
 $assignView = file_get_contents($root . '/glht/Application/Admin/View/Strategy/assignMember.html');
+$batchAssignView = file_get_contents($root . '/glht/Application/Admin/View/Strategy/batchAssign.html');
+$batchAgencyView = file_get_contents($root . '/glht/Application/Admin/View/Strategy/batchAssignByAgency.html');
 
 $contracts = [
     '路由入口包含产品参数' => strpos($service, 'routeChannel($userid, $productId, $amount') !== false,
@@ -28,6 +30,10 @@ $contracts = [
     '单商户多产品使用事务' => preg_match('/function assignMember\(\)[\s\S]{0,9000}?startTrans\(\)/', $admin) === 1,
     '产品勾选后显示对应策略' => strpos($assignView, 'name="strategyids[<{$p.id}>]"') !== false,
     '商户列表展示多个产品策略' => strpos($admin, "['strategy_configs']") !== false,
+    '按商户批量提交多个产品' => strpos($batchAssignView, 'name="productids[]"') !== false && strpos($batchAssignView, 'name="strategyids[<{$p.id}>]"') !== false,
+    '按包网批量提交多个产品' => strpos($batchAgencyView, 'name="productids[]"') !== false && strpos($batchAgencyView, 'name="strategyids[<{$p.id}>]"') !== false,
+    '批量产品策略统一读取校验' => substr_count($admin, 'readBatchProductAssignments($type)') >= 2,
+    '批量产品策略统一事务处理' => preg_match('/function applyBatchProductAssignments\([\s\S]{0,9000}?startTrans\(\)/', $admin) === 1,
     '管理端校验商户产品开通' => strpos($admin, 'merchantHasProduct($userid, $productId, $type)') !== false,
     '管理端清理产品维度缓存' => strpos($admin, "'MemberStrategy_' . intval(\$userid) . '_' . intval(\$productId)") !== false,
     '档位通道按产品类型过滤' => strpos($admin, "'paytype' => \$product['paytype']") !== false,

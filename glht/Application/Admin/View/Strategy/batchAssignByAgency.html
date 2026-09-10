@@ -14,6 +14,13 @@
 <style>
 .layui-form-switch {width:54px;padding:0;}
 .layui-form-label {width:100px;padding:4px}
+.batch-settings {display:flex;align-items:center;gap:24px;padding:12px 16px;border:1px solid #e5e6e7;background:#fafafa;}
+.product-list {margin-top:12px;border:1px solid #e5e6e7;padding:0 16px;}
+.product-row {display:flex;align-items:center;gap:16px;min-height:58px;border-bottom:1px solid #e5e6e7;}
+.product-row:last-child {border-bottom:0;}
+.product-check {width:270px;padding-left:20px;}
+.product-select {flex:1;min-width:260px;}
+.product-empty {color:#999;line-height:38px;}
 </style>
 </head>
 <body class="gray-bg">
@@ -22,7 +29,7 @@
             <div class="col-sm-12">
                 <div class="ibox float-e-margins">
                     <div class="ibox-title">
-                        <h5>批量分配策略 - 按包网</h5>
+                        <h5>用户多产品策略配置 - 按包网</h5>
                     </div>
                     <div class="ibox-content">
                         <!-- Tab + 国家筛选 -->
@@ -51,33 +58,14 @@
 
                         <!-- 策略配置 -->
                         <form class="layui-form" id="batchAssignForm">
-                            <div class="layui-form-item" style="border:1px solid #e5e6e7;padding:15px;border-radius:4px;background:#fafafa;">
-                                <div class="layui-inline" style="margin-right:30px;">
-                                    <label class="layui-form-label" style="width:80px;">选择产品</label>
-                                    <div class="layui-input-inline" style="width:250px;">
-                                        <select name="productid" id="productSelect" lay-filter="productFilter" required>
-                                            <option value="">-- 请选择产品 --</option>
-                                            <volist name="products" id="p"><option value="<{$p.id}>"><{$p.name}> [<{$p.id}>] (<{$p.currency}>)</option></volist>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="layui-inline" style="margin-right:30px;">
+                            <input type="hidden" name="currency" value="<{$currency}>">
+                            <div class="batch-settings">
+                                <div class="layui-inline">
                                     <label class="layui-form-label" style="width:80px;">策略类型</label>
                                     <div class="layui-input-inline" style="width:150px;">
                                         <select name="type" lay-filter="typeFilter" id="typeSelect">
                                             <option value="1" <if condition="$type eq 1">selected</if>>代收</option>
                                             <option value="2" <if condition="$type eq 2">selected</if>>代付</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="layui-inline" style="margin-right:30px;">
-                                    <label class="layui-form-label" style="width:80px;">选择策略</label>
-                                    <div class="layui-input-inline" style="width:250px;">
-                                        <select name="strategyid" id="strategySelect">
-                                            <option value="0">-- 不启用策略（清除） --</option>
-                                            <volist name="strategies" id="s">
-                                            <option value="<{$s.id}>" data-productid="<{$s.productid}>"><{$s.name}> (<{$s.currency}>)</option>
-                                            </volist>
                                         </select>
                                     </div>
                                 </div>
@@ -90,6 +78,27 @@
                                         </select>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="product-list">
+                                <volist name="products" id="p">
+                                    <div class="product-row" data-productid="<{$p.id}>">
+                                        <div class="product-check">
+                                            <input type="checkbox" name="productids[]" value="<{$p.id}>" title="<{$p.name}> [<{$p.id}>] (<{$p.currency}>)" class="product-checkbox" lay-skin="primary" lay-filter="productCheck">
+                                        </div>
+                                        <div class="product-select">
+                                            <select name="strategyids[<{$p.id}>]" class="strategy-select" disabled>
+                                                <option value="">-- 请选择<{$p.name}>的策略或操作 --</option>
+                                                <option value="0">-- 清除该产品策略 --</option>
+                                                <volist name="p['strategies']" id="s">
+                                                    <option value="<{$s.id}>"><{$s.name}></option>
+                                                </volist>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </volist>
+                                <if condition="empty($products)">
+                                    <div class="product-empty">当前条件下暂无可配置产品</div>
+                                </if>
                             </div>
 
                             <!-- 包网列表 -->
@@ -137,11 +146,13 @@
         form.on('select(typeFilter)', function(data){
             location.href = "<{:U('batchAssignByAgency')}>?type=" + data.value + "&currency=<{$currency}>";
         });
-        form.on('select(productFilter)', function(data){
-            $('#strategySelect option').each(function(){
-                $(this).prop('disabled', $(this).val() != '0' && $(this).data('productid') != data.value);
-            });
-            $('#strategySelect').val('0');
+        form.on('checkbox(productCheck)', function(data){
+            var $row = $(data.elem).closest('.product-row');
+            var $select = $row.find('.strategy-select');
+            $select.prop('disabled', !data.elem.checked);
+            if (!data.elem.checked) {
+                $select.val('');
+            }
             form.render('select');
         });
 
@@ -158,19 +169,30 @@
                 return false;
             }
 
+            var productValid = true;
+            $('.product-checkbox:checked').each(function(){
+                var $row = $(this).closest('.product-row');
+                if ($row.find('.strategy-select').val() === '') {
+                    layer.msg('请为“' + $(this).attr('title') + '”选择策略或清除操作', {icon: 2, time: 2000});
+                    productValid = false;
+                    return false;
+                }
+            });
+            if (!$('.product-checkbox:checked').length) {
+                layer.msg('请至少选择一个产品', {icon: 2, time: 2000});
+                return false;
+            }
+            if (!productValid) {
+                return false;
+            }
+
             $.ajax({
                 url: "<{:U('saveBatchAssignByAgency')}>",
                 type: "post",
-                data: {
-                    'ids': ids,
-                    'type': data.field.type,
-                    'productid': data.field.productid,
-                    'strategyid': data.field.strategyid,
-                    'status': data.field.status
-                },
+                data: $('#batchAssignForm').serialize() + '&ids=' + encodeURIComponent(ids),
                 success: function(res){
                     if (res.status) {
-                        layer.alert("操作成功", {icon: 6}, function () {
+                        layer.alert(res.info || "操作成功", {icon: 6}, function () {
                             parent.location.reload();
                         });
                     } else {

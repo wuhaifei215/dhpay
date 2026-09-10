@@ -25,8 +25,14 @@ $contracts = [
     '管理端按商户产品 Upsert' => strpos($admin, "['userid' => \$userid, 'productid' => \$productId]") !== false,
     '管理端校验商户产品开通' => strpos($admin, 'merchantHasProduct($userid, $productId, $type)') !== false,
     '管理端清理产品维度缓存' => strpos($admin, "'MemberStrategy_' . intval(\$userid) . '_' . intval(\$productId)") !== false,
+    '档位通道按产品类型过滤' => strpos($admin, "'paytype' => \$product['paytype']") !== false,
+    '档位通道按产品币种过滤' => strpos($admin, "'currency' => \$product['currency']") !== false,
+    '档位保存校验通道归属产品' => strpos($admin, '通道不属于当前产品或已关闭') !== false,
     'Redis 故障使用空缓存降级' => strpos($service, 'new StrategyNullRedis()') !== false,
     '通道校验包含币种' => strpos($service, "\$channel['currency'] !== \$currency") !== false,
+    '运行时通道校验产品类型' => strpos($service, "intval(\$channel['paytype']) !== intval(\$product['paytype'])") !== false,
+    '代收运行时校验产品精确通道' => strpos($service, 'getCollectionProductChannelIds($product)') !== false,
+    '管理端读取产品精确通道' => strpos($admin, 'getProductChannelIds($product, $strategy') !== false,
 ];
 
 $failed = array_keys(array_filter($contracts, function ($passed) {

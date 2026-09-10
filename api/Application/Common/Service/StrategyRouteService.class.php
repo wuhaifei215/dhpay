@@ -77,7 +77,8 @@ class StrategyRouteService
             $currency = isset($member['currency']) ? $member['currency'] : '';
         }
 
-        if (!$this->validateProduct($productId, $type, $currency)) {
+        $product = $this->getValidProduct($productId, $currency);
+        if (!$product) {
             $this->logRoute($userid, $productId, $type, $amount, null, null, null, 'invalid_product', $outTradeNo, $currency, 'none');
             return null;
         }
@@ -128,9 +129,9 @@ class StrategyRouteService
 
         // 根据档位配置获取通道
         if ($type == 1) {
-            $channel = $this->routeCollectionChannel($tier, $amount, $currency);
+            $channel = $this->routeCollectionChannel($tier, $amount, $currency, $product);
         } else {
-            $channel = $this->routeWithdrawalChannel($tier, $amount, $currency);
+            $channel = $this->routeWithdrawalChannel($tier, $amount, $currency, $product);
         }
 
         // 记录日志
@@ -195,11 +196,16 @@ class StrategyRouteService
 
     public function validateProduct($productId, $type, $currency = '')
     {
+        return (bool) $this->getValidProduct($productId, $currency);
+    }
+
+    private function getValidProduct($productId, $currency = '')
+    {
         $where = ['id' => intval($productId), 'status' => 1];
         if ($currency !== '') {
             $where['currency'] = $currency;
         }
-        return (bool) M('Product')->where($where)->find();
+        return M('Product')->where($where)->field('id,paytype,currency,polling,channel,weight')->find() ?: null;
     }
 
     public function validateMerchantProduct($userid, $productId, $type)
@@ -282,13 +288,13 @@ class StrategyRouteService
      * @param float $amount 金额
      * @return array|null
      */
-    private function routeCollectionChannel($tier, $amount, $currency = '')
+    private function routeCollectionChannel($tier, $amount, $currency = '', $product = [])
     {
         // 如果配置了权重（多通道轮询）
         if (!empty($tier['channel_config'])) {
             $channelConfig = json_decode($tier['channel_config'], true);
             if (!empty($channelConfig) && is_array($channelConfig)) {
-                return $this->routeByWeight($channelConfig, $amount, 1, $currency);
+                return $this->routeByWeight($channelConfig, $amount, 1, $currency, $product);
             }
         }
 
@@ -297,7 +303,7 @@ class StrategyRouteService
             $channelIds = explode(',', $tier['channel_ids']);
             $channelId = $channelIds[0]; // 默认取第一个
             $channel = $this->getChannelInfo($channelId, 1);
-            return $this->checkChannelAvailable($channel, $amount, 1, $currency) ? $channel : null;
+            return $this->checkChannelAvailable($channel, $amount, 1, $currency, $product) ? $channel : null;
         }
 
         return null;
@@ -309,13 +315,13 @@ class StrategyRouteService
      * @param float $amount 金额
      * @return array|null
      */
-    private function routeWithdrawalChannel($tier, $amount, $currency = '')
+    private function routeWithdrawalChannel($tier, $amount, $currency = '', $product = [])
     {
         // 如果配置了权重（多通道轮询）
         if (!empty($tier['channel_config'])) {
             $channelConfig = json_decode($tier['channel_config'], true);
             if (!empty($channelConfig) && is_array($channelConfig)) {
-                return $this->routeByWeight($channelConfig, $amount, 2, $currency);
+                return $this->routeByWeight($channelConfig, $amount, 2, $currency, $product);
             }
         }
 
@@ -324,7 +330,7 @@ class StrategyRouteService
             $channelIds = explode(',', $tier['channel_ids']);
             $channelId = $channelIds[0];
             $channel = $this->getPayForAnotherInfo($channelId);
-            return $this->checkChannelAvailable($channel, $amount, 2, $currency) ? $channel : null;
+            return $this->checkChannelAvailable($channel, $amount, 2, $currency, $product) ? $channel : null;
         }
 
         return null;
@@ -337,7 +343,7 @@ class StrategyRouteService
      * @param int $type 类型 1:代收 2:代付
      * @return array|null
      */
-    private function routeByWeight($channelConfig, $amount, $type, $currency = '')
+    private function routeByWeight($channelConfig, $amount, $type, $currency = '', $product = [])
     {
         if (empty($channelConfig) || !is_array($channelConfig)) {
             return null;
@@ -361,7 +367,7 @@ class StrategyRouteService
             }
 
             // 检查通道是否可用
-            if ($channel && $this->checkChannelAvailable($channel, $amount, $type, $currency)) {
+            if ($channel && $this->checkChannelAvailable($channel, $amount, $type, $currency, $product)) {
                 // 根据权重添加通道到候选列表
                 for ($i = 0; $i < $weight; $i++) {
                     $availableChannels[] = $channel;
@@ -440,7 +446,7 @@ class StrategyRouteService
      * @param int $type 类型
      * @return bool
      */
-    private function checkChannelAvailable($channel, $amount, $type, $currency = '')
+    private function checkChannelAvailable($channel, $amount, $type, $currency = '', $product = [])
     {
         if (!$channel) {
             return false;
@@ -450,6 +456,12 @@ class StrategyRouteService
             return false;
         }
         if ($currency !== '' && isset($channel['currency']) && $channel['currency'] !== '' && $channel['currency'] !== $currency) {
+            return false;
+        }
+        if (isset($product['paytype']) && isset($channel['paytype']) && intval($channel['paytype']) !== intval($product['paytype'])) {
+            return false;
+        }
+        if ($type == 1 && !in_array(intval($channel['id']), $this->getCollectionProductChannelIds($product), true)) {
             return false;
         }
 
@@ -471,6 +483,23 @@ class StrategyRouteService
         }
 
         return true;
+    }
+
+    private function getCollectionProductChannelIds($product)
+    {
+        $ids = [];
+        if (intval($product['polling']) === 1) {
+            foreach (explode('|', (string) $product['weight']) as $item) {
+                $parts = explode(':', $item, 2);
+                $channelId = intval($parts[0]);
+                if ($channelId > 0) {
+                    $ids[] = $channelId;
+                }
+            }
+        } elseif (intval($product['channel']) > 0) {
+            $ids[] = intval($product['channel']);
+        }
+        return array_values(array_unique($ids));
     }
 
     /**

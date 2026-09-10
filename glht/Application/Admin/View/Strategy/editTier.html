@@ -18,7 +18,7 @@
             <div class="col-sm-12">
                 <div class="ibox float-e-margins">
                     <div class="ibox-title">
-                        <h5><if condition="isset($info)">编辑<else/>添加</if>档位 - <{$strategy.name}></h5>
+                        <h5><if condition="isset($info)">编辑<else/>添加</if>档位 - <{$strategy.name}> - <{$product.name}></h5>
                     </div>
                     <div class="ibox-content">
                         <form class="form-horizontal" method="post" action="<{:U('editTier')}>" id="tierForm">
@@ -59,7 +59,7 @@
 
                             <div class="hr-line-dashed"></div>
                             <h4>通道配置</h4>
-                            <p class="text-muted">配置该档位使用的支付通道，支持多通道加权随机</p>
+                            <p class="text-muted">仅显示产品“<{$product.name}>”下的有效通道，支持多通道加权随机</p>
 
                             <div id="channelList">
                                 <volist name="channels" id="ch">
@@ -87,7 +87,7 @@
                                     </div>
                                 </volist>
                                 <if condition="empty($channels)">
-                                    <div class="alert alert-warning">暂无可用通道，请先在通道管理中添加通道</div>
+                                    <div class="alert alert-warning">当前产品暂无可用通道，请先在通道管理中配置相同产品类型的通道</div>
                                 </if>
                             </div>
 

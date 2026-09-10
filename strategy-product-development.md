@@ -155,6 +155,21 @@ validateMerchantProduct($userid, $productId, $type)
 getMemberStrategyByProduct($userid, $productId, $type)
 ```
 
+### 5.1.1 档位通道归属规则
+
+当前数据库没有通道到产品的 `productid` 外键。代收产品通过 `pay_product.channel/weight` 保存精确通道集合；代付产品没有独立的通道集合，通过 `paytype` 关联。因此，档位管理和运行时路由必须先读取策略关联的产品，再确定可用通道。
+
+```text
+代收：通道 ID 位于产品 channel/weight + status=1 + paytype/币种匹配
+代付：通道 paytype=产品.paytype + currency=产品.currency + status=1
+```
+
+- 代收策略查询 `pay_channel`，单通道产品读取 `channel`，轮询产品解析 `weight` 中的通道 ID；
+- 代付策略查询 `pay_pay_for_another`；
+- 档位编辑页面只展示符合上述条件的通道；
+- 档位保存时必须逐个校验提交的通道，禁止仅依赖前端过滤；
+- 运行时路由必须再次校验通道的 `paytype` 和 `currency`，防止历史错误配置或绕过管理端写库导致跨产品路由。
+
 ### 5.2 收款 API
 
 文件：
@@ -448,4 +463,3 @@ strategy_source = product | legacy_fallback | none
 3. 数据库版本是否支持 NULL productid + 唯一索引迁移方案。
 4. 批量配置默认采用部分成功模式。
 5. 历史商户策略的产品归属由运营补录，不自动猜测。
-

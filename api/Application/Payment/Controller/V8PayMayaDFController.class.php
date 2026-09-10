@@ -10,6 +10,7 @@ class V8PayMayaDFController extends PaymentController
     private const BALANCE_PATH = '/org/balance';
     private const GCASH_BANK_CODE = 8355;
     private const MAYA_BANK_CODE = 8392;
+    private const AES_KEY = '5ywYrSChuJBcja3vGkBWyYLDCzoMZKD7';
 
     private $code = '';
 
@@ -220,9 +221,7 @@ class V8PayMayaDFController extends PaymentController
             return;
         }
 
-        // Withdrawal AES Secret Key 优先配置在 private_key，兼容旧配置回退 appsecret。
-        $aesKey = trim((string)$config['private_key']) !== '' ? (string)$config['private_key'] : (string)$config['appsecret'];
-        if (!$this->verifyWebhook($notification, $aesKey)) {
+        if (!$this->verifyWebhook($notification, self::AES_KEY)) {
             $this->writeNotifyLog($orderid, $notification, 'AES签名错误');
             $this->respond('Sign FAIL', 401);
             return;

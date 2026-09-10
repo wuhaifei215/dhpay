@@ -8,6 +8,7 @@ class V8PayMayaController extends PayController
     private const CREATE_PATH = '/deposit/create';
     private const QUERY_PATH = '/deposit/transactions/';
     private const MAYA_WAKE_GATE = '004';
+    private const AES_KEY = '5ywYrSChuJBcja3vGkBWyYLDCzoMZKD7';
 
     private $code = '';
 
@@ -119,9 +120,7 @@ class V8PayMayaController extends PayController
         $channel = !empty($order['channel_id'])
             ? M('Channel')->where(['id' => (int)$order['channel_id']])->find()
             : [];
-        // 入款 AES Secret Key 配置在子账号 appsecret，未配置子账号时回退通道 appsecret。
-        $aesKey = !empty($account['appsecret']) ? (string)$account['appsecret'] : (isset($channel['appsecret']) ? (string)$channel['appsecret'] : '');
-        if (!$this->verifyWebhook($notification, $aesKey)) {
+        if (!$this->verifyWebhook($notification, self::AES_KEY)) {
             $this->writeNotifyLog($orderid, $notification, 'AES签名错误');
             $this->respond('Sign FAIL', 401);
             return;

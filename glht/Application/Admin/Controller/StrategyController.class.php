@@ -449,82 +449,109 @@ class StrategyController extends BaseController
     {
         if (IS_POST) {
             $userid = I('post.userid', 0, 'intval');
-            $productId = I('post.productid', 0, 'intval');
-            $strategyId = I('post.strategyid', 0, 'intval');
             $type = I('post.type', 1, 'intval');
+            $productIds = I('post.productids/a', []);
+            $strategyIds = I('post.strategyids/a', []);
 
             if ($userid <= 0) {
                 $this->ajaxReturn(['status' => 0, 'msg' => '商户ID错误']);
             }
-            if ($productId <= 0) {
-                $this->ajaxReturn(['status' => 0, 'msg' => '请选择产品']);
+            if (!in_array($type, [1, 2], true)) {
+                $this->ajaxReturn(['status' => 0, 'msg' => '策略类型错误']);
             }
 
-            // 检查商户是否存在
             $member = M('Member')->find($userid);
             if (!$member) {
                 $this->ajaxReturn(['status' => 0, 'msg' => '商户不存在']);
             }
-            $product = M('Product')->where(['id' => $productId, 'status' => 1, 'currency' => $member['currency']])->find();
-            if (!$product || !$this->merchantHasProduct($userid, $productId, $type)) {
-                $this->ajaxReturn(['status' => 0, 'msg' => '商户未开通该产品或产品已关闭']);
+
+            $selectedProductIds = array_values(array_unique(array_filter(array_map('intval', (array) $productIds))));
+            $mappingModel = $type === 1 ? M('ProductUser') : M('UserPayForAnother');
+            $openedProductIds = $mappingModel->where(['userid' => $userid, 'status' => 1])->getField('pid', true);
+            $openedProductIds = array_values(array_unique(array_filter(array_map('intval', $openedProductIds ?: []))));
+            $products = empty($openedProductIds) ? [] : M('Product')->where([
+                'id' => ['in', $openedProductIds],
+                'status' => 1,
+                'currency' => $member['currency'],
+            ])->field('id,name')->select();
+            $productMap = [];
+            foreach ($products ?: [] as $product) {
+                $productMap[intval($product['id'])] = $product;
             }
 
-            // 验证策略
-            if ($strategyId > 0) {
-                $strategy = M('Strategy')->find($strategyId);
-                if (!$strategy || $strategy['status'] != 1) {
-                    $this->ajaxReturn(['status' => 0, 'msg' => '策略不存在或已关闭']);
+            foreach ($selectedProductIds as $productId) {
+                if (!isset($productMap[$productId])) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => '所选产品未开通或已关闭：' . $productId]);
                 }
-                if ($strategy['type'] != $type) {
-                    $this->ajaxReturn(['status' => 0, 'msg' => '策略类型不匹配']);
+                $strategyId = isset($strategyIds[$productId]) ? intval($strategyIds[$productId]) : 0;
+                if ($strategyId <= 0) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => '请选择产品“' . $productMap[$productId]['name'] . '”的策略']);
                 }
-                if (intval($strategy['productid']) !== $productId) {
-                    $this->ajaxReturn(['status' => 0, 'msg' => '策略与产品不匹配']);
-                }
-                // 国家校验
-                if ($strategy['currency'] !== $member['currency']) {
-                    $this->ajaxReturn(['status' => 0, 'msg' => '策略国家与商户不匹配']);
-                }
-            }
-
-            $where = ['userid' => $userid, 'productid' => $productId];
-            if ($strategyId > 0) {
-                $data = [
-                    'userid' => $userid,
+                $strategy = M('Strategy')->where([
+                    'id' => $strategyId,
                     'productid' => $productId,
-                    'strategyid' => $strategyId,
                     'type' => $type,
+                    'currency' => $member['currency'],
                     'status' => 1,
-                    'createtime' => date('Y-m-d H:i:s'),
-                ];
-                $existing = M('MemberStrategy')->where($where)->find();
-                if ($existing) {
-                    unset($data['createtime']);
-                    $data['updatetime'] = date('Y-m-d H:i:s');
-                    $res = M('MemberStrategy')->where(['id' => $existing['id']])->save($data);
-                    if ($res === 0) { $res = true; }
-                } else {
-                    $res = M('MemberStrategy')->add($data);
+                ])->find();
+                if (!$strategy) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => '产品“' . $productMap[$productId]['name'] . '”的策略无效或已关闭']);
                 }
-
-                if ($res) {
-                    UserLogService::HTwrite(3, '分配商户策略', '为商户（' . $member['username'] . '）分配策略：' . ($strategyId > 0 ? $strategy['name'] : '无'));
-                }
-            } else {
-                $res = M('MemberStrategy')->where($where)->delete();
-                if ($res === 0) { $res = true; }
-                UserLogService::HTwrite(3, '取消商户策略', '取消商户（' . $member['username'] . '）的策略配置');
             }
 
-            $this->clearMemberStrategyRedisCache($userid, $productId, $type);
+            $db = M();
+            $db->startTrans();
+            $changedProductIds = [];
+            try {
+                foreach (array_keys($productMap) as $productId) {
+                    $where = ['userid' => $userid, 'productid' => $productId];
+                    if (in_array($productId, $selectedProductIds, true)) {
+                        $strategyId = intval($strategyIds[$productId]);
+                        $existing = M('MemberStrategy')->where($where)->find();
+                        if ($existing) {
+                            $result = M('MemberStrategy')->where(['id' => $existing['id']])->save([
+                                'strategyid' => $strategyId,
+                                'type' => $type,
+                                'status' => 1,
+                                'updatetime' => date('Y-m-d H:i:s'),
+                            ]);
+                        } else {
+                            $result = M('MemberStrategy')->add([
+                                'userid' => $userid,
+                                'productid' => $productId,
+                                'strategyid' => $strategyId,
+                                'type' => $type,
+                                'status' => 1,
+                                'createtime' => date('Y-m-d H:i:s'),
+                            ]);
+                        }
+                        if ($result === false) {
+                            throw new \RuntimeException('保存产品策略失败：' . $productMap[$productId]['name']);
+                        }
+                    } else {
+                        $result = M('MemberStrategy')->where($where)->delete();
+                        if ($result === false) {
+                            throw new \RuntimeException('清除产品策略失败：' . $productMap[$productId]['name']);
+                        }
+                    }
+                    $changedProductIds[] = $productId;
+                }
+                $db->commit();
+            } catch (\Exception $e) {
+                $db->rollback();
+                $this->ajaxReturn(['status' => 0, 'msg' => $e->getMessage()]);
+            }
 
-            $this->ajaxReturn(['status' => $res ? 1 : 0, 'msg' => $res ? '操作成功' : '操作失败']);
+            foreach ($changedProductIds as $productId) {
+                $this->clearMemberStrategyRedisCache($userid, $productId, $type);
+            }
+            UserLogService::HTwrite(3, '分配商户策略', '为商户（' . $member['username'] . '）配置产品策略，共 ' . count($selectedProductIds) . ' 个产品');
+
+            $this->ajaxReturn(['status' => 1, 'msg' => '操作成功，已配置 ' . count($selectedProductIds) . ' 个产品策略']);
         }
 
         $userid = I('get.userid', 0, 'intval');
         $type = I('get.type', 1, 'intval');
-        $productId = I('get.productid', 0, 'intval');
         $typename = isset($this->typeMap[$type]) ? $this->typeMap[$type] : '代收';
 
         if ($userid <= 0) {
@@ -538,28 +565,43 @@ class StrategyController extends BaseController
 
         $mappingModel = $type == 1 ? M('ProductUser') : M('UserPayForAnother');
         $productIds = $mappingModel->where(['userid' => $userid, 'status' => 1])->getField('pid', true);
-        $products = empty($productIds) ? [] : M('Product')->where(['id' => ['in', $productIds], 'status' => 1, 'currency' => $member['currency']])->field('id,name,code,currency')->select();
-        if ($productId <= 0 && !empty($products)) {
-            $productId = intval($products[0]['id']);
+        $productIds = array_values(array_unique(array_filter(array_map('intval', $productIds ?: []))));
+        $products = empty($productIds) ? [] : M('Product')->where([
+            'id' => ['in', $productIds],
+            'status' => 1,
+            'currency' => $member['currency'],
+        ])->field('id,name,code,currency')->order('id ASC')->select();
+        $products = $products ?: [];
+
+        $currentRows = empty($productIds) ? [] : M('MemberStrategy')->where([
+            'userid' => $userid,
+            'productid' => ['in', $productIds],
+            'type' => $type,
+        ])->select();
+        $currentMap = [];
+        foreach ($currentRows ?: [] as $current) {
+            $currentMap[intval($current['productid'])] = $current;
         }
-        $strategys = M('Strategy')->where(['productid' => $productId, 'type' => $type, 'status' => 1, 'currency' => $member['currency']])->select();
 
-        // 获取当前配置
-        $current = M('MemberStrategy')->where(['userid' => $userid, 'productid' => $productId])->find();
+        $strategyRows = empty($productIds) ? [] : M('Strategy')->where([
+            'productid' => ['in', $productIds],
+            'type' => $type,
+            'status' => 1,
+            'currency' => $member['currency'],
+        ])->field('id,name,productid')->order('id ASC')->select();
+        $strategyMap = [];
+        foreach ($strategyRows ?: [] as $strategy) {
+            $strategyMap[intval($strategy['productid'])][] = $strategy;
+        }
 
-        // 获取当前策略的详细信息
-        if ($current && $current['strategyid'] > 0) {
-            $currentStrategy = M('Strategy')->find($current['strategyid']);
-            $currentTiers = M('StrategyTier')->where(['strategyid' => $current['strategyid'], 'status' => 1])->order('sort ASC')->select();
-            $current['strategy_info'] = $currentStrategy;
-            $current['tiers'] = $currentTiers;
+        foreach ($products as $key => $product) {
+            $productId = intval($product['id']);
+            $products[$key]['strategies'] = isset($strategyMap[$productId]) ? $strategyMap[$productId] : [];
+            $products[$key]['current'] = isset($currentMap[$productId]) ? $currentMap[$productId] : null;
         }
 
         $this->assign('member', $member);
-        $this->assign('strategys', $strategys);
         $this->assign('products', $products);
-        $this->assign('productId', $productId);
-        $this->assign('current', $current);
         $this->assign('type', $type);
         $this->assign('typename', $typename);
         $this->display();
@@ -622,17 +664,53 @@ class StrategyController extends BaseController
             ->order('id DESC')
             ->select();
 
-        // 获取商户策略配置
-        foreach ($members as $k => $v) {
-            $memberStrategy = M('MemberStrategy')->where(['userid' => $v['id'], 'type' => $type])->find();
-            if ($memberStrategy && $memberStrategy['strategyid'] > 0) {
-                $strategy = M('Strategy')->find($memberStrategy['strategyid']);
-                $members[$k]['strategy'] = $strategy;
-                $members[$k]['strategy_status'] = $memberStrategy['status'];
-            } else {
-                $members[$k]['strategy'] = null;
-                $members[$k]['strategy_status'] = 0;
+        // 批量装配商户的产品策略，避免列表页逐行查询。
+        $memberIds = [];
+        foreach ($members ?: [] as $member) {
+            $memberIds[] = intval($member['id']);
+        }
+        $memberStrategies = empty($memberIds) ? [] : M('MemberStrategy')->where([
+            'userid' => ['in', $memberIds],
+            'type' => $type,
+            'productid' => ['gt', 0],
+        ])->order('productid ASC')->select();
+        $strategyIds = [];
+        $configuredProductIds = [];
+        foreach ($memberStrategies ?: [] as $memberStrategy) {
+            if (intval($memberStrategy['strategyid']) > 0) {
+                $strategyIds[] = intval($memberStrategy['strategyid']);
+                $configuredProductIds[] = intval($memberStrategy['productid']);
             }
+        }
+        $strategyRows = empty($strategyIds) ? [] : M('Strategy')->where([
+            'id' => ['in', array_values(array_unique($strategyIds))],
+        ])->field('id,name')->select();
+        $productRows = empty($configuredProductIds) ? [] : M('Product')->where([
+            'id' => ['in', array_values(array_unique($configuredProductIds))],
+        ])->field('id,name')->select();
+        $strategyMap = [];
+        $productMap = [];
+        foreach ($strategyRows ?: [] as $strategy) {
+            $strategyMap[intval($strategy['id'])] = $strategy;
+        }
+        foreach ($productRows ?: [] as $product) {
+            $productMap[intval($product['id'])] = $product;
+        }
+        $memberConfigMap = [];
+        foreach ($memberStrategies ?: [] as $memberStrategy) {
+            $strategyId = intval($memberStrategy['strategyid']);
+            $productId = intval($memberStrategy['productid']);
+            if (isset($strategyMap[$strategyId], $productMap[$productId])) {
+                $memberConfigMap[intval($memberStrategy['userid'])][] = [
+                    'product' => $productMap[$productId],
+                    'strategy' => $strategyMap[$strategyId],
+                    'status' => intval($memberStrategy['status']),
+                ];
+            }
+        }
+        foreach ($members ?: [] as $key => $member) {
+            $memberId = intval($member['id']);
+            $members[$key]['strategy_configs'] = isset($memberConfigMap[$memberId]) ? $memberConfigMap[$memberId] : [];
         }
 
         $this->assign('type', $type);

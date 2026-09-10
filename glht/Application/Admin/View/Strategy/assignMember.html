@@ -11,6 +11,13 @@
 <link href="/Public/Front/css/animate.css" rel="stylesheet">
 <link href="/Public/Front/css/style.css" rel="stylesheet">
 <link rel="stylesheet" href="/Public/Front/js/plugins/layui/css/layui.css"  media="all">
+<style>
+.merchant-summary {margin-bottom:16px;padding:10px 14px;background:#f7f8fa;border:1px solid #e7eaec;}
+.product-strategy-row {display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid #e7eaec;}
+.product-choice {width:230px;margin:0;}
+.product-choice small {display:block;margin-left:20px;color:#888;}
+.strategy-choice {flex:1;min-width:0;}
+</style>
 </head>
 <body class="gray-bg">
     <div class="wrapper wrapper-content animated">
@@ -25,65 +32,43 @@
                             <input type="hidden" name="userid" value="<{$member.id}>">
                             <input type="hidden" name="type" value="<{$type}>">
 
-                            <div class="form-group">
-                                <label class="col-sm-3 control-label">商户编号：</label><{$member.id|shanghubianhao=###}>
+                            <div class="merchant-summary">
+                                商户编号：<strong><{$member.id|shanghubianhao=###}></strong>
+                                &nbsp;&nbsp; 商户用户名：<strong><{$member.username}></strong>
+                                &nbsp;&nbsp; 国家：<strong><{$member.currency}></strong>
                             </div>
 
-                            <div class="form-group">
-                                <label class="col-sm-3 control-label">商户用户名：</label><{$member.username}>
-                            </div>
+                            <h4>产品策略配置</h4>
+                            <p class="text-muted">可同时配置多个已开通产品；选择产品后，只能选择该产品对应的<{$typename}>策略。</p>
 
-                            <div class="form-group">
-                                <label class="col-sm-3 control-label">国家：</label><{$member.currency}>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="col-sm-3 control-label">产品</label>
-                                <div class="col-sm-6">
-                                    <select name="productid" class="form-control" id="productSelect" required>
-                                        <option value="">-- 请选择已开通产品 --</option>
-                                        <volist name="products" id="p">
-                                            <option value="<{$p.id}>" <if condition="$productId eq $p['id']">selected</if>><{$p.name}> [<{$p.id}>/<{$p.code}>]</option>
-                                        </volist>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="col-sm-3 control-label"><{$typename}>策略</label>
-                                <div class="col-sm-6">
-                                    <select name="strategyid" class="form-control" id="strategySelect">
-                                        <option value="0">-- 不使用策略（走原有配置）--</option>
-                                        <volist name="strategys" id="s">
-                                            <option value="<{$s.id}>" <if condition="isset($current) AND $current['strategyid'] eq $s['id']">selected</if>><{$s.name}> (<{$s.currency}>)</option>
-                                        </volist>
-                                    </select>
-                                    <span class="help-block">仅显示与商户同国家的策略。选择策略后，系统将根据金额自动分配通道</span>
-                                </div>
-                            </div>
-
-                            <!-- 策略详情展示 -->
-                            <div id="strategyDetail" style="display: none;">
-                                <div class="form-group">
-                                    <label class="col-sm-3 control-label">策略信息</label>
-                                    <div class="col-sm-8">
-                                        <table class="table table-bordered">
-                                            <thead>
-                                                <tr>
-                                                    <th>档位名称</th>
-                                                    <th>金额范围</th>
-                                                    <th>通道配置</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="tierList">
-                                            </tbody>
-                                        </table>
+                            <div class="product-strategy-list">
+                                <volist name="products" id="p">
+                                    <div class="product-strategy-row" data-productid="<{$p.id}>">
+                                        <label class="checkbox product-choice">
+                                            <input type="checkbox" class="product-check" name="productids[]" value="<{$p.id}>" <if condition="$p['current'] AND !empty($p['strategies'])">checked</if> <if condition="empty($p['strategies'])">disabled</if>>
+                                            <strong><{$p.name}></strong>
+                                            <small><{$p.id}> / <{$p.code}></small>
+                                        </label>
+                                        <div class="strategy-choice">
+                                            <select name="strategyids[<{$p.id}>]" class="form-control strategy-select" <if condition="!$p['current'] OR empty($p['strategies'])">disabled</if>>
+                                                <option value="">-- 请选择<{$p.name}>的策略 --</option>
+                                                <volist name="p['strategies']" id="s">
+                                                    <option value="<{$s.id}>" <if condition="$p['current'] AND $p['current']['strategyid'] eq $s['id']">selected</if>><{$s.name}></option>
+                                                </volist>
+                                            </select>
+                                            <if condition="empty($p['strategies'])">
+                                                <span class="help-block text-warning">当前产品暂无可用策略</span>
+                                            </if>
+                                        </div>
                                     </div>
-                                </div>
+                                </volist>
+                                <if condition="empty($products)">
+                                    <div class="alert alert-warning">该商户暂无已开通的<{$typename}>产品</div>
+                                </if>
                             </div>
 
                             <div class="form-group">
-                                <div class="col-sm-offset-3 col-sm-6">
+                                <div class="col-sm-12" style="margin-top:20px;">
                                     <button type="submit" class="layui-btn">保存</button>
                                     <button type="button" class="layui-btn layui-btn-primary" onclick="closeLayer()">取消</button>
                                 </div>
@@ -100,56 +85,33 @@
     <script src="/Public/Front/js/content.js"></script>
     <script src="/Public/Front/js/plugins/layui/layui.js" charset="utf-8"></script>
     <script>
-    var strategyData = <php>echo json_encode($strategys);</php>;
-    var currentData = <php>echo json_encode($current);</php>;
-
     layui.use(['layer', 'form'], function(){
         var form = layui.form,
         layer = layui.layer;
 
-        $('#productSelect').on('change', function(){
-            location.href = "<{:U('assignMember')}>?userid=<{$member.id}>&type=<{$type}>&productid=" + $(this).val();
-        });
-
-        // 策略选择变化
-        $('#strategySelect').on('change', function(){
-            var strategyId = $(this).val();
-            if (strategyId > 0) {
-                var strategy = null;
-                for (var i = 0; i < strategyData.length; i++) {
-                    if (strategyData[i].id == strategyId) {
-                        strategy = strategyData[i];
-                        break;
-                    }
-                }
-                if (strategy && strategy.tiers) {
-                    var html = '';
-                    for (var i = 0; i < strategy.tiers.length; i++) {
-                        var tier = strategy.tiers[i];
-                        var channelDisplay = tier.channel_display || '-';
-                        html += '<tr>';
-                        html += '<td>' + (tier.tier_name || '-') + '</td>';
-                        html += '<td>' + tier.tier_min + ' - ' + tier.tier_max + '</td>';
-                        html += '<td>' + channelDisplay + '</td>';
-                        html += '</tr>';
-                    }
-                    $('#tierList').html(html);
-                    $('#strategyDetail').show();
-                } else {
-                    $('#strategyDetail').hide();
-                }
-            } else {
-                $('#strategyDetail').hide();
+        $('.product-check').on('change', function(){
+            var $row = $(this).closest('.product-strategy-row');
+            var $select = $row.find('.strategy-select');
+            $select.prop('disabled', !this.checked);
+            if (!this.checked) {
+                $select.val('');
             }
         });
 
-        // 初始化：如果已有选择，显示详情
-        if (currentData && currentData.strategyid > 0) {
-            $('#strategySelect').trigger('change');
-        }
-
         // 表单提交
         $('#assignForm').on('submit', function(){
+            var valid = true;
+            $('.product-check:checked').each(function(){
+                var $row = $(this).closest('.product-strategy-row');
+                if (!$row.find('.strategy-select').val()) {
+                    layer.msg('请选择“' + $row.find('.product-choice strong').text() + '”对应的策略', {icon: 2});
+                    valid = false;
+                    return false;
+                }
+            });
+            if (!valid) {
+                return false;
+            }
             $.ajax({
                 url: "<{:U('assignMember')}>",
                 type: 'post',

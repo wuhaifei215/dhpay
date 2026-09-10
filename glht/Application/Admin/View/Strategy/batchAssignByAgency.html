@@ -83,7 +83,7 @@
                                 <volist name="products" id="p">
                                     <div class="product-row" data-productid="<{$p.id}>">
                                         <div class="product-check">
-                                            <input type="checkbox" name="productids[]" value="<{$p.id}>" title="<{$p.name}> [<{$p.id}>] (<{$p.currency}>)" class="product-checkbox" lay-skin="primary" lay-filter="productCheck">
+                                            <input type="checkbox" name="productids[]" value="<{$p.id}>" title="<{$p.id}>--<{$p.name}> (<{$p.currency}>)" class="product-checkbox" lay-skin="primary" lay-filter="productCheck">
                                         </div>
                                         <div class="product-select">
                                             <select name="strategyids[<{$p.id}>]" class="strategy-select" disabled>

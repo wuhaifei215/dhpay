@@ -17,6 +17,7 @@
 .product-choice {width:230px;margin:0;padding-left:20px;}
 .product-choice small {display:block;margin-left:20px;color:#888;}
 .strategy-choice {flex:1;min-width:0;}
+.product-check {margin-top: 0 !important;}
 </style>
 </head>
 <body class="gray-bg">
@@ -33,9 +34,9 @@
                             <input type="hidden" name="type" value="<{$type}>">
 
                             <div class="merchant-summary">
-                                商户编号：<strong><{$member.id|shanghubianhao=###}></strong>
-                                &nbsp;&nbsp; 商户用户名：<strong><{$member.username}></strong>
-                                &nbsp;&nbsp; 国家：<strong><{$member.currency}></strong>
+                                商户编号：<strong><{$member.id|shanghubianhao=###}></strong><br/>
+                                用户名：<strong><{$member.username}></strong><br/>
+                                国家：<strong><{$member.currency}></strong>
                             </div>
 
                             <h4>产品策略配置</h4>
@@ -46,8 +47,7 @@
                                     <div class="product-strategy-row" data-productid="<{$p.id}>">
                                         <label class="checkbox product-choice">
                                             <input type="checkbox" class="product-check" name="productids[]" value="<{$p.id}>" <if condition="$p['current'] AND !empty($p['strategies'])">checked</if> <if condition="empty($p['strategies'])">disabled</if>>
-                                            <strong><{$p.name}></strong>
-                                            <small><{$p.id}> / <{$p.code}></small>
+                                            <span><{$p.id}>--<{$p.name}></span>
                                         </label>
                                         <div class="strategy-choice">
                                             <select name="strategyids[<{$p.id}>]" class="form-control strategy-select" <if condition="!$p['current'] OR empty($p['strategies'])">disabled</if>>

@@ -55,6 +55,7 @@ class StrategyController extends BaseController
         $type = I('get.type', 1, 'intval');
         $status = I('get.status', '');
         $currency = I('get.currency', C('DEFAULT_COUNTRY'), 'trim,string,strip_tags,htmlspecialchars');
+        $productId = I('get.product_id', 0, 'intval');
         $typename = isset($this->typeMap[$type]) ? $this->typeMap[$type] : '代收';
 
         $where = ['type' => $type];
@@ -63,6 +64,9 @@ class StrategyController extends BaseController
         }
         if ($currency !== '') {
             $where['currency'] = $currency;
+        }
+        if ($productId > 0) {
+            $where['productid'] = $productId;
         }
 
         // 国家列表
@@ -86,6 +90,7 @@ class StrategyController extends BaseController
 
         // 获取每个策略的档位数量
         foreach ($list as $k => $v) {
+            $list[$k]['product'] = $v['productid'] ? M('Product')->field('id,name,code')->find($v['productid']) : null;
             $tierCount = M('StrategyTier')->where(['strategyid' => $v['id']])->count();
             $list[$k]['tier_count'] = $tierCount;
 
@@ -97,6 +102,8 @@ class StrategyController extends BaseController
         $this->assign('type', $type);
         $this->assign('typename', $typename);
         $this->assign('status', $status);
+        $this->assign('productId', $productId);
+        $this->assign('products', M('Product')->where(['status' => 1])->field('id,name,code,currency')->order('id DESC')->select());
         $this->assign('rows', $rows);
         $this->assign('list', $list);
         $this->assign('page', $Page->show());
@@ -115,29 +122,40 @@ class StrategyController extends BaseController
         if (IS_POST) {
             $id = I('post.id', 0, 'intval');
             $name = I('post.name', '', 'trim');
-            $currency = I('post.currency', '', 'trim');
+            $productId = I('post.productid', 0, 'intval');
             $type = I('post.type', 1, 'intval');
             $status = I('post.status', 1, 'intval');
 
             if (empty($name)) {
                 $this->ajaxReturn(['status' => 0, 'msg' => '策略名称不能为空']);
             }
-            if (empty($currency)) {
-                $this->ajaxReturn(['status' => 0, 'msg' => '请选择国家']);
+            $product = M('Product')->where(['id' => $productId, 'status' => 1])->find();
+            if (!$product) {
+                $this->ajaxReturn(['status' => 0, 'msg' => '请选择有效产品']);
             }
+            $currency = $product['currency'];
 
             $data = [
                 'name' => $name,
+                'productid' => $productId,
                 'currency' => $currency,
                 'type' => $type,
                 'status' => $status,
             ];
 
             if ($id > 0) {
+                $oldStrategy = M('Strategy')->find($id);
+                if (!$oldStrategy) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => '策略不存在']);
+                }
+                if (intval($oldStrategy['productid']) !== $productId && M('MemberStrategy')->where(['strategyid' => $id])->count() > 0) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => '已被商户使用的策略不能修改产品']);
+                }
                 $data['updatetime'] = date('Y-m-d H:i:s');
                 $res = M('Strategy')->where(['id' => $id])->save($data);
                 if ($res) {
                     UserLogService::HTwrite(3, '编辑策略', '编辑策略（' . $id . '）：' . $name);
+                    $this->clearStrategyRedisCache($id, $type);
                 }
             } else {
                 $data['createtime'] = date('Y-m-d H:i:s');
@@ -161,6 +179,7 @@ class StrategyController extends BaseController
 
         $this->assign('type', $type);
         $this->assign('typename', $typename);
+        $this->assign('products', M('Product')->where(['status' => 1])->field('id,name,code,currency')->order('id DESC')->select());
         $this->display();
     }
 
@@ -293,6 +312,10 @@ class StrategyController extends BaseController
                     $channelId = intval(trim($channelId));
                     $weight = isset($weightArr[$k]) ? intval(trim($weightArr[$k])) : 1;
                     if ($channelId > 0 && $weight > 0) {
+                        $channelModel = $strategy['type'] == 1 ? M('Channel') : M('PayForAnother');
+                        if (!$channelModel->where(['id' => $channelId, 'status' => 1, 'currency' => $strategy['currency']])->find()) {
+                            $this->ajaxReturn(['status' => 0, 'msg' => '通道不可用或币种不匹配：' . $channelId]);
+                        }
                         $channelConfig[] = [
                             'channel_id' => $channelId,
                             'weight' => $weight,
@@ -325,6 +348,9 @@ class StrategyController extends BaseController
                 }
             }
 
+            if ($res) {
+                $this->clearStrategyRedisCache($strategyId, $strategy['type']);
+            }
             $this->ajaxReturn(['status' => $res ? 1 : 0, 'msg' => $res ? '操作成功' : '操作失败']);
         }
 
@@ -342,9 +368,9 @@ class StrategyController extends BaseController
 
         // 获取可用通道列表
         if ($strategy['type'] == 1) {
-            $channels = M('Channel')->where(['status' => 1])->field('id,title,rate')->select();
+            $channels = M('Channel')->where(['status' => 1, 'currency' => $strategy['currency']])->field('id,title,rate')->select();
         } else {
-            $channels = M('PayForAnother')->where(['status' => 1])->field('id,title')->select();
+            $channels = M('PayForAnother')->where(['status' => 1, 'currency' => $strategy['currency']])->field('id,title')->select();
         }
 
         if ($id > 0) {
@@ -371,8 +397,13 @@ class StrategyController extends BaseController
                 $this->ajaxReturn(['status' => 0, 'msg' => '参数错误']);
             }
 
+            $tier = M('StrategyTier')->find($id);
+            $strategy = $tier ? M('Strategy')->find($tier['strategyid']) : null;
             $res = M('StrategyTier')->where(['id' => $id])->delete();
             if ($res) {
+                if ($strategy) {
+                    $this->clearStrategyRedisCache($strategy['id'], $strategy['type']);
+                }
                 UserLogService::HTwrite(4, '删除策略档位', '删除策略档位（' . $id . '）');
                 $this->ajaxReturn(['status' => 1, 'msg' => '删除成功']);
             } else {
@@ -388,17 +419,25 @@ class StrategyController extends BaseController
     {
         if (IS_POST) {
             $userid = I('post.userid', 0, 'intval');
+            $productId = I('post.productid', 0, 'intval');
             $strategyId = I('post.strategyid', 0, 'intval');
             $type = I('post.type', 1, 'intval');
 
             if ($userid <= 0) {
                 $this->ajaxReturn(['status' => 0, 'msg' => '商户ID错误']);
             }
+            if ($productId <= 0) {
+                $this->ajaxReturn(['status' => 0, 'msg' => '请选择产品']);
+            }
 
             // 检查商户是否存在
             $member = M('Member')->find($userid);
             if (!$member) {
                 $this->ajaxReturn(['status' => 0, 'msg' => '商户不存在']);
+            }
+            $product = M('Product')->where(['id' => $productId, 'status' => 1, 'currency' => $member['currency']])->find();
+            if (!$product || !$this->merchantHasProduct($userid, $productId, $type)) {
+                $this->ajaxReturn(['status' => 0, 'msg' => '商户未开通该产品或产品已关闭']);
             }
 
             // 验证策略
@@ -410,43 +449,52 @@ class StrategyController extends BaseController
                 if ($strategy['type'] != $type) {
                     $this->ajaxReturn(['status' => 0, 'msg' => '策略类型不匹配']);
                 }
+                if (intval($strategy['productid']) !== $productId) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => '策略与产品不匹配']);
+                }
                 // 国家校验
                 if ($strategy['currency'] !== $member['currency']) {
                     $this->ajaxReturn(['status' => 0, 'msg' => '策略国家与商户不匹配']);
                 }
             }
 
-            // 先删除旧配置
-            M('MemberStrategy')->where(['userid' => $userid, 'type' => $type])->delete();
-
-            // 添加新配置
+            $where = ['userid' => $userid, 'productid' => $productId];
             if ($strategyId > 0) {
                 $data = [
                     'userid' => $userid,
+                    'productid' => $productId,
                     'strategyid' => $strategyId,
                     'type' => $type,
                     'status' => 1,
                     'createtime' => date('Y-m-d H:i:s'),
                 ];
-                $res = M('MemberStrategy')->add($data);
-
-                // 清除缓存
-                $redis = $this->connectRedis();
-                $redis->del('MemberStrategy_' . $userid . '_' . $type);
+                $existing = M('MemberStrategy')->where($where)->find();
+                if ($existing) {
+                    unset($data['createtime']);
+                    $data['updatetime'] = date('Y-m-d H:i:s');
+                    $res = M('MemberStrategy')->where(['id' => $existing['id']])->save($data);
+                    if ($res === 0) { $res = true; }
+                } else {
+                    $res = M('MemberStrategy')->add($data);
+                }
 
                 if ($res) {
                     UserLogService::HTwrite(3, '分配商户策略', '为商户（' . $member['username'] . '）分配策略：' . ($strategyId > 0 ? $strategy['name'] : '无'));
                 }
             } else {
-                $res = true;
+                $res = M('MemberStrategy')->where($where)->delete();
+                if ($res === 0) { $res = true; }
                 UserLogService::HTwrite(3, '取消商户策略', '取消商户（' . $member['username'] . '）的策略配置');
             }
+
+            $this->clearMemberStrategyRedisCache($userid, $productId, $type);
 
             $this->ajaxReturn(['status' => $res ? 1 : 0, 'msg' => $res ? '操作成功' : '操作失败']);
         }
 
         $userid = I('get.userid', 0, 'intval');
         $type = I('get.type', 1, 'intval');
+        $productId = I('get.productid', 0, 'intval');
         $typename = isset($this->typeMap[$type]) ? $this->typeMap[$type] : '代收';
 
         if ($userid <= 0) {
@@ -458,11 +506,16 @@ class StrategyController extends BaseController
             $this->error('商户不存在');
         }
 
-        // 获取可用的策略列表（仅显示与商户同国家的策略）
-        $strategys = M('Strategy')->where(['type' => $type, 'status' => 1, 'currency' => $member['currency']])->select();
+        $mappingModel = $type == 1 ? M('ProductUser') : M('UserPayForAnother');
+        $productIds = $mappingModel->where(['userid' => $userid, 'status' => 1])->getField('pid', true);
+        $products = empty($productIds) ? [] : M('Product')->where(['id' => ['in', $productIds], 'status' => 1, 'currency' => $member['currency']])->field('id,name,code,currency')->select();
+        if ($productId <= 0 && !empty($products)) {
+            $productId = intval($products[0]['id']);
+        }
+        $strategys = M('Strategy')->where(['productid' => $productId, 'type' => $type, 'status' => 1, 'currency' => $member['currency']])->select();
 
         // 获取当前配置
-        $current = M('MemberStrategy')->where(['userid' => $userid, 'type' => $type])->find();
+        $current = M('MemberStrategy')->where(['userid' => $userid, 'productid' => $productId])->find();
 
         // 获取当前策略的详细信息
         if ($current && $current['strategyid'] > 0) {
@@ -474,6 +527,8 @@ class StrategyController extends BaseController
 
         $this->assign('member', $member);
         $this->assign('strategys', $strategys);
+        $this->assign('products', $products);
+        $this->assign('productId', $productId);
         $this->assign('current', $current);
         $this->assign('type', $type);
         $this->assign('typename', $typename);
@@ -584,6 +639,7 @@ class StrategyController extends BaseController
         $this->assign('currency', $currency);
         $this->assign('country', $country);
         $this->assign('strategies', $strategies);
+        $this->assign('products', M('Product')->where(['status' => 1])->field('id,name,code,currency')->order('id DESC')->select());
         $this->assign('userList', $userList);
         $this->display();
     }
@@ -618,6 +674,7 @@ class StrategyController extends BaseController
         $this->assign('currency', $currency);
         $this->assign('country', $country);
         $this->assign('strategies', $strategies);
+        $this->assign('products', M('Product')->where(['status' => 1])->field('id,name,code,currency')->order('id DESC')->select());
         $this->assign('agency', $agency);
         $this->display();
     }
@@ -634,6 +691,7 @@ class StrategyController extends BaseController
         $ids = I('post.ids', '', 'trim');
         $type = I('post.type', 1, 'intval');
         $strategyid = I('post.strategyid', 0, 'intval');
+        $productId = I('post.productid', 0, 'intval');
         $status = I('post.status', 1, 'intval');
 
         if (empty($ids)) {
@@ -647,8 +705,11 @@ class StrategyController extends BaseController
         }
 
         // 验证策略
+        if ($productId <= 0) {
+            $this->error('请选择产品');
+        }
         if ($strategyid > 0) {
-            $strategy = M('Strategy')->where(['id' => $strategyid, 'type' => $type, 'status' => 1])->find();
+            $strategy = M('Strategy')->where(['id' => $strategyid, 'productid' => $productId, 'type' => $type, 'status' => 1])->find();
             if (!$strategy) {
                 $this->error('策略不存在或已禁用');
             }
@@ -665,17 +726,17 @@ class StrategyController extends BaseController
                 // 检查商户国家是否与策略匹配
                 if ($strategyid > 0) {
                     $member = M('Member')->find($userid);
-                    if (!$member || $member['currency'] !== $strategy['currency']) {
+                    if (!$member || $member['currency'] !== $strategy['currency'] || !$this->merchantHasProduct($userid, $productId, $type)) {
                         $skipCount++;
                         continue;
                     }
                 }
 
                 // 检查是否已存在配置
-                $exist = M('MemberStrategy')->where(['userid' => $userid, 'type' => $type])->find();
+                $exist = M('MemberStrategy')->where(['userid' => $userid, 'productid' => $productId])->find();
 
                 if ($exist) {
-                    M('MemberStrategy')->where(['userid' => $userid, 'type' => $type])->save([
+                    M('MemberStrategy')->where(['userid' => $userid, 'productid' => $productId])->save([
                         'strategyid' => $strategyid,
                         'status' => $status,
                         'updatetime' => date('Y-m-d H:i:s'),
@@ -684,6 +745,7 @@ class StrategyController extends BaseController
                 } else {
                     M('MemberStrategy')->add([
                         'userid' => $userid,
+                        'productid' => $productId,
                         'type' => $type,
                         'strategyid' => $strategyid,
                         'status' => $status,
@@ -693,7 +755,7 @@ class StrategyController extends BaseController
                 }
 
                 // 清除缓存
-                S('MemberStrategy_' . $userid . '_' . $type, null);
+                $this->clearMemberStrategyRedisCache($userid, $productId, $type);
             }
 
             $db->commit();
@@ -720,6 +782,7 @@ class StrategyController extends BaseController
         $ids = I('post.ids', '', 'trim');
         $type = I('post.type', 1, 'intval');
         $strategyid = I('post.strategyid', 0, 'intval');
+        $productId = I('post.productid', 0, 'intval');
         $status = I('post.status', 1, 'intval');
 
         if (empty($ids)) {
@@ -733,8 +796,11 @@ class StrategyController extends BaseController
         }
 
         // 验证策略
+        if ($productId <= 0) {
+            $this->error('请选择产品');
+        }
         if ($strategyid > 0) {
-            $strategy = M('Strategy')->where(['id' => $strategyid, 'type' => $type, 'status' => 1])->find();
+            $strategy = M('Strategy')->where(['id' => $strategyid, 'productid' => $productId, 'type' => $type, 'status' => 1])->find();
             if (!$strategy) {
                 $this->error('策略不存在或已禁用');
             }
@@ -758,17 +824,17 @@ class StrategyController extends BaseController
 
                 // 检查商户国家是否与策略匹配
                 if ($strategyid > 0) {
-                    if ($member['currency'] !== $strategy['currency']) {
+                    if ($member['currency'] !== $strategy['currency'] || !$this->merchantHasProduct($userid, $productId, $type)) {
                         $skipCount++;
                         continue;
                     }
                 }
 
                 // 检查是否已存在配置
-                $exist = M('MemberStrategy')->where(['userid' => $userid, 'type' => $type])->find();
+                $exist = M('MemberStrategy')->where(['userid' => $userid, 'productid' => $productId])->find();
 
                 if ($exist) {
-                    M('MemberStrategy')->where(['userid' => $userid, 'type' => $type])->save([
+                    M('MemberStrategy')->where(['userid' => $userid, 'productid' => $productId])->save([
                         'strategyid' => $strategyid,
                         'status' => $status,
                         'updatetime' => date('Y-m-d H:i:s'),
@@ -777,6 +843,7 @@ class StrategyController extends BaseController
                 } else {
                     M('MemberStrategy')->add([
                         'userid' => $userid,
+                        'productid' => $productId,
                         'type' => $type,
                         'strategyid' => $strategyid,
                         'status' => $status,
@@ -786,7 +853,7 @@ class StrategyController extends BaseController
                 }
 
                 // 清除缓存
-                S('MemberStrategy_' . $userid . '_' . $type, null);
+                $this->clearMemberStrategyRedisCache($userid, $productId, $type);
             }
 
             $db->commit();
@@ -884,6 +951,9 @@ class StrategyController extends BaseController
 
             try {
                 $redis = $this->connectRedis();
+                if (!$redis) {
+                    $this->ajaxReturn(['status' => 0, 'msg' => 'Redis不可用，当前路由已自动使用数据库']);
+                }
 
                 if ($strategyId > 0) {
                     $redis->del('StrategyInfo_' . $strategyId);
@@ -907,14 +977,51 @@ class StrategyController extends BaseController
         }
     }
 
+    private function merchantHasProduct($userid, $productId, $type)
+    {
+        $model = intval($type) === 1 ? M('ProductUser') : M('UserPayForAnother');
+        return (bool) $model->where(['userid' => intval($userid), 'pid' => intval($productId), 'status' => 1])->find();
+    }
+
+    private function clearMemberStrategyRedisCache($userid, $productId, $type)
+    {
+        try {
+            $redis = $this->connectRedis();
+            if ($redis) {
+                $redis->del('MemberStrategy_' . intval($userid) . '_' . intval($productId) . '_' . intval($type));
+            }
+        } catch (\Exception $e) {
+        }
+    }
+
+    private function clearStrategyRedisCache($strategyId, $type)
+    {
+        try {
+            $redis = $this->connectRedis();
+            if ($redis) {
+                $redis->del('StrategyInfo_' . intval($strategyId));
+                $redis->del('StrategyTier_' . intval($strategyId) . '_' . intval($type));
+            }
+        } catch (\Exception $e) {
+        }
+    }
+
     /**
      * 连接Redis
      */
     private function connectRedis()
     {
-        $redis = new \Redis();
-        $redis->connect(C('REDIS_HOST'), C('REDIS_PORT'));
-        $redis->auth(C('REDIS_PWD'));
-        return $redis;
+        try {
+            $redis = new \Redis();
+            if (!$redis->connect(C('REDIS_HOST'), C('REDIS_PORT'))) {
+                return null;
+            }
+            if (C('REDIS_PWD') && !$redis->auth(C('REDIS_PWD'))) {
+                return null;
+            }
+            return $redis;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }

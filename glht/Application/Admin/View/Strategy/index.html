@@ -36,6 +36,16 @@
                         <form method="get" action="<{:U('index')}>" class="form-inline" style="margin-bottom: 15px;">
                             <input type="hidden" name="type" value="<{$type}>">
                             <div class="form-group">
+                                <label>产品：</label>
+                                <select name="product_id" class="form-control">
+                                    <option value="0">全部</option>
+                                    <volist name="products" id="product">
+                                    <option value="<{$product.id}>" <if condition="$productId eq $product['id']">selected</if>><{$product.name}> [<{$product.id}>]</option>
+                                    </volist>
+                                </select>
+                            </div>
+                            &nbsp;&nbsp;
+                            <div class="form-group">
                                 <label>国家：</label>
                                 <select name="currency" class="form-control">
                                     <option value="">全部</option>
@@ -63,6 +73,7 @@
                                     <tr>
                                         <th>编号</th>
                                         <th>策略名称</th>
+                                        <th>产品</th>
                                         <th>国家</th>
                                         <th>类型</th>
                                         <th>档位数量</th>
@@ -77,13 +88,14 @@
                                     <tr>
                                         <td><{$p.id}></td>
                                         <td><{$p.name}></td>
+                                        <td><if condition="$p['product']"><{$p.product.name}> [<{$p.product.id}>/<{$p.product.code}>]<else/><span class="text-muted">历史配置</span></if></td>
                                         <td><{$p.currency}></td>
                                         <td><{$typeMap[$p['type']]}></td>
                                         <td><{$p.tier_count}></td>
                                         <td><{$p.member_count}></td>
                                         <td>
                                             <div class="layui-form">
-                                                <input type="checkbox" <if condition="$p['status']">checked</if> name="status" value="1" data-id="<{$p.id}>" data-name="<{$p.name}>" data-currency="<{$p.currency}>" lay-skin="switch" lay-filter="switchStatus" lay-text="开启|关闭">
+                                                <input type="checkbox" <if condition="$p['status']">checked</if> name="status" value="1" data-id="<{$p.id}>" data-name="<{$p.name}>" data-productid="<{$p.productid}>" lay-skin="switch" lay-filter="switchStatus" lay-text="开启|关闭">
                                             </div>
                                         </td>
                                         <td><{$p.createtime}></td>
@@ -97,7 +109,7 @@
                                     </tr>
                                 </volist>
                                 <if condition="empty($list)">
-                                    <tr><td colspan="9" class="text-center">暂无数据</td></tr>
+                                     <tr><td colspan="10" class="text-center">暂无数据</td></tr>
                                 </if>
                                 </tbody>
                             </table>
@@ -124,11 +136,11 @@
             var id = $(this).attr('data-id'),
             status = this.checked ? 1 : 0,
             name = $(this).attr('data-name'),
-            currency = $(this).attr('data-currency');
+            productid = $(this).attr('data-productid');
             $.ajax({
                 url:"<{:U('edit')}>",
                 type:'post',
-                data:{id: id, name: name, currency: currency, type: <{$type}>, status: status},
+                data:{id: id, name: name, productid: productid, type: <{$type}>, status: status},
                 success:function(res){
                     if(res.status == 1){
                         layer.tips('状态已更新', data.othis);

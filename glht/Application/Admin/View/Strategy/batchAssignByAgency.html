@@ -53,6 +53,15 @@
                         <form class="layui-form" id="batchAssignForm">
                             <div class="layui-form-item" style="border:1px solid #e5e6e7;padding:15px;border-radius:4px;background:#fafafa;">
                                 <div class="layui-inline" style="margin-right:30px;">
+                                    <label class="layui-form-label" style="width:80px;">选择产品</label>
+                                    <div class="layui-input-inline" style="width:250px;">
+                                        <select name="productid" id="productSelect" lay-filter="productFilter" required>
+                                            <option value="">-- 请选择产品 --</option>
+                                            <volist name="products" id="p"><option value="<{$p.id}>"><{$p.name}> [<{$p.id}>] (<{$p.currency}>)</option></volist>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="layui-inline" style="margin-right:30px;">
                                     <label class="layui-form-label" style="width:80px;">策略类型</label>
                                     <div class="layui-input-inline" style="width:150px;">
                                         <select name="type" lay-filter="typeFilter" id="typeSelect">
@@ -67,7 +76,7 @@
                                         <select name="strategyid" id="strategySelect">
                                             <option value="0">-- 不启用策略（清除） --</option>
                                             <volist name="strategies" id="s">
-                                            <option value="<{$s.id}>"><{$s.name}> (<{$s.currency}>)</option>
+                                            <option value="<{$s.id}>" data-productid="<{$s.productid}>"><{$s.name}> (<{$s.currency}>)</option>
                                             </volist>
                                         </select>
                                     </div>
@@ -128,6 +137,13 @@
         form.on('select(typeFilter)', function(data){
             location.href = "<{:U('batchAssignByAgency')}>?type=" + data.value + "&currency=<{$currency}>";
         });
+        form.on('select(productFilter)', function(data){
+            $('#strategySelect option').each(function(){
+                $(this).prop('disabled', $(this).val() != '0' && $(this).data('productid') != data.value);
+            });
+            $('#strategySelect').val('0');
+            form.render('select');
+        });
 
         form.on('submit(save)', function(data){
             var ids = '';
@@ -148,6 +164,7 @@
                 data: {
                     'ids': ids,
                     'type': data.field.type,
+                    'productid': data.field.productid,
                     'strategyid': data.field.strategyid,
                     'status': data.field.status
                 },

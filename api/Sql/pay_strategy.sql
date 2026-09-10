@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS `pay_strategy`;
 CREATE TABLE `pay_strategy` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL COMMENT '策略名称',
+  `productid` INT(11) UNSIGNED DEFAULT NULL COMMENT '产品ID',
   `currency` VARCHAR(10) NOT NULL COMMENT '国家货币',
   `type` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '1:代收 2:代付',
   `status` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '状态 0关闭 1开启',
@@ -17,7 +18,8 @@ CREATE TABLE `pay_strategy` (
   `updatetime` DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_type_status` (`type`, `status`),
-  KEY `idx_currency` (`currency`)
+  KEY `idx_currency` (`currency`),
+  KEY `idx_product_type_status` (`productid`, `type`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='策略主表';
 
 -- ----------------------------
@@ -49,13 +51,14 @@ DROP TABLE IF EXISTS `pay_member_strategy`;
 CREATE TABLE `pay_member_strategy` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `userid` INT(11) UNSIGNED NOT NULL COMMENT '商户ID',
+  `productid` INT(11) UNSIGNED DEFAULT NULL COMMENT '产品ID',
   `strategyid` INT(11) UNSIGNED NOT NULL COMMENT '策略ID',
   `type` TINYINT(1) NOT NULL COMMENT '1:代收 2:代付',
   `status` TINYINT(1) DEFAULT 1 COMMENT '是否启用 0不启用 1启用',
   `createtime` DATETIME DEFAULT NULL,
   `updatetime` DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_userid_type` (`userid`, `type`)
+  UNIQUE KEY `uk_userid_productid` (`userid`, `productid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商户策略关联表';
 
 -- ----------------------------
@@ -65,6 +68,7 @@ DROP TABLE IF EXISTS `pay_strategy_log`;
 CREATE TABLE `pay_strategy_log` (
   `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
   `userid` INT(11) UNSIGNED DEFAULT NULL COMMENT '商户ID',
+  `productid` INT(11) UNSIGNED DEFAULT NULL COMMENT '产品ID',
   `out_trade_no` varchar(100) NOT NULL COMMENT '外部订单号',
   `type` TINYINT(1) DEFAULT NULL COMMENT '1:代收 2:代付',
   `amount` DECIMAL(12,2) DEFAULT NULL COMMENT '交易金额',
@@ -73,11 +77,13 @@ CREATE TABLE `pay_strategy_log` (
   `channel_id` INT(11) UNSIGNED DEFAULT NULL COMMENT '最终分配的通道ID',
   `match_result` VARCHAR(50) DEFAULT NULL COMMENT '匹配结果：strategy_match/tier_match/channel_found/default_fallback',
   `currency` VARCHAR(10) DEFAULT NULL COMMENT '国家货币',
+  `strategy_source` VARCHAR(20) NOT NULL DEFAULT 'none' COMMENT 'product/legacy_fallback/none',
   `createtime` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_userid_type` (`userid`, `type`),
   KEY `idx_createtime` (`createtime`),
-  KEY `idx_out_trade_no` (`out_trade_no`)
+  KEY `idx_out_trade_no` (`out_trade_no`),
+  KEY `idx_productid` (`productid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='策略路由日志表';
 
 -- ============================================

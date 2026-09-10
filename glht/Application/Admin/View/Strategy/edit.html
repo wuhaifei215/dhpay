@@ -33,14 +33,15 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="col-sm-2 control-label">国家</label>
+                                <label class="col-sm-2 control-label">产品</label>
                                 <div class="col-sm-8">
-                                    <select name="currency" class="form-control" required>
-                                        <option value="">-- 请选择国家 --</option>
-                                        <volist name="country" id="c">
-                                        <option value="<{$c.currency}>" <if condition="isset($info) && $info['currency'] eq $c['currency']">selected</if>><{$c.title}> (<{$c.currency}>)</option>
+                                    <select name="productid" class="form-control" required>
+                                        <option value="">-- 请选择产品 --</option>
+                                        <volist name="products" id="p">
+                                        <option value="<{$p.id}>" <if condition="isset($info) && $info['productid'] eq $p['id']">selected</if>><{$p.name}> [<{$p.id}>/<{$p.code}>] (<{$p.currency}>)</option>
                                         </volist>
                                     </select>
+                                    <span class="help-block m-b-none">币种自动使用产品币种；已被商户使用后不可更换产品</span>
                                 </div>
                             </div>
 
@@ -85,13 +86,13 @@
 
         $('#strategyForm').on('submit', function(){
             var name = $('input[name="name"]').val();
-            var currency = $('select[name="currency"]').val();
+            var productid = $('select[name="productid"]').val();
             if (!name) {
                 layer.msg('请输入策略名称', {icon: 2});
                 return false;
             }
-            if (!currency) {
-                layer.msg('请选择国家', {icon: 2});
+            if (!productid) {
+                layer.msg('请选择产品', {icon: 2});
                 return false;
             }
 

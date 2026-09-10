@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * 无测试框架依赖的产品策略静态契约测试。
+ * 运行：php api/Tests/StrategyProductRoutingContractTest.php
+ */
+
+$root = dirname(__DIR__, 2);
+$service = file_get_contents($root . '/api/Application/Common/Service/StrategyRouteService.class.php');
+$payin = file_get_contents($root . '/api/Application/Pay/Controller/CreateController.class.php');
+$payout = file_get_contents($root . '/api/Application/Payment/Controller/CreateDFController.class.php');
+$migration = file_get_contents($root . '/api/Sql/20260905_strategy_product.sql');
+$admin = file_get_contents($root . '/glht/Application/Admin/Controller/StrategyController.class.php');
+
+$contracts = [
+    '路由入口包含产品参数' => strpos($service, 'routeChannel($userid, $productId, $amount') !== false,
+    '产品维度缓存键存在' => strpos($service, "'MemberStrategy_' . \$userid . '_' . \$productId . '_' . \$type") !== false,
+    '产品策略精确查询存在' => strpos($service, "'productid' => \$productId") !== false,
+    '历史 NULL 产品回退存在' => strpos($service, "'productid' => ['exp', 'IS NULL']") !== false,
+    '路由日志记录策略来源' => strpos($service, "'strategy_source' => \$strategySource") !== false,
+    '收款传入产品 ID' => preg_match('/routeChannel\s*\([\s\S]{0,160}?\$this->memberid[\s\S]{0,160}?\$this->bankcode/', $payin) === 1,
+    '代付传入产品 ID' => preg_match('/routeChannel\s*\([\s\S]{0,160}?\$this->userid[\s\S]{0,160}?\$this->bankcode/', $payout) === 1,
+    '迁移建立产品唯一键' => strpos($migration, 'uk_userid_productid') !== false,
+    '管理端读取产品参数' => strpos($admin, "I('post.productid'") !== false,
+    '管理端按商户产品 Upsert' => strpos($admin, "['userid' => \$userid, 'productid' => \$productId]") !== false,
+    '管理端校验商户产品开通' => strpos($admin, 'merchantHasProduct($userid, $productId, $type)') !== false,
+    '管理端清理产品维度缓存' => strpos($admin, "'MemberStrategy_' . intval(\$userid) . '_' . intval(\$productId)") !== false,
+    'Redis 故障使用空缓存降级' => strpos($service, 'new StrategyNullRedis()') !== false,
+    '通道校验包含币种' => strpos($service, "\$channel['currency'] !== \$currency") !== false,
+];
+
+$failed = array_keys(array_filter($contracts, function ($passed) {
+    return !$passed;
+}));
+
+if ($failed) {
+    fwrite(STDERR, "FAILED\n- " . implode("\n- ", $failed) . "\n");
+    exit(1);
+}
+
+echo 'OK (' . count($contracts) . " contracts)\n";

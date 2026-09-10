@@ -87,16 +87,12 @@ class StrategyRouteService
             return null;
         }
 
-        $strategySource = 'product';
         $strategyConfig = $this->getMemberStrategyByProduct($userid, $productId, $type);
-        if (!$strategyConfig) {
-            $strategySource = 'legacy_fallback';
-            $strategyConfig = $this->getLegacyMemberStrategy($userid, $type);
-        }
         if (!$strategyConfig || $strategyConfig['status'] != 1) {
             $this->logRoute($userid, $productId, $type, $amount, null, null, null, 'no_strategy', $outTradeNo, $currency, 'none');
             return null;
         }
+        $strategySource = 'product';
 
         // 获取策略信息，并校验国家匹配
         $strategy = $this->getStrategyInfo($strategyConfig['strategyid']);
@@ -168,13 +164,23 @@ class StrategyRouteService
 
         if ($cached) {
             $data = json_decode($cached, true);
-            if (!empty($data)) {
+            if (!empty($data)
+                && intval($data['userid']) === intval($userid)
+                && intval($data['productid']) === intval($productId)
+                && intval($data['type']) === intval($type)
+                && intval($data['status']) === 1) {
                 return $data;
             }
+            $this->redis->del($cacheKey);
         }
 
         $data = M('MemberStrategy')
-            ->where(['userid' => $userid, 'productid' => $productId, 'status' => 1])
+            ->where([
+                'userid' => $userid,
+                'productid' => $productId,
+                'type' => $type,
+                'status' => 1,
+            ])
             ->find();
 
         if ($data) {
@@ -182,16 +188,6 @@ class StrategyRouteService
         }
 
         return $data ?: null;
-    }
-
-    private function getLegacyMemberStrategy($userid, $type)
-    {
-        return M('MemberStrategy')->where([
-            'userid' => $userid,
-            'productid' => ['exp', 'IS NULL'],
-            'type' => $type,
-            'status' => 1,
-        ])->order('id DESC')->find() ?: null;
     }
 
     public function validateProduct($productId, $type, $currency = '')

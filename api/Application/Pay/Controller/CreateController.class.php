@@ -297,11 +297,18 @@ class CreateController extends PayController
         // ================== 策略路由 (优先执行) ==================
         // 如果商户配置了策略，根据金额档位分配通道
         $strategyService = new \Common\Service\StrategyRouteService();
+        $hasProductStrategy = (bool) $strategyService->getMemberStrategyByProduct(
+            $this->memberid,
+            $this->bankcode,
+            1
+        );
         $strategyChannel = $strategyService->routeChannel(
             $this->memberid,      // 商户ID
+            $this->bankcode,      // 代收产品ID
             $this->pay_amount,    // 交易金额
             1,                    // 1:代收
-            $this->orderid        // 订单号
+            $this->orderid,       // 订单号
+            $this->currency       // 币种
         );
 
         if ($strategyChannel && isset($strategyChannel['id'])) {
@@ -323,6 +330,9 @@ class CreateController extends PayController
                     }
                 }
             }
+        }
+        if ($hasProductStrategy) {
+            $this->showmessage('当前产品策略暂无可用通道');
         }
         // ================== 策略路由结束 ==================
 

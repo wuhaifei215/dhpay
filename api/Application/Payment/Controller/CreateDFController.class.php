@@ -299,9 +299,11 @@ class CreateDFController extends Controller
             $strategyService = new \Common\Service\StrategyRouteService();
             $strategyChannel = $strategyService->routeChannel(
                 $this->userid,              // 商户ID
+                $this->bankcode,            // 代付产品ID
                 $money,              // 代付金额
                 2,                   // 2:代付
-                $out_trade_no        // 订单号
+                $out_trade_no,       // 订单号
+                $this->currency      // 币种
             );
 
             if ($strategyChannel && isset($strategyChannel['id'])) {

@@ -77,7 +77,7 @@ CREATE TABLE `pay_strategy_log` (
   `channel_id` INT(11) UNSIGNED DEFAULT NULL COMMENT '最终分配的通道ID',
   `match_result` VARCHAR(50) DEFAULT NULL COMMENT '匹配结果：strategy_match/tier_match/channel_found/default_fallback',
   `currency` VARCHAR(10) DEFAULT NULL COMMENT '国家货币',
-  `strategy_source` VARCHAR(20) NOT NULL DEFAULT 'none' COMMENT 'product/legacy_fallback/none',
+  `strategy_source` VARCHAR(20) NOT NULL DEFAULT 'none' COMMENT 'product/none',
   `createtime` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_userid_type` (`userid`, `type`),

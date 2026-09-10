@@ -1,6 +1,6 @@
 -- 策略按产品路由迁移（MySQL 5.7/8.0）
 -- 执行前必须备份 pay_strategy、pay_member_strategy、pay_strategy_log。
--- 历史关联保留 productid=NULL，由服务层兼容回退；禁止猜测历史产品归属。
+-- 历史关联保留 productid=NULL 仅用于审计；运行时不会回退使用，禁止猜测历史产品归属。
 
 ALTER TABLE `pay_strategy`
   ADD COLUMN `productid` INT(11) UNSIGNED NULL COMMENT '产品ID' AFTER `name`,
@@ -13,7 +13,7 @@ ALTER TABLE `pay_member_strategy`
 
 ALTER TABLE `pay_strategy_log`
   ADD COLUMN `productid` INT(11) UNSIGNED NULL COMMENT '产品ID' AFTER `userid`,
-  ADD COLUMN `strategy_source` VARCHAR(20) NOT NULL DEFAULT 'none' COMMENT 'product/legacy_fallback/none' AFTER `currency`,
+  ADD COLUMN `strategy_source` VARCHAR(20) NOT NULL DEFAULT 'none' COMMENT 'product/none' AFTER `currency`,
   ADD KEY `idx_productid` (`productid`);
 
 -- 上线后核对：正式产品关联不得为空，且策略、关联的产品必须一致。

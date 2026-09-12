@@ -7,7 +7,7 @@ class HxPayDFGcashController extends PaymentController
     private const CREATE_PATH = '/pay/withdraw/create';
     private const QUERY_PATH = '/pay/withdraw/query';
     private const BALANCE_PATH = '/pay/account/balance';
-    private const DEFAULT_PRODUCT_CODE = '8801';
+    private const DEFAULT_PRODUCT_CODE = 'GCASH_PAYOUT';
 
     private $code = '';
 
@@ -25,6 +25,17 @@ class HxPayDFGcashController extends PaymentController
         $gateway = $this->resolveEndpoint($config['exec_gateway'], self::CREATE_PATH);
         $notifyUrl = $this->buildNotifyUrl();
 
+        if($data['type'] == 'Gcash'){
+            $type = 'GCASH';
+        } elseif ($data['type'] == 'Maya'){
+            $type = 'MAYA';
+        } elseif ($data['type'] == 'Bank'){
+            $type = $data['bankname'];
+        } else {
+            $return = ['status' => 0, 'msg' => '支付类型错误'];
+            return $return;
+        }
+
         $request = [
             'currency' => 'PHP',
             'merchantId' => (string) $config['mch_id'],
@@ -35,7 +46,7 @@ class HxPayDFGcashController extends PaymentController
             'productCode' => (string) $productCode,
             'timestamp' => (string) floor(microtime(true) * 1000),
             'payeeName' => trim((string) $data['bankfullname']),
-            'payeeBankCode' => 'GCASH',
+            'payeeBankCode' => $type,
             'notifyUrl' => $notifyUrl,
         ];
         $request['signVersion'] = '2';
@@ -88,11 +99,7 @@ class HxPayDFGcashController extends PaymentController
             ? (string) $result['merchantOrderNo']
             : '';
 
-        log_place_order(
-            $this->code . '_notifyurl',
-            $orderid . '----异步回调',
-            json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-        );
+        log_place_order( $this->code . '_notifyurl', $orderid . '----异步回调', json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) );
 
         $WttklistModel = D('Wttklist');
         $date = date('Ymd', strtotime(substr($orderid, 1, 8)));
@@ -143,12 +150,15 @@ class HxPayDFGcashController extends PaymentController
 
         $status = strtoupper((string) $result['status']);
         if ($status === 'SUCCESS') {
-            $this->changeStatus($order['id'], 2, ['memo' => 'HxPay代付成功'], $tableName);
+            $this->changeStatus($order['id'], 2, ['memo' => '代付成功'], $tableName);
             log_place_order($this->code . '_notifyurl', $orderid . '----订单更新', '代付成功');
-        } else {
-            $this->changeStatus($order['id'],3,['memo' => 'HxPay代付失败-' . $status],$tableName);
+        } elseif (in_array($status, ['FAILED', 'REJECT', 'REFUND', 'CLOSED'], true)) {
+            $error = !empty($result['errorMsg'])
+                ? (string) $result['errorMsg']
+                : (isset($response['msg']) ? (string) $response['msg'] : $status);
+            $this->changeStatus($order['id'],3,['memo' => '代付失败-' . $error],$tableName);
 
-            log_place_order($this->code . '_notifyurl', $orderid . '----订单更新', '代付失败-' . $status);
+            log_place_order($this->code . '_notifyurl', $orderid . '----订单更新', '代付失败-' . $error);
         }
 
         $this->writeNotifyLog($orderid, $result, 'SUCCESS');
@@ -349,7 +359,7 @@ HTML;
         if ($code !== 200) {
             $definiteRejections = [
                 40001, 40002, 40003, 40004, 40006, 40007, 40008, 40009, 40010,
-                40012, 40013, 40014, 40015, 40018, 40019, 40500, 41500,
+                40012, 40013, 40014, 40015, 40018, 40019, 40500, 41500, 41210,
             ];
             return [
                 'status' => in_array($code, $definiteRejections, true) ? 3 : 0,
@@ -550,7 +560,7 @@ HTML;
     private function writeNotifyLog($orderid, array $result, $message)
     {
         try {
-            logApiAddNotify($orderid, 0, $result, $message);
+            logApiAddNotify($orderid, 1, $result, $message);
         } catch (\Exception $exception) {
             log_place_order($this->code . '_notifyurl', $orderid . '----通知日志异常', $exception->getMessage());
         }

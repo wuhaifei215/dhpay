@@ -6,7 +6,7 @@ class HxPayGcashController extends PayController
 {
     private const CREATE_PATH = '/pay/recharge/create';
     private const QUERY_PATH = '/pay/recharge/query';
-    private const DEFAULT_PRODUCT_CODE = '6601';
+    private const DEFAULT_PRODUCT_CODE = 'GCASH_NATIVE';
 
     private $code = '';
 

@@ -100,12 +100,38 @@ class OrderController extends UserController
         $where['isdel'] = 0;
 
         $OrderModel = D('Order');
+        $onlineQueryOptions = array(
+            'max_days' => 7,
+            'max_execution_time' => 30000,
+        );
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
 
         //通道代理商户
         if ($this->fans['groupid'] == 8) {
             $where['pay_status'] = ['between', [1, 2]];
 
-            $statistic = $OrderModel->getSum('pay_amount,pay_actualamount',$where);
+            if ($orderid) {
+                $statisticsOrder = $OrderModel->findByOrderId(
+                    $orderid,
+                    'pay_amount,pay_actualamount',
+                    $where
+                );
+                if ($statisticsOrder === false) {
+                    $this->error('订单号格式不正确');
+                    return;
+                }
+                $statistic = $statisticsOrder
+                    ? $statisticsOrder
+                    : array('pay_amount' => 0, 'pay_actualamount' => 0);
+            } else {
+                $statistic = $OrderModel->getSum(
+                    'pay_amount,pay_actualamount',
+                    $where,
+                    $onlineQueryOptions
+                );
+            }
             // var_dump($statistic);die;
 //            $statistic = M('Order')->field(['sum(`pay_amount`) pay_amount,  sum(`pay_actualamount`) pay_actualamount'])->where($where)->find();
 
@@ -138,15 +164,33 @@ class OrderController extends UserController
             $where['pay_memberid'] = 10000 + $this->fans['uid'];
         }
 
-        $count = $OrderModel->getCount($where);
         $size = 15;
         $rows = I('get.rows', $size, 'intval');
         if (!$rows) {
             $rows = $size;
         }
-        $page = new Page($count, $rows);
-
-        $list = $OrderModel->getOrderByDateRange('*', $where, $page->firstRow . ',' . $page->listRows, 'id desc');
+        if ($orderid) {
+            // 保留 pay_memberid、currency 等原有条件，精确订单号只访问对应日表。
+            $order = $OrderModel->findByOrderId($orderid, '*', $where);
+            if ($order === false) {
+                $this->error('订单号格式不正确');
+                return;
+            }
+            $list = $order ? array($order) : array();
+            $count = count($list);
+            $page = new Page($count, $rows);
+        } else {
+            $count = $OrderModel->getCount($where, $onlineQueryOptions);
+            $page = new Page($count, $rows);
+            $list = $OrderModel->getOrderByDateRange(
+                '*',
+                $where,
+                $page->firstRow . ',' . $page->listRows,
+                'id desc',
+                '',
+                $onlineQueryOptions
+            );
+        }
         //统计今日交易数据
         // if ($status == '2') {
         //今日成功交易总额
@@ -156,7 +200,7 @@ class OrderController extends UserController
         //今日失败笔数
         $t_where['pay_status']=['eq',0];
         $t_where['pay_memberid']= 10000 + $this->fans['uid'];
-        $stat['todayfailcount'] = $OrderModel->getCount($t_where);
+        $stat['todayfailcount'] = $OrderModel->getCount($t_where, $onlineQueryOptions);
 
         //今日实际到账总额
         $t_where = [
@@ -164,14 +208,18 @@ class OrderController extends UserController
             'pay_successdate' => ['between', [strtotime($todayBegin), strtotime($todyEnd)]],
             'pay_status' => ['between', [1, 2]]
         ];
-        $taodaypay_amount = $OrderModel->getSum('pay_amount,pay_actualamount', $t_where);
+        $taodaypay_amount = $OrderModel->getSum(
+            'pay_amount,pay_actualamount',
+            $t_where,
+            $onlineQueryOptions
+        );
         $stat['todaysum'] = $taodaypay_amount['pay_amount'];
 
         //今日实际到账笔数
         $stat['taodayactualamount'] = $taodaypay_amount['pay_actualamount'];
 
         //今日成功笔数
-        $stat['todaysuccesscount'] = $OrderModel->getCount($t_where);
+        $stat['todaysuccesscount'] = $OrderModel->getCount($t_where, $onlineQueryOptions);
 
 
         foreach ($stat as $k => $v) {
@@ -182,18 +230,37 @@ class OrderController extends UserController
 
         //如果指定时间范围则按搜索条件做统计
         if ($createtime || $successtime) {
-            $sumMap = $failMap = $where;
-            //成功
-            $sumMap['pay_status'] = ['between', [1, 2]];
-            $sum = $OrderModel->getSum('pay_amount,pay_actualamount',$sumMap);
-            $sum['success_count'] = $OrderModel->getCount($sumMap);
-            //失败
-            $failMap['pay_status'] = ['eq',0];
-            $sum['fail_count'] = $OrderModel->getCount($failMap);
+            if ($orderid) {
+                // 精确订单号的汇总复用单表结果，禁止再次生成跨表统计。
+                $sum = array(
+                    'pay_amount' => 0,
+                    'pay_actualamount' => 0,
+                    'success_count' => 0,
+                    'fail_count' => 0,
+                );
+                if ($order) {
+                    if (in_array(intval($order['pay_status']), array(1, 2), true)) {
+                        $sum['pay_amount'] = $order['pay_amount'];
+                        $sum['pay_actualamount'] = $order['pay_actualamount'];
+                        $sum['success_count'] = 1;
+                    } elseif (intval($order['pay_status']) === 0) {
+                        $sum['fail_count'] = 1;
+                    }
+                }
+            } else {
+                $sumMap = $failMap = $where;
+                //成功
+                $sumMap['pay_status'] = ['between', [1, 2]];
+                $sum = $OrderModel->getSum('pay_amount,pay_actualamount', $sumMap, $onlineQueryOptions);
+                $sum['success_count'] = $OrderModel->getCount($sumMap, $onlineQueryOptions);
+                //失败
+                $failMap['pay_status'] = ['eq',0];
+                $sum['fail_count'] = $OrderModel->getCount($failMap, $onlineQueryOptions);
+            }
             
             $this->assign('sum', $sum);
         }
-        $this->assign('uid', 10000+session("user_auth.uid"));
+        $this->assign('uid', 10000 + $this->fans['uid']);
         $this->assign('rows', $rows);
         $this->assign("list", $list);
         $this->assign('page', $page->show());

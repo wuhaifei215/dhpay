@@ -106,26 +106,61 @@ class WithdrawalController extends UserController
         }
         $field = 'id,orderid,out_trade_no,userid,tkmoney,sxfmoney,money,bankfullname,banknumber,bankname,sqdatetime,cldatetime,status,memo,bankcode';
         $Wttklist = D('Wttklist');
-        $count = $Wttklist->getCount($where);
-        $page = new Page($count, $rows);
-        $list = $Wttklist->getOrderByDateRange($field, $where, $page->firstRow . ',' . $page->listRows, 'id desc');
+        $onlineQueryOptions = array(
+            'max_days' => 7,
+            'max_execution_time' => 30000,
+        );
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
+        if ($orderid) {
+            // 保留 userid、currency 等原有条件，精确代付订单号只访问对应日表。
+            $withdrawal = $Wttklist->findByOrderId($orderid, $field, $where);
+            if ($withdrawal === false) {
+                $this->error('代付订单号格式不正确');
+                return;
+            }
+            $list = $withdrawal ? array($withdrawal) : array();
+            $count = count($list);
+            $page = new Page($count, $rows);
+        } else {
+            $count = $Wttklist->getCount($where, $onlineQueryOptions);
+            $page = new Page($count, $rows);
+            $list = $Wttklist->getOrderByDateRange(
+                $field,
+                $where,
+                $page->firstRow . ',' . $page->listRows,
+                'id desc',
+                '',
+                $onlineQueryOptions
+            );
+        }
         
         //统计汇总信息
+        $stat = array();
         //代付总金额
         $totalMap = $where;
 		$totalMap['userid'] = $this->fans['uid'];
-        $totalMap['status'] = ['between',['2','3']];
-        $stat_arr = $Wttklist->getSum('money',$totalMap);
-        $stat=array();
-        $stat['total'] = $stat_arr['money'];
+        if ($orderid) {
+            // 精确订单号的汇总复用单表结果，禁止再次生成跨表统计。
+            $withdrawalStatus = $withdrawal ? intval($withdrawal['status']) : -1;
+            $stat['total'] = in_array($withdrawalStatus, array(2, 3), true) ? $withdrawal['money'] : 0;
+            $stat['total_success_count'] = in_array($withdrawalStatus, array(2, 3), true) ? 1 : 0;
+            $stat['total_fail_count'] = in_array($withdrawalStatus, array(4, 5, 6), true) ? 1 : 0;
+        } else {
+            $totalMap['status'] = ['between',['2','3']];
+            $stat_arr = $Wttklist->getSum('money', $totalMap, $onlineQueryOptions);
+            $stat['total'] = $stat_arr['money'];
 //        $stat['total'] = round(M('Wttklist')->where($totalMap)->sum('money'), 4);
-        //提款成功总笔数
-        $totalMap['status'] = ['between',['2','3']];
-        $stat['total_success_count'] = $Wttklist->getCount($totalMap);
+            //提款成功总笔数
+            $totalMap['status'] = ['between',['2','3']];
+            $stat['total_success_count'] = $Wttklist->getCount($totalMap, $onlineQueryOptions);
 //        $stat['total_success_count'] = M('Wttklist')->where($totalMap)->count();
-        //提款失败总笔数
-        $totalMap['status'] = ['between',['4','6']];
-        $stat['total_fail_count'] = $Wttklist->getCount($totalMap);
+            //提款失败总笔数
+            $totalMap['status'] = ['between',['4','6']];
+            $stat['total_fail_count'] = $Wttklist->getCount($totalMap, $onlineQueryOptions);
+        }
 //        $stat['total_fail_count'] = M('Wttklist')->where($totalMap)->count();
 
         //统计今日代付信息
@@ -135,17 +170,17 @@ class WithdrawalController extends UserController
         //今日代付总金额
         $map['cldatetime']   = array('between', array($beginToday, $endToday));
         $map['status']       = ['between',['2','3']];
-        $stat_arr = $Wttklist->getSum('money',$map);
+        $stat_arr = $Wttklist->getSum('money', $map, $onlineQueryOptions);
         $stat['totay_total'] = $stat_arr['money'];
 //        $stat['totay_total'] = round(M('Wttklist')->where($map)->sum('money'), 4);
         //今日代付成功笔数
-        $stat['totay_success_count'] = $Wttklist->getCount($map);
+        $stat['totay_success_count'] = $Wttklist->getCount($map, $onlineQueryOptions);
 //        $stat['totay_success_count'] = M('Wttklist')->where($map)->count();
         //今日代付待结算
         unset($map['cldatetime']);
         //今日代付失败笔数
         $map['status']            = ['between',['4','6']];
-        $stat['totay_fail_count'] = $Wttklist->getCount($map);
+        $stat['totay_fail_count'] = $Wttklist->getCount($map, $onlineQueryOptions);
 //        $stat['totay_fail_count'] = M('Wttklist')->where($map)->count();
 
         foreach ($list as $k => $v){
@@ -157,7 +192,7 @@ class WithdrawalController extends UserController
         }
         // echo "<pre>";
         // var_dump($list);
-        $this->assign('uid', 10000+session("user_auth.uid"));
+        $this->assign('uid', 10000 + $this->fans['uid']);
         $this->assign('stat', $stat);
         $this->assign("list", $list);
         $this->assign("page", $page->show());

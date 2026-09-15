@@ -162,10 +162,37 @@ class OrderController extends BaseController
             $rows = $size;
         }
         $OrderModel = D('Order');
+        $onlineQueryOptions = array(
+            'max_days' => 7,
+            'max_execution_time' => 30000,
+        );
+        $adminUid = session("admin_auth.uid");
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
 
-        $count = $OrderModel->getCount($where);
-        $page = new Page($count, $rows);
-        $list = $OrderModel->getOrderByDateRange($field, $where, $page->firstRow . ',' . $page->listRows, 'id desc');
+        if ($orderid) {
+            // 系统订单号包含订单日期，直接查询对应日表，禁止跨日表 UNION ALL。
+            $order = $OrderModel->findByOrderId($orderid, $field, $where);
+            if ($order === false) {
+                $this->error('订单号格式不正确');
+                return;
+            }
+            $list = $order ? array($order) : array();
+            $count = count($list);
+            $page = new Page($count, $rows);
+        } else {
+            $count = $OrderModel->getCount($where, $onlineQueryOptions);
+            $page = new Page($count, $rows);
+            $list = $OrderModel->getOrderByDateRange(
+                $field,
+                $where,
+                $page->firstRow . ',' . $page->listRows,
+                'id desc',
+                '',
+                $onlineQueryOptions
+            );
+        }
         
         $redis = $this->redis_connect();
         $redis->select(1);
@@ -177,7 +204,7 @@ class OrderController extends BaseController
             }
         }
 
-        $this->assign('uid', session("admin_auth.uid"));
+        $this->assign('uid', $adminUid);
         $this->assign('rows', $rows);
         $this->assign("list", $list);
         $this->assign('page', $page->show());
@@ -248,7 +275,17 @@ class OrderController extends BaseController
         
         $field = ['sum(`pay_amount`) as pay_amount, sum(`cost`) as cost, sum(`pay_poundage`) as pay_poundage, sum(`pay_actualamount`) as pay_actualamount, count(`id`) as success_count'];
         $OrderModel = D('Order');
-        $sum_arr = $OrderModel->getOrderByDateRange($field, $where);
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+        $sum_arr = $OrderModel->getOrderByDateRange(
+            $field,
+            $where,
+            '',
+            '',
+            '',
+            array('max_execution_time' => 30000)
+        );
         $sum=[];
         foreach ($sum_arr as $sk => $sv){
             foreach ($sv as $skk => $svv){
@@ -1655,10 +1692,36 @@ class OrderController extends BaseController
         // $page = new Page($count, $rows);
 
         $OrderModel = D('Order');
+        $onlineQueryOptions = array(
+            'max_days' => 7,
+            'max_execution_time' => 30000,
+        );
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
 
-        $count = $OrderModel->getCount($where);
-        $page = new Page($count, $rows);
-        $list = $OrderModel->getOrderByDateRange($field, $where, $page->firstRow . ',' . $page->listRows, 'id desc');
+        if ($payOrderid) {
+            // 冻结订单精确查询同样只访问系统订单号日期对应的一张表。
+            $order = $OrderModel->findByOrderId($payOrderid, '*', $where);
+            if ($order === false) {
+                $this->error('订单号格式不正确');
+                return;
+            }
+            $list = $order ? array($order) : array();
+            $count = count($list);
+            $page = new Page($count, $rows);
+        } else {
+            $count = $OrderModel->getCount($where, $onlineQueryOptions);
+            $page = new Page($count, $rows);
+            $list = $OrderModel->getOrderByDateRange(
+                '*',
+                $where,
+                $page->firstRow . ',' . $page->listRows,
+                'id desc',
+                '',
+                $onlineQueryOptions
+            );
+        }
 
         // $list = M('Order')->alias('as O')
         //     ->where($where)

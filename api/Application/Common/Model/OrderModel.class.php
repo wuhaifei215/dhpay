@@ -136,17 +136,52 @@ class OrderModel extends DailyPartitionModel {
         return $this;
     }
     
-    public function getCount($options=array()){
+    public function getCount($options=array(), $queryOptions=array()){
         $field = 'count(id) as tp_count';
-        $count_arr = $this->getOrderByDateRange($field, $options);
+        $count_arr = $this->getOrderByDateRange($field, $options, '', '', '', $queryOptions);
         $count = 0;
         foreach ($count_arr as $ck => $cv){
             $count+=$cv['tp_count'];
         }
         return $count;
     }
+
+    /**
+     * 系统订单号前 8 位为订单日期（YYYYMMDD）。
+     * 非法日期必须返回 false，禁止由 strtotime 自动纠正。
+     */
+    public function getDateFromOrderId($orderId){
+        if (!is_scalar($orderId)) {
+            return false;
+        }
+        $orderId = trim((string) $orderId);
+        if (!preg_match('/^(\d{4})(\d{2})(\d{2})/', $orderId, $matches)) {
+            return false;
+        }
+        $year = intval($matches[1]);
+        $month = intval($matches[2]);
+        $day = intval($matches[3]);
+        if (!checkdate($month, $day, $year)) {
+            return false;
+        }
+        return $matches[1] . $matches[2] . $matches[3];
+    }
+
+    /** 精确系统订单号查询直接访问对应日表。 */
+    public function findByOrderId($orderId, $field='*', $options=array()){
+        $date = $this->getDateFromOrderId($orderId);
+        if ($date === false) {
+            return false;
+        }
+        $tableName = $this->getRealTableName($date);
+        if (!in_array($tableName, $this->orderTables, true)) {
+            return null;
+        }
+        $options['pay_orderid'] = array('eq', trim((string) $orderId));
+        return $this->table($tableName)->field($field)->where($options)->find();
+    }
     
-    public function getSum($field='', $options=array()){
+    public function getSum($field='', $options=array(), $queryOptions=array()){
         $field_arr = explode(',' , $field);
         $field_str='';
         foreach ($field_arr as $v){
@@ -154,7 +189,7 @@ class OrderModel extends DailyPartitionModel {
         }
         $field_str = rtrim($field_str, ','); // 移除最后一个
         $sum_arr=[];
-        $sum_arr = $this->getOrderByDateRange($field_str, $options);
+        $sum_arr = $this->getOrderByDateRange($field_str, $options, '', '', '', $queryOptions);
         $sum=[];
         foreach ($sum_arr as $sk => $sv){
             foreach ($sv as $skk => $svv){
@@ -165,8 +200,12 @@ class OrderModel extends DailyPartitionModel {
     }
     
     // 按时间范围查询数据表
-    public function getOrderByDateRange($field=array(), $options=array(), $limit='', $orderby='' , $groupby='') {
+    public function getOrderByDateRange($field=array(), $options=array(), $limit='', $orderby='' , $groupby='', $queryOptions=array()) {
         $this->createTable();
+        $queryOptions = is_array($queryOptions) ? $queryOptions : array();
+        $maxDays = isset($queryOptions['max_days']) ? max(0, intval($queryOptions['max_days'])) : 0;
+        $maxExecutionTime = isset($queryOptions['max_execution_time']) ? max(0, min(60000, intval($queryOptions['max_execution_time']))) : 0;
+        $selectHint = $maxExecutionTime > 0 ? '/*+ MAX_EXECUTION_TIME(' . $maxExecutionTime . ') */ ' : '';
         if(!$field){
             $field = '*';
         }else{
@@ -192,44 +231,47 @@ class OrderModel extends DailyPartitionModel {
         $this->createTable();
         if($startdate && $enddate){
             //获取时间段内的每一天
-            $data_arr = $this->getDateRange($startdate, $enddate);        // 构建查询语句
+            $data_arr = $this->getDateRange($startdate, $enddate);
+            if ($maxDays > 0 && count($data_arr) > $maxDays) {
+                E('在线查询最多支持' . $maxDays . '天，超过范围请使用异步导出');
+            }
+            $selectSqlList = array();
             $break = 0;
-            $unionSql='';
             foreach ($data_arr as $date) {
                 $realTableName = $this->getRealTableName($date);
                 if(in_array($realTableName,$this->orderTables) && intval($date) >= $this->expire_date){
-                    $unionSql .= "SELECT {$field} FROM `{$realTableName}`";
+                    $selectSql = "SELECT {$field} FROM `{$realTableName}`";
                     if($where){
-                        $unionSql .= $where;
+                        $selectSql .= $where;
                     }
                     if($groupby){
-                        $unionSql .= $groupby;
+                        $selectSql .= $groupby;
                     }
-                    $unionSql .= " UNION All ";
+                    $selectSqlList[] = $selectSql;
                 }elseif($break == 0 && intval($date) < $this->expire_date){
-                    $unionSql .= "SELECT {$field} FROM `{$this->tablePrefix}{$this->tableName}`";
+                    $selectSql = "SELECT {$field} FROM `{$this->tablePrefix}{$this->tableName}`";
                     if($where){
-                        $unionSql .= $where;
+                        $selectSql .= $where;
                     }
                     if($groupby){
-                        $unionSql .= $groupby;
+                        $selectSql .= $groupby;
                     }
-                    $unionSql .= " UNION All ";
+                    $selectSqlList[] = $selectSql;
                     $break = 1;
                 }
                 if($break===1 && intval($date) < $this->expire_date){
                     break;
                 }
             }
-            $unionSql = rtrim($unionSql, 'UNION  All '); // 移除最后一个UNION
-            if($unionSql !=''){
+            if(!empty($selectSqlList)){
+                $unionSql = implode(' UNION ALL ', $selectSqlList);
                 if($orderby){
                     $unionSql .= $orderby;
                 }
                 if($limit){
                     $unionSql .= $limit;
                 }
-                $do_unionSql = 'SELECT * FROM (' . $unionSql . ') AS subquery';
+                $do_unionSql = 'SELECT ' . $selectHint . '* FROM (' . $unionSql . ') AS subquery';
                 // var_dump($do_unionSql);
                 // echo "<br><br>";
                 // 执行联合查询
@@ -238,7 +280,7 @@ class OrderModel extends DailyPartitionModel {
         }else{
             $realTableName = $this->getRealTableName($startdate);
             if(in_array($realTableName,$this->orderTables)){
-                $unionSql = "SELECT {$field} FROM `{$realTableName}`";
+                $unionSql = "SELECT {$selectHint}{$field} FROM `{$realTableName}`";
                 if($where){
                     $unionSql .= $where;
                 }

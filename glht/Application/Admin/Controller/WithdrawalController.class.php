@@ -478,9 +478,37 @@ class WithdrawalController extends BaseController
 
         $field = '*';
         $Wttklist = D('Wttklist');
-        $count = $Wttklist->getCount($where);
-        $page = new Page($count, $rows);
-        $list = $Wttklist->getOrderByDateRange($field, $where, $page->firstRow . ',' . $page->listRows, 'id desc');
+        $onlineQueryOptions = array(
+            'max_days' => 7,
+            'max_execution_time' => 30000,
+        );
+        $adminUid = session("admin_auth.uid");
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
+        if ($orderid) {
+            // 代付系统订单号包含订单日期，直接查询对应日表。
+            $withdrawal = $Wttklist->findByOrderId($orderid, $field, $where);
+            if ($withdrawal === false) {
+                $this->error('代付订单号格式不正确');
+                return;
+            }
+            $list = $withdrawal ? array($withdrawal) : array();
+            $count = count($list);
+            $page = new Page($count, $rows);
+        } else {
+            $count = $Wttklist->getCount($where, $onlineQueryOptions);
+            $page = new Page($count, $rows);
+            $list = $Wttklist->getOrderByDateRange(
+                $field,
+                $where,
+                $page->firstRow . ',' . $page->listRows,
+                'id desc',
+                '',
+                $onlineQueryOptions
+            );
+        }
         // echo $Wttklist->getLastSql();
         foreach ($list as $k => $v){
             foreach ($banklist as $kk => $vv){
@@ -493,7 +521,7 @@ class WithdrawalController extends BaseController
         $pfa_lists = M('PayForAnother')->where(['status' => 1])->select();
         $df_list = M('PayForAnother')->select();
 
-        $this->assign('uid', session("admin_auth.uid"));
+        $this->assign('uid', $adminUid);
         $this->assign('rows', $rows);
         $this->assign("pfa_lists", $pfa_lists);
         $this->assign("df_list", $df_list);

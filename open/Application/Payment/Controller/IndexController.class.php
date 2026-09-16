@@ -232,10 +232,10 @@ class IndexController extends PaymentController{
     //凭证查询
     public function voucher(){
         //https://open.yunpay.me/Payment_Index_voucher.html?casOrdNo=O2024122605472902849628399&pay_currency=BRL
-        $currency= I('post.pay_currency', '', 'string,strip_tags,htmlspecialchars');
-        if (!$currency) {
-            $this->showmessage('国家货币不能为空！');
-        }
+//        $currency= I('post.pay_currency', '', 'string,strip_tags,htmlspecialchars');
+//        if (!$currency) {
+//            $this->showmessage('国家货币不能为空！');
+//        }
         $orderid = I('request.casOrdNo', '', 'string');
         if (!$orderid) {
             $this->showmessage("缺少参数");
@@ -244,20 +244,32 @@ class IndexController extends PaymentController{
         $date = date('Ymd',strtotime(substr($orderid, 1, 8)));  //获取订单日期
         $tableName = $Wttklistmodel->getRealTableName($date);
         $info = $Wttklistmodel->table($tableName)->where(['orderid' => $orderid])->find();
-        if(!$info['three_orderid'] && $info['df_id'] < 8){
-            echo '请联系客服获取!';
-            return;
-        } 
+//        if(!$info['three_orderid'] && $info['df_id'] < 8){
+//            echo '请联系客服获取!';
+//            return;
+//        }
         if($info['status'] == 2 || $info['status'] == 3){
-            $where['id'] = $info['df_id'];
-            $pfa_list = M('PayForAnother')->where($where)->find();
-            
-            $voucherrData = R('Payment/'.$pfa_list['code'].'/PaymentVoucher', [$info, $pfa_list]);
-            if($voucherrData === false){
+            if($info['billno'] && $info['additional']){
+                $voucherrData = [
+                    "amount" => $info['tkmoney'],
+                    "channel_name" => $info['additional'],
+                    "account_name" => $info['bankfullname'],
+                    "account_number" => $info['banknumber'],
+                    "bankname" => $info['type'],
+                    "reference_id" => $info['billno'],
+                    "date" => $info['sqdatetime'],
+                ];
+            }else{
+                $where['id'] = $info['df_id'];
+                $pfa_list = M('PayForAnother')->where($where)->find();
+
+                $voucherrData = R('Payment/'.$pfa_list['code'].'/PaymentVoucher', [$info, $pfa_list]);
+            }
+            if(empty($voucherrData)){
                 echo '请联系客服获取!';
                 return;
-            } 
-            $this->assign('list', $voucherrData['data']);
+            }
+            $this->assign('list', $voucherrData);
 		    $this->display("Public/form");
         }
     }

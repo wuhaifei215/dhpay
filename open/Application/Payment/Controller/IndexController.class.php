@@ -28,7 +28,7 @@ class IndexController extends PaymentController{
         $post_data = verifyData($this->verify_data_);
         //获取要操作的订单id
         $post_data['id'] = explode(',', rtrim($post_data['id'], ',') );
-		
+
         //根据操作查询不同状态的订单
         if ($post_data['opt'] == 'exec') {
             $status = '0';
@@ -48,14 +48,14 @@ class IndexController extends PaymentController{
             }
         }
         // $wttk_lists = $this->selectOrder($where);
-		
-		$post_data['code'] = $post_data['opt'] == 'exec'?$post_data['code']:$wttk_lists[0]['df_id'];
-		//获取要代付的通道信息
+
+        $post_data['code'] = $post_data['opt'] == 'exec'?$post_data['code']:$wttk_lists[0]['df_id'];
+        //获取要代付的通道信息
         $pfa_list = $this->findPaymentType($post_data['code']);
-		
+
         //检查代付金额与用户金额是否相同
         //$this->checkMoney($wttk_lists['userid'] , $wttk_lists['money']);
-		
+
         //判断代付通道的文件是否存在
         $code = $pfa_list['code'];
         $code || showError('代付渠道不存在！');
@@ -65,7 +65,7 @@ class IndexController extends PaymentController{
         $opt = ucfirst( $post_data['opt']);
         //解锁锁定时间超过5分钟的代付（提交失败导致不解锁的）
         $expire_time = time()-300;
-        
+
         $Wttklistmodel->table($tableName)->where('`df_lock`=1 AND `status`=0 AND `lock_time`>0 AND `lock_time`<'.$expire_time)->setField('df_lock', 0);
         if( count($wttk_lists)<= 15){
             $fp = fopen($file, "r");
@@ -176,7 +176,7 @@ class IndexController extends PaymentController{
             showError('请选择订单！');
         }
         $where['id'] = ['in', $id];
-        
+
         $tableName ='';
         $Wttklistmodel = D('Wttklist');
         $tables = $Wttklistmodel->getTables();
@@ -227,8 +227,8 @@ class IndexController extends PaymentController{
             showSuccess('查询成功,请在页面刷新后查看订单状态！');
         }
     }
-    
-        
+
+
     //凭证查询
     public function voucher(){
         //https://open.yunpay.me/Payment_Index_voucher.html?casOrdNo=O2024122605472902849628399&pay_currency=BRL
@@ -251,7 +251,7 @@ class IndexController extends PaymentController{
         if($info['status'] == 2 || $info['status'] == 3){
             if($info['billno'] && $info['additional']){
                 $voucherrData = [
-                    "amount" => $info['tkmoney'],
+                    "amount" => sprintf("%.2f", $info['tkmoney']),
                     "channel_name" => $info['additional'],
                     "account_name" => $info['bankfullname'],
                     "account_number" => $info['banknumber'],
@@ -270,7 +270,10 @@ class IndexController extends PaymentController{
                 return;
             }
             $this->assign('list', $voucherrData);
-		    $this->display("Public/form");
+            $this->display("Public/form");
+        }else{
+            echo '请联系客服获取!';
+            return;
         }
     }
 }

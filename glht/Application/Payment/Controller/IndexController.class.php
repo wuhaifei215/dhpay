@@ -251,7 +251,7 @@ class IndexController extends PaymentController{
         if($info['status'] == 2 || $info['status'] == 3){
             if($info['billno'] && $info['additional']){
                 $voucherrData = [
-                    "amount" => $info['tkmoney'],
+                    "amount" => sprintf("%.2f", $info['tkmoney']),
                     "channel_name" => $info['additional'],
                     "account_name" => $info['bankfullname'],
                     "account_number" => $info['banknumber'],
@@ -271,6 +271,9 @@ class IndexController extends PaymentController{
             }
             $this->assign('list', $voucherrData);
             $this->display("Public/form");
+        }else{
+            echo '请联系客服获取!';
+            return;
         }
     }
 }

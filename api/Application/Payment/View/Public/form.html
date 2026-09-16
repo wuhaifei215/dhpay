@@ -94,22 +94,22 @@
     </style>
 </head>
 <body>
-    <main class="receipt">
-        <h1 class="receipt-title">InstaPay Cash Out<br>Successful</h1>
-        <hr class="receipt-divider">
-        <p class="receipt-message">Your cash out is completed.<br>Please see the details below:</p>
+<main class="receipt">
+    <h1 class="receipt-title">InstaPay Cash Out<br>Successful</h1>
+    <hr class="receipt-divider">
+    <p class="receipt-message">Your cash out is completed.<br>Please see the details below:</p>
 
-        <section class="order-summary" aria-labelledby="summary-title">
-            <h2 id="summary-title" class="summary-title">Order Summary</h2>
-            <p class="amount-label">Cash out amount:</p>
-            <p class="amount">₱ <{$list.amount}></p>
-            <p class="summary-detail">Channel name: instapay</p>
-            <p class="summary-detail">Account name: <{$list.name}></p>
-            <p class="summary-detail">Account number: <{$list.account}></p>
-            <p class="summary-detail">Receiving bank: <{$list.bankname}></p>
-            <p class="summary-detail">Reference No.: <{$list.eid|default=$list.order}></p>
-            <p class="summary-detail">Completed at: UTC+8 <{$list.date}></p>
-        </section>
-    </main>
+    <section class="order-summary" aria-labelledby="summary-title">
+        <h2 id="summary-title" class="summary-title">Order Summary</h2>
+        <p class="amount-label">Cash out amount:</p>
+        <p class="amount">₱ <{$list.amount}></p>
+        <p class="summary-detail">Channel name: <{$list.channel_name}></p>
+        <p class="summary-detail">Account name: <{$list.account_name}></p>
+        <p class="summary-detail">Account number: <{$list.account_number}></p>
+        <p class="summary-detail">Receiving bank: <{$list.bankname}></p>
+        <p class="summary-detail">Reference No.: <{$list.reference_id}></p>
+        <p class="summary-detail">Completed at: UTC+8 <{$list.date}></p>
+    </section>
+</main>
 </body>
 </html>

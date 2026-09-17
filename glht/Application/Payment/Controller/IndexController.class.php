@@ -272,7 +272,7 @@ class IndexController extends PaymentController{
             $this->assign('list', $voucherrData);
             $this->display("Public/form");
         }else{
-            echo '请联系客服获取!';
+            echo '订单状态异常，请联系客服!';
             return;
         }
     }

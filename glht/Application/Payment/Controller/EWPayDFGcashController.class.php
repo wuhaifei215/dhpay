@@ -130,28 +130,28 @@ class EWPayDFGcashController extends PaymentController
         $post_data["signature"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code, $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
         log_place_order($this->code, $data['orderid'] . "----提交地址", $config['exec_gateway']);    //日志
-        
+
         // 记录初始执行时间
         $beginTime = microtime(TRUE);
-        
+
         $returnContent = $this->http_post_json($config['exec_gateway'], $post_data);
         $result = json_decode($returnContent, true);
         // if($data['userid'] == 2){
-            try{
-                
-                $redis = $this->redis_connect();
-                $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
-                $userdfpost = json_decode($userdfpost,true);
-                
-                logApiAddPayment('商户提交', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
-                
-                // 结束并输出执行时间
-                $endTime = microtime(TRUE);
-                $doTime = floor(($endTime-$beginTime)*1000);
-                logApiAddPayment('订单提交三方' . $this->code, __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '1');
-            }catch (\Exception $e) {
-                // var_dump($e);
-            }
+        try{
+
+            $redis = $this->redis_connect();
+            $userdfpost = $redis->get('userdfpost_' . $data['out_trade_no']);
+            $userdfpost = json_decode($userdfpost,true);
+
+            logApiAddPayment('商户提交', __METHOD__, $data['orderid'], $data['out_trade_no'], '/', $userdfpost, [], '0', '0', '1', '2');
+
+            // 结束并输出执行时间
+            $endTime = microtime(TRUE);
+            $doTime = floor(($endTime-$beginTime)*1000);
+            logApiAddPayment('订单提交三方' . $this->code, __METHOD__, $data['orderid'], $data['out_trade_no'], $config['exec_gateway'], $post_data, $result, $doTime, '0', '1', '1');
+        }catch (\Exception $e) {
+            // var_dump($e);
+        }
         // }
         log_place_order($this->code, $data['orderid'] . "----返回", json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
 
@@ -184,19 +184,19 @@ class EWPayDFGcashController extends PaymentController
         $orderid = $re_data['merchantOrder'];
         //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
         log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", json_encode($re_data, JSON_UNESCAPED_UNICODE));    //日志
-        
+
         $tableName ='';
         $Wttklistmodel = D('Wttklist');
         $date = date('Ymd',strtotime(substr($orderid, 1, 8)));  //获取订单日期
         $tableName = $Wttklistmodel->getRealTableName($date);
         $Order = $Wttklistmodel->table($tableName)->where(['orderid' => $orderid])->find();
-        
+
         // $Order = $this->selectOrder(['orderid' => $orderid]);
         if (!$Order) {
             log_place_order($this->code . '_notifyurl', $orderid . '----没有查询到Order！ ', $orderid);
             exit;
         }
-        
+
         $config = M('pay_for_another')->where(['code' => $this->code,'id'=>$Order['df_id']])->find();
         //验证IP白名单
         if ($this->verifyNotifyIp($config['notifyip'], $orderid) !== true) {
@@ -209,7 +209,7 @@ class EWPayDFGcashController extends PaymentController
             }
             return;
         }
-        
+
         $sign = $this->get_sign($re_data,$config['signkey']);
         if ($sign === $re_data["signature"]) {
             if ($re_data['status'] === 4) {     //訂單狀態：0=未處理中, 1=處理中, 3=失敗, 4=成功
@@ -247,7 +247,7 @@ class EWPayDFGcashController extends PaymentController
             // var_dump($e);
         }
     }
-    
+
     //账户余额查询
     public function queryBalance()
     {
@@ -265,7 +265,7 @@ class EWPayDFGcashController extends PaymentController
             $return = json_decode($returnContent,true);
             if($return['code'] === "0"){
                 $result = $return['data'];
-                
+
                 $balance = $result['available_balance'];  //可用金额
                 $creditAmount = $result['hold_balance'];  //冻结金额
                 $totalAmount = $result['total_balance'];  //总金额
@@ -290,7 +290,7 @@ AAA;
             $this->ajaxReturn(['status' => 1, 'msg' => '成功', 'data' => $html]);
         }
     }
-    
+
     //账户余额查询
     public function queryBalance2($config)
     {
@@ -341,30 +341,35 @@ AAA;
         }
         return $return;
     }
-        
-    // public function PaymentVoucher($data, $config){
-    //     if(isset($data['three_orderid'])){
-    //         $post_data = [
-    //             'custId' => $config['mch_id'],
-    //             'appId' => $config['appid'],
-    //             'order' => $data['orderid'],
-    //         ];
-    //         $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
-    //         log_place_order($this->code . '_PaymentVoucher', $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
-    //         $returnContent = $this->http_post_json('https://api.winpay.site/br/voucherData.json', $post_data);
-    //         log_place_order($this->code . '_PaymentVoucher', $data['orderid'] . "----返回", $returnContent);    //日志
-    //         $result = json_decode($returnContent, true);
 
-    //         if(!empty($result)){
-    //             return  $result;
-    //         }else{
-    //             return false;
-    //         }
-    //     }else{
-    //         return false;
-    //     }
-        
-    // }
+    public function PaymentVoucher($data, $config){
+        $post_data = [
+            'merchantNo' => $config['mch_id'],
+            'merchantOrder' => $data['orderid'],
+            'dateTime' => date('ymdHis'),
+        ];
+        $post_data["signature"] = $this->get_sign($post_data, $config['signkey']);
+        log_place_order($this->code . '_PaymentVoucher', $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
+        $returnContent = $this->http_post_json('https://{apiUrl}/withdraw/receipt/query', $post_data);
+        log_place_order($this->code . '_PaymentVoucher', $data['orderid'] . "----返回", $returnContent);    //日志
+        $result = json_decode($returnContent, true);
+
+        if(!empty($result) && $result['code'] == 0){
+            $voucherrData = [
+                'status'=>'Successful',
+                'amount'=>sprintf('%.2f', $data['tkmoney']),
+                'channel_name'=> "InstaPay",
+                'accountName'=>$data['bankfullname'],
+                'accountNumber'=>$data['banknumber'],
+                'type'=>$data['type'],
+                'reference_no'=>$result['data']['providerReferenceNo'],
+                'cldatetime'=>$data['cldatetime'],
+            ];
+            return  $voucherrData;
+        }else{
+            return false;
+        }
+    }
 
     //发送post请求，提交json字符串
     private function http_post_json($url, $data)

@@ -350,7 +350,7 @@ AAA;
         ];
         $post_data["signature"] = $this->get_sign($post_data, $config['signkey']);
         log_place_order($this->code . '_PaymentVoucher', $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
-        $returnContent = $this->http_post_json('https://{apiUrl}/withdraw/receipt/query', $post_data);
+        $returnContent = $this->http_post_json('https://api.ewpay.site/withdraw/receipt/query', $post_data);
         log_place_order($this->code . '_PaymentVoucher', $data['orderid'] . "----返回", $returnContent);    //日志
         $result = json_decode($returnContent, true);
 
@@ -358,11 +358,11 @@ AAA;
             $voucherrData = [
                 'status'=>'Successful',
                 'amount'=>sprintf('%.2f', $data['tkmoney']),
-                'channel_name'=> "InstaPay",
+                'channelName'=> "InstaPay",
                 'accountName'=>$data['bankfullname'],
                 'accountNumber'=>$data['banknumber'],
                 'type'=>$data['type'],
-                'reference_no'=>$result['data']['providerReferenceNo'],
+                'referenceNo'=>$result['data']['providerReferenceNo'],
                 'cldatetime'=>$data['cldatetime'],
             ];
             return  $voucherrData;

@@ -252,12 +252,12 @@ class IndexController extends PaymentController{
             if($info['billno'] && $info['additional']){
                 $voucherrData = [
                     "amount" => sprintf("%.2f", $info['tkmoney']),
-                    "channel_name" => $info['additional'],
-                    "account_name" => $info['bankfullname'],
-                    "account_number" => $info['banknumber'],
-                    "bankname" => $info['type'],
-                    "reference_id" => $info['billno'],
-                    "date" => $info['sqdatetime'],
+                    "channelName" => $info['additional'],
+                    "accountName" => $info['bankfullname'],
+                    "accountNumber" => $info['banknumber'],
+                    "type" => $info['type'],
+                    "referenceNo" => $info['billno'],
+                    "cldatetime" => $info['sqdatetime'],
                 ];
             }else{
                 $where['id'] = $info['df_id'];

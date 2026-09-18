@@ -31,7 +31,8 @@
                                     <th lay-data="{field:'order_success_poundage', width:150,style:'color:#060;'}">代收手续费</th>
                                     <th lay-data="{field:'wttklist_success_count', width:150,style:'color:#C00;'}">代付成功笔数</th>
                                     <th lay-data="{field:'wttklist_success_amount', width:150,style:'color:#C00;'}">代付成功金额</th>
-                                    <th lay-data="{field:'wttklist_success_poundage', width:150,style:'color:#060;'}">当日最后余额</th>
+                                    <th lay-data="{field:'wttklist_success_poundage', width:150,style:'color:#060;'}">代付手续费</th>
+                                    <th lay-data="{field:'gmoney', width:150,style:'color:#060;'}">当日最后余额</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -43,6 +44,7 @@
                                         <td style="text-align:center;"><{$vo.order_success_poundage}></td>
                                         <td style="text-align:center;"><{$vo.wttklist_success_count}></td>
                                         <td style="text-align:center;"><{$vo.wttklist_success_amount}></td>
+                                        <td style="text-align:center;"><{$vo.wttklist_success_poundage}></td>
                                         <td style="text-align:center;"><{$vo.gmoney}></td>
                                     </tr>
                                 </volist>

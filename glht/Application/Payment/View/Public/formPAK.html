@@ -129,43 +129,43 @@
     </style>
 </head>
 <body>
-    <main class="receipt">
-        <header class="receipt-header">
-            <img class="logo" src="/img/<{$list.type|default='JAZZCASH'}>.png" alt="Logo">
-            <h1>RECEIPT</h1>
-            <p>Payment Confirmation</p>
-        </header>
+<main class="receipt">
+    <header class="receipt-header">
+        <img class="logo" src="/Public/img/<{$list.type|default='JAZZCASH'}>.png" alt="Logo">
+        <h1>RECEIPT</h1>
+        <p>Payment Confirmation</p>
+    </header>
 
-        <div class="receipt-content">
-            <div class="order-meta">
-                <p>Type: <{$list.type|default='JAZZCASH'}></p>
-                <p><{$list.cldatetime}></p>
-                <p>Order Id# <{$list.referenceNo}></p>
-            </div>
-
-            <section class="status-panel" aria-label="Payment status">
-                <p>Status:</p>
-                <span class="status-badge"><{$list.status}></span>
-            </section>
-
-            <dl class="payment-details">
-                <div class="detail-row">
-                    <dt>Bank :</dt>
-                    <dd><{$list.bankname|default='Cash'}></dd>
-                </div>
-                <div class="detail-row">
-                    <dt>Account Number :</dt>
-                    <dd><{$list.accountNumber}></dd>
-                </div>
-            </dl>
-
-            <div class="amount-panel">
-                <span>AMOUNT:</span>
-                <span class="amount-value"><{$list.amount}> PKR</span>
-            </div>
+    <div class="receipt-content">
+        <div class="order-meta">
+            <p>Type: <{$list.type|default='JAZZCASH'}></p>
+            <p><{$list.cldatetime}></p>
+            <p>Order Id# <{$list.referenceNo}></p>
         </div>
 
-        <footer class="receipt-footer">THANK YOU</footer>
-    </main>
+        <section class="status-panel" aria-label="Payment status">
+            <p>Status:</p>
+            <span class="status-badge"><{$list.status}></span>
+        </section>
+
+        <dl class="payment-details">
+            <div class="detail-row">
+                <dt>Bank :</dt>
+                <dd><{$list.bankname|default='Cash'}></dd>
+            </div>
+            <div class="detail-row">
+                <dt>Account Number :</dt>
+                <dd><{$list.accountNumber}></dd>
+            </div>
+        </dl>
+
+        <div class="amount-panel">
+            <span>AMOUNT:</span>
+            <span class="amount-value"><{$list.amount}> PKR</span>
+        </div>
+    </div>
+
+    <footer class="receipt-footer">THANK YOU</footer>
+</main>
 </body>
 </html>

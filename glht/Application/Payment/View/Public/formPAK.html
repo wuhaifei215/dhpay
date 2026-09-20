@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Receipt</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 40px 20px;
+            background: #f7f8fa;
+            color: #111;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .receipt {
+            width: 100%;
+            max-width: 502px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 13px;
+            background: #fff;
+            box-shadow: 0 3px 14px rgba(0, 0, 0, 0.07);
+        }
+
+        .receipt-header {
+            padding: 34px 20px 29px;
+            background: linear-gradient(120deg, #7c70ec, #5b45d2);
+            color: #fff;
+            text-align: center;
+        }
+
+        .brand {
+            display: block;
+            width: 84px;
+            height: 40px;
+            margin: 0 auto 14px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 32px;
+            line-height: 1.5;
+            font-weight: 800;
+        }
+
+        .receipt-header p { margin: 0; }
+
+        .receipt-content { padding: 28px 35px 30px; }
+
+        .order-meta { text-align: center; }
+        .order-meta p { margin: 0 0 7px; overflow-wrap: anywhere; }
+        .order-meta p:last-child { margin-bottom: 0; }
+
+        .status-panel {
+            margin-top: 24px;
+            padding: 18px 15px;
+            border-radius: 11px;
+            background: #f7f8fb;
+            text-align: center;
+        }
+
+        .status-panel p { margin: 0 0 4px; }
+
+        .status-badge {
+            display: inline-block;
+            min-width: 120px;
+            padding: 10px 24px;
+            border-radius: 24px;
+            background: #20c546;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .payment-details { margin: 36px 0 40px; }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 16px;
+        }
+
+        .detail-row + .detail-row { margin-top: 24px; }
+        .detail-row dt { flex-shrink: 0; }
+        .detail-row dd {
+            margin: 0;
+            text-align: right;
+            overflow-wrap: anywhere;
+            min-width: 0;
+            font-weight: 600;
+        }
+
+        .amount-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 25px;
+            border-radius: 10px;
+            background: linear-gradient(110deg, #5e83ff, #8053dc);
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .amount-value { min-width: 0; text-align: right; overflow-wrap: anywhere; }
+
+        .receipt-footer {
+            padding: 25px 20px;
+            background: #f7f8fb;
+            color: #607dff;
+            text-align: center;
+            font-size: 24px;
+            line-height: 32px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 380px) {
+            body { padding: 24px 12px; }
+            .receipt-content { padding-right: 20px; padding-left: 20px; }
+            .amount-panel { padding-right: 16px; padding-left: 16px; font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="receipt">
+        <header class="receipt-header">
+            <img class="logo" src="/img/<{$list.type|default='JAZZCASH'}>.png" alt="Logo">
+            <h1>RECEIPT</h1>
+            <p>Payment Confirmation</p>
+        </header>
+
+        <div class="receipt-content">
+            <div class="order-meta">
+                <p>Type: <{$list.type|default='JAZZCASH'}></p>
+                <p><{$list.cldatetime}></p>
+                <p>Order Id# <{$list.referenceNo}></p>
+            </div>
+
+            <section class="status-panel" aria-label="Payment status">
+                <p>Status:</p>
+                <span class="status-badge"><{$list.status}></span>
+            </section>
+
+            <dl class="payment-details">
+                <div class="detail-row">
+                    <dt>Bank :</dt>
+                    <dd><{$list.bankname|default='Cash'}></dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Account Number :</dt>
+                    <dd><{$list.accountNumber}></dd>
+                </div>
+            </dl>
+
+            <div class="amount-panel">
+                <span>AMOUNT:</span>
+                <span class="amount-value"><{$list.amount}> PKR</span>
+            </div>
+        </div>
+
+        <footer class="receipt-footer">THANK YOU</footer>
+    </main>
+</body>
+</html>

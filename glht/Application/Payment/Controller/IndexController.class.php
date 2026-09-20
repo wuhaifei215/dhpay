@@ -270,7 +270,12 @@ class IndexController extends PaymentController{
                 return;
             }
             $this->assign('list', $voucherrData);
-            $this->display("Public/form");
+
+            if($info['bankname'] == "JAZZCASH" || $info['bankname'] == "EASYPAISA"){
+                $this->display("Public/formPAK");
+            }else{
+                $this->display("Public/form");
+            }
         }else{
             echo '订单状态异常，请联系客服!';
             return;

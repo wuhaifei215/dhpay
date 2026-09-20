@@ -274,7 +274,16 @@ AAA;
             // $redata = json_decode(file_get_contents('https://api.winpay.site/payment/br/voucherData.webapp?casOrdNo=' . $data['three_orderid']),true);
             log_place_order($this->code . '_PaymentVoucher', $data['three_orderid'] . "----返回",  json_encode($result, JSON_UNESCAPED_UNICODE));    //日志
             if(!empty($result) && $result['code'] === '000000'){
-                return  $result;
+                $voucherrData = [
+                    "accountNumber" => $data['banknumber'],
+                    "type" => $data['bankname'],
+                    "referenceNo" => $data['orderid'],
+                    "cldatetime" => $data['sqdatetime'],
+                    "amount" => sprintf("%.2f", $result['data']['amount']),
+                    "bankname" => $result['data']['bankname'],
+                    "status" => $data['data']['status'],
+                ];
+                return  $voucherrData;
             }else{
                 return false;
             }

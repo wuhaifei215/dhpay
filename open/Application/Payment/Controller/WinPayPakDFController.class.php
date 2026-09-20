@@ -279,9 +279,9 @@ AAA;
                     "type" => $data['bankname'],
                     "referenceNo" => $data['orderid'],
                     "cldatetime" => $data['sqdatetime'],
-                    "amount" => sprintf("%.2f", $result['data']['amount']),
+                    "amount" => $result['data']['amount'],
                     "bankname" => $result['data']['bankname'],
-                    "status" => $data['data']['status'],
+                    "status" => $result['data']['status'],
                 ];
                 return  $voucherrData;
             }else{

@@ -267,7 +267,7 @@ AAA;
             ];
             $post_data["sign"] = $this->get_sign($post_data, $config['signkey']);
             log_place_order($this->code . '_PaymentVoucher', $data['orderid'] . "----提交", json_encode($post_data, JSON_UNESCAPED_UNICODE));    //日志
-            $returnContent = $this->http_post_json('https://phlapi.newwinpay.site/br/voucherData.json', $post_data);
+            $returnContent = $this->http_post_json('https://api.newwinpay.com/br/voucherData.json', $post_data);
             log_place_order($this->code . '_PaymentVoucher', $data['orderid'] . "----返回", $returnContent);    //日志
             $result = json_decode($returnContent, true);
         

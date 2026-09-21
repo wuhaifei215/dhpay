@@ -1,8 +1,24 @@
 <?php
+
+// 数据库配置
+$envFile = dirname(__FILE__) . '/../../../.env';
+$env = array();
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $env[trim($key)] = trim($value);
+        }
+    }
+}
+
 return array(
     /* 系统数据加密设置 */
     'DATA_AUTH_KEY' => 'SFY!+9hFQs?sb46LMV).X0W@oAQ(5lVYt=x7awE6d', //默认数据加密KEY
-    'COOKIE_EXPIRE' => 3600,
+    'SESSION_EXPIRE' => 7200,
+    'COOKIE_EXPIRE' => 7200,
     'COOKIE_SECURE' => false,
     'COOKIE_HTTPONLY' => true,
     'LOAD_EXT_CONFIG' => 'website,db,tags,route,disable,version,paytype,merchants,planning,additional,deploy',
@@ -23,7 +39,7 @@ return array(
     /* 模板引擎设置 */
     'TMPL_TEMPLATE_SUFFIX' => '.html',
     //'TMPL_EXCEPTION_FILE'   =>  APP_PATH . 'Tpl/think_exception.tpl',// 异常页面的模板文件
-    
+
     // 'TMPL_EXCEPTION_FILE'   =>  './404.html',// 异常页面的模板文件
     // 'ERROR_PAGE'            =>  './404.html', // 错误定向页面
 
@@ -37,7 +53,7 @@ return array(
     'agent'=>'agent',//代理url
     'imageDriver'=>'gd',//二维码画图 Supported: "gd", "imagick"
     'google_discrepancy'=>1,//谷歌验证码容差时间 如果这里是2 那么就是 2* 30 sec 一分钟.
-    'DEFAULT_COUNTRY' =>  'BRL',
+    'DEFAULT_COUNTRY' =>  isset($env['DEFAULT_COUNTRY']) ? $env['DEFAULT_COUNTRY'] : 'PHP',
 //    'DEFAULT_TIMEZONE' => 'America/Belem'
 
     // ================== 策略路由配置 ==================

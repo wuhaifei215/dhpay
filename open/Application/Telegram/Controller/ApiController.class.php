@@ -806,76 +806,62 @@ class ApiController extends Controller
     }
 
     //执行群发操作
-    public function qunfa(){
-        ini_set('max_execution_time', 0); // 5分钟
+    public function qunfa()
+    {
+        $text = isset($_REQUEST['text']) ? trim((string)$_REQUEST['text']) : '';
+        $row = isset($_REQUEST['row']) ? max(0, (int)$_REQUEST['row']) : 0;
+        $batchSize = 10;
 
-        $text = trim($_REQUEST['text']);
-        $row = $_REQUEST['row'];
-        if($text!=''){
-            $where=[];
-            // $where['id']=['between',[2,3]];
-            $where['telegram_id']=['neq',''];
-            $member_list = M('Member')->field('telegram_id')->where($where)->order('id asc')->limit($row * 50,50)->select();
-            if(isset($member_list) && !empty($member_list)){
-                foreach ($member_list as $mv){
-                    if($mv['telegram_id']){
-                        if(isset($_REQUEST['photo']) && $_REQUEST['photo']==1){
-                            $this->sendPhoto($mv['telegram_id'], $_REQUEST['file_id'],$text);
-                        }else{
-                            $this->sendMessage($mv['telegram_id'], $text);
-                        }
-                    }else{
-                        continue;
+        if ($text != '') {
+            $where = array();
+            $where['telegram_id'] = array('neq', '');
+
+            $member_list = M('Member')
+                ->field('telegram_id')
+                ->where($where)
+                ->order('id asc')
+                ->limit($row * $batchSize, $batchSize)
+                ->select();
+
+            if (!empty($member_list)) {
+                foreach ($member_list as $mv) {
+                    if (!empty($_REQUEST['photo'])) {
+                        $this->sendPhoto(
+                            $mv['telegram_id'],
+                            $_REQUEST['file_id'],
+                            $text
+                        );
+                    } else {
+                        $this->sendMessage($mv['telegram_id'], $text);
                     }
                 }
 
-                $_REQUEST['row']++;
+                $_REQUEST['row'] = $row + 1;
 
+                // 原来的下一批调用暂时保留
                 $url = 'https://' . C('DOMAIN') . '/Telegram_Api_qunfa.html';
+
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $url);
                 curl_setopt($ch, CURLOPT_POST, 1);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $_REQUEST);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // https请求 不验证证书和hosts
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
                 curl_setopt($ch, CURLOPT_HEADER, false);
 
-                $mh = curl_multi_init();
-                curl_multi_add_handle($mh, $ch);
+                curl_exec($ch);
 
-                // 执行curl_multi
-                do {
-                    $status = curl_multi_exec($mh, $active);
-                    if ($active) {
-                        curl_multi_select($mh); // 等待所有句柄的活动
-                    }
-                } while ($active && $status == CURLM_OK);
-
-                // 关闭句柄
-                curl_multi_remove_handle($mh, $ch);
-                curl_multi_close($mh);
-                //获取错误编码
-                $curlErrno = curl_errno($ch);
-                if($curlErrno){
-                    log_place_order($this->code . '_qunfaSql', "curlcode", $curlErrno);    //日志
-                    log_place_order($this->code . '_qunfaSql', "curlErrno", curl_error($ch));    //日志
+                if (curl_errno($ch)) {
+                    log_place_order( $this->code . '_qunfa', '启动下一批失败', curl_error($ch) );
                 }
-                curl_close($ch);
 
-                // $file_contents = curl_exec($ch);
-                // //获取错误编码
-                // $curlErrno = curl_errno($ch);
-                // if($curlErrno){
-                //     log_place_order($this->code . '_qunfaSql', "curlcode", $curlErrno);    //日志
-                //     log_place_order($this->code . '_qunfaSql', "curlErrno", curl_error($ch));    //日志
-                // }
-                // curl_close($ch);
-                return true;
+                curl_close($ch);
             }
         }
+
         return true;
     }
 

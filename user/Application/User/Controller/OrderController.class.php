@@ -104,9 +104,6 @@ class OrderController extends UserController
             'max_days' => 7,
             'max_execution_time' => 30000,
         );
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
 
         //通道代理商户
         if ($this->fans['groupid'] == 8) {

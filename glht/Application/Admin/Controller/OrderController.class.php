@@ -167,10 +167,6 @@ class OrderController extends BaseController
             'max_execution_time' => 30000,
         );
         $adminUid = session("admin_auth.uid");
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
-
         if ($orderid) {
             // 系统订单号包含订单日期，直接查询对应日表，禁止跨日表 UNION ALL。
             $order = $OrderModel->findByOrderId($orderid, $field, $where);
@@ -275,9 +271,6 @@ class OrderController extends BaseController
         
         $field = ['sum(`pay_amount`) as pay_amount, sum(`cost`) as cost, sum(`pay_poundage`) as pay_poundage, sum(`pay_actualamount`) as pay_actualamount, count(`id`) as success_count'];
         $OrderModel = D('Order');
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
         $sum_arr = $OrderModel->getOrderByDateRange(
             $field,
             $where,
@@ -1696,9 +1689,6 @@ class OrderController extends BaseController
             'max_days' => 7,
             'max_execution_time' => 30000,
         );
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
 
         if ($payOrderid) {
             // 冻结订单精确查询同样只访问系统订单号日期对应的一张表。

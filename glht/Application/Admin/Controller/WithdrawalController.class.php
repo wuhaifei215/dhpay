@@ -483,9 +483,6 @@ class WithdrawalController extends BaseController
             'max_execution_time' => 30000,
         );
         $adminUid = session("admin_auth.uid");
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
 
         if ($orderid) {
             // 代付系统订单号包含订单日期，直接查询对应日表。

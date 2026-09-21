@@ -110,10 +110,6 @@ class WithdrawalController extends UserController
             'max_days' => 7,
             'max_execution_time' => 30000,
         );
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
-
         if ($orderid) {
             // 保留 userid、currency 等原有条件，精确代付订单号只访问对应日表。
             $withdrawal = $Wttklist->findByOrderId($orderid, $field, $where);

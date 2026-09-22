@@ -154,7 +154,7 @@ class ApiController extends Controller
             $data['reply_markup'] = json_encode($markup, JSON_UNESCAPED_UNICODE);
         }
         log_place_order($this->code . '_editMessageReplyMarkup', "更新按钮", json_encode($data, JSON_UNESCAPED_UNICODE));
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
         $result = json_decode($result, true);
         return $result;
     }
@@ -287,7 +287,7 @@ class ApiController extends Controller
             'message_id' => $messageId,
         ];
         log_place_order($this->code . '_deleteMessage', "删除消息", json_encode($data, JSON_UNESCAPED_UNICODE));
-        $result = curlPost($url, $data);
+        $result = $this->curlPost($url, $data);
         $result = json_decode($result, true);
         return $result;
     }
@@ -1558,8 +1558,8 @@ class ApiController extends Controller
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 299);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); // 验证 HTTPS 证书及主机名
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         curl_setopt($ch, CURLOPT_HEADER, false);

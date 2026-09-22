@@ -21,6 +21,7 @@ class ApiController extends Controller
 
     public function __construct()
     {
+        $this->guardHttpEntry();
         // 数据库配置
         $envFile = dirname(__FILE__) . '/../../../.env';
         $env = array();
@@ -49,6 +50,50 @@ class ApiController extends Controller
 
     public function index()
     {
+    }
+
+    // 只限制外部路由；其他模块通过 R() 的内部调用保留原有权限边界。
+    private function guardHttpEntry()
+    {
+        if (PHP_SAPI === 'cli') {
+            return;
+        }
+        $directRequest = !defined('MODULE_NAME') || !defined('CONTROLLER_NAME')
+            || (strcasecmp(MODULE_NAME, 'Telegram') === 0
+                && strcasecmp(CONTROLLER_NAME, 'Api') === 0);
+        if ($directRequest && (!defined('ACTION_NAME')
+            || !in_array(strtolower(ACTION_NAME), ['receive', 'qunfa'], true))) {
+            http_response_code(403);
+            exit('Forbidden');
+        }
+    }
+
+    // 群发分页使用独立用途的内部凭据，不接受 Telegram 回调头代替它。
+    private function internalBroadcastSecret()
+    {
+        $this->requireWebhookSecret();
+        return hash_hmac('sha256', 'telegram-internal-broadcast-v1', $this->webhookSecret);
+    }
+
+    private function requireInternalBroadcast()
+    {
+        if (PHP_SAPI === 'cli') {
+            return;
+        }
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Allow: POST');
+            http_response_code(405);
+            exit;
+        }
+        if (!preg_match('/\A[A-Za-z0-9_-]{32,256}\z/', $this->webhookSecret)) {
+            http_response_code(503);
+            exit;
+        }
+        $provided = $_SERVER['HTTP_X_TELEGRAM_INTERNAL_SECRET'] ?? '';
+        if (!is_string($provided) || !hash_equals($this->internalBroadcastSecret(), $provided)) {
+            http_response_code(403);
+            exit('Forbidden');
+        }
     }
 
     // 管理操作仅允许服务器命令行执行，禁止通过公开路由调用。
@@ -689,6 +734,9 @@ class ApiController extends Controller
                 curl_setopt($ch, CURLOPT_URL, $url);
                 curl_setopt($ch, CURLOPT_POST, 1);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'X-Telegram-Internal-Secret: ' . $this->internalBroadcastSecret(),
+                ]);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
                 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
@@ -838,6 +886,11 @@ class ApiController extends Controller
     //执行群发操作
     public function qunfa()
     {
+        $this->requireInternalBroadcast();
+        // HTTP 分页只使用已认证的 POST 数据，忽略查询参数和 Cookie。
+        if (PHP_SAPI !== 'cli') {
+            $_REQUEST = $_POST;
+        }
         $text = isset($_REQUEST['text']) ? trim((string)$_REQUEST['text']) : '';
         $row = isset($_REQUEST['row']) ? max(0, (int)$_REQUEST['row']) : 0;
         $batchSize = 10;
@@ -875,6 +928,9 @@ class ApiController extends Controller
                 curl_setopt($ch, CURLOPT_URL, $url);
                 curl_setopt($ch, CURLOPT_POST, 1);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $_REQUEST);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'X-Telegram-Internal-Secret: ' . $this->internalBroadcastSecret(),
+                ]);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
                 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);

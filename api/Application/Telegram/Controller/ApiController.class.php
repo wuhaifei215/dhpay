@@ -17,6 +17,7 @@ class ApiController extends Controller
     protected $title;
     protected $callback = '';
     protected $channel_url = '';
+    protected $webhookSecret = '';
 
     public function __construct()
     {
@@ -35,7 +36,12 @@ class ApiController extends Controller
         }
         parent::__construct();
         $this->bot_name = isset($env['TELEGRAM_BOT_NAME']) ? $env['TELEGRAM_BOT_NAME'] : 'I8Pay_PHP_Bot';
-        $this->token = isset($env['TELEGRAM_TOKEN']) ? $env['TELEGRAM_TOKEN'] : '8257411210:AAHCedRvktdRdubtp8UjwgTYiwOTVfXBxsI';
+        $this->token = isset($env['TELEGRAM_TOKEN']) ? trim($env['TELEGRAM_TOKEN']) : '';
+        if ($this->token === '') {
+            throw new \RuntimeException('缺少 TELEGRAM_TOKEN 配置');
+        }
+        $this->webhookSecret = isset($env['TELEGRAM_WEBHOOK_SECRET'])
+            ? trim($env['TELEGRAM_WEBHOOK_SECRET']) : '';
         $this->title = isset($env['TELEGRAM_TITLE']) ? $env['TELEGRAM_TITLE'] : 'I8Pay';
         $this->channel_url = isset($env['TELEGRAM_CHANEL_URL']) ? $env['TELEGRAM_CHANEL_URL'] : '';
         $this->callback = 'https://' . C('DOMAIN') . '/Telegram_Api_receive.html';
@@ -45,67 +51,91 @@ class ApiController extends Controller
     {
     }
 
-    // 向telegram bot指定域名
-    public function setWebhook()
+    // 管理操作仅允许服务器命令行执行，禁止通过公开路由调用。
+    private function requireWebhookManagement()
     {
+        if (PHP_SAPI !== 'cli') {
+            http_response_code(403);
+            exit('Forbidden');
+        }
+    }
+
+    private function requireWebhookSecret()
+    {
+        if (!preg_match('/\A[A-Za-z0-9_-]{32,256}\z/', $this->webhookSecret)) {
+            throw new \RuntimeException('请配置 32 至 256 位随机 TELEGRAM_WEBHOOK_SECRET（仅字母、数字、下划线和连字符）');
+        }
+    }
+
+    // 向 Telegram 注册固定回调地址，不丢弃积压消息。
+    public function buildWebhook()
+    {
+        $this->requireWebhookManagement();
+        $this->requireWebhookSecret();
         $url = 'https://api.telegram.org/bot' . $this->token . '/setWebhook';
         $data = [
-            'url' => $this->callback . '?token=' . md5($this->token),
-            'drop_pending_updates'=> 'True'
+            'url' => $this->callback,
+            'secret_token' => $this->webhookSecret,
+            'allowed_updates' => json_encode([
+                'message', 'edited_message', 'channel_post',
+                'edited_channel_post', 'callback_query',
+            ]),
         ];
-        $result = $this->curlPost($url, $data);
-        $result = json_decode($result, true);
-        if ($result['result'] === true) {
-            echo "域名绑定成功！";
+        $result = json_decode($this->curlPost($url, $data), true);
+        if (!is_array($result) || ($result['ok'] ?? false) !== true
+            || ($result['result'] ?? false) !== true) {
+            throw new \RuntimeException('设置 webhook 失败，请检查网络、Token 和回调域名');
         }
-        var_dump($result);
+        echo "域名绑定成功！\n";
     }
 
-    // 删除回调
-    public function deleteWebhook()
+    // 仅命令行查看，避免将回调密钥写入日志或公开页面。
+    public function getInfo()
     {
-        $url = 'https://api.telegram.org/bot' . $this->token . '/deleteWebhook';
-        $data = [
-            'url' => $this->callback . '?token=' . md5($this->token),
-        ];
-        $result = $this->curlPost($url, $data);
-        log_place_order($this->code . '_deleteWebhook', "删除回调", $result);    //日志
-
-        $result = json_decode($result, true);
-        if ($result['result'] === true) {
-            echo "删除回调成功！";
-        }
-    }
-
-    // 查看当前回调信息
-    public function getWebhookInfo()
-    {
+        $this->requireWebhookManagement();
         $url = 'https://api.telegram.org/bot' . $this->token . '/getWebhookInfo';
-        $data = [
-            'url' => $this->callback . '?token=' . md5($this->token),
-        ];
-        $result = $this->curlPost($url, $data);
-        log_place_order($this->code . '_getWebhookInfo', "当前回调信息", $result);    //日志
-
-        $result = json_decode($result, true);
-        if ($result['result'] === true) {
-            echo "查看当前回调信息成功！";
+        $result = json_decode($this->curlPost($url, []), true);
+        if (!is_array($result) || ($result['ok'] ?? false) !== true
+            || !is_array($result['result'] ?? null)) {
+            throw new \RuntimeException('查询 webhook 失败');
         }
-        echo "<pre>";
-        var_dump($result);
+        $info = $result['result'];
+        $info['matches_expected_url'] = ($info['url'] ?? '') === $this->callback;
+        // 旧配置可能含查询参数中的密钥，不输出它们。
+        $info['url'] = preg_replace('/[?#].*$/', '', $info['url'] ?? '');
+        unset($info['last_error_message']);
+        echo json_encode($info, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n";
     }
 
-
-    // 接收bot回调信息
+    // 接收回调：先认证，再读取、记录及处理业务数据。
     public function receive()
     {
-        $input = file_get_contents('php://input');
-        $input = json_decode($input, true);
-
-        log_place_order($this->code . '_receive', "回调信息", json_encode($input, JSON_UNESCAPED_UNICODE));    //日志
-
-        self::to_do($input);
-        return 'True';
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Allow: POST');
+            http_response_code(405);
+            exit;
+        }
+        if (!preg_match('/\A[A-Za-z0-9_-]{32,256}\z/', $this->webhookSecret)) {
+            http_response_code(503);
+            exit;
+        }
+        $provided = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '';
+        if (!is_string($provided) || !hash_equals($this->webhookSecret, $provided)) {
+            http_response_code(403);
+            exit;
+        }
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($input) || !isset($input['update_id']) || !is_int($input['update_id'])) {
+            http_response_code(400);
+            exit;
+        }
+        // 当前业务处理器只处理普通消息和按钮回调。
+        if (isset($input['message']) || isset($input['callback_query'])) {
+            log_place_order($this->code . '_receive', '回调信息', json_encode($input, JSON_UNESCAPED_UNICODE));
+            $this->to_do($input);
+        }
+        http_response_code(200);
+        echo 'OK';
     }
 
     public function send($chatId, $text,$message_id='',$parse_mode='',$markup=''){
@@ -662,8 +692,8 @@ class ApiController extends Controller
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
                 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // https请求 不验证证书和hosts
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); // 验证 HTTPS 证书及主机名
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
                 curl_setopt($ch, CURLOPT_HEADER, false);
 
                 $mh = curl_multi_init();
@@ -684,7 +714,7 @@ class ApiController extends Controller
                 $curlErrno = curl_errno($ch);
                 if($curlErrno){
                     log_place_order($this->code . '_qunfaSql', "curlcode", $curlErrno);    //日志
-                    log_place_order($this->code . '_qunfaSql', "curlErrno", curl_error($ch));    //日志
+                    log_place_order($this->code . '_qunfaSql', "curlErrno", str_replace($this->token, '[REDACTED]', curl_error($ch)));    //日志
                 }
                 curl_close($ch);
 
@@ -694,7 +724,7 @@ class ApiController extends Controller
                 // $curlErrno = curl_errno($ch);
                 // if($curlErrno){
                 //     log_place_order($this->code . '_qunfaSql', "curlcode", $curlErrno);    //日志
-                //     log_place_order($this->code . '_qunfaSql', "curlErrno", curl_error($ch));    //日志
+                //     log_place_order($this->code . '_qunfaSql', "curlErrno", str_replace($this->token, '[REDACTED]', curl_error($ch)));    //日志
                 // }
                 // curl_close($ch);
 
@@ -848,14 +878,14 @@ class ApiController extends Controller
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
                 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
                 curl_setopt($ch, CURLOPT_HEADER, false);
 
                 curl_exec($ch);
 
                 if (curl_errno($ch)) {
-                    log_place_order( $this->code . '_qunfa', '启动下一批失败', curl_error($ch) );
+                    log_place_order( $this->code . '_qunfa', '启动下一批失败', str_replace($this->token, '[REDACTED]', curl_error($ch)) );
                 }
 
                 curl_close($ch);
@@ -1530,8 +1560,8 @@ class ApiController extends Controller
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_TIMEOUT, 299);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // https请求 不验证证书和hosts
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); // 验证 HTTPS 证书及主机名
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         curl_setopt($ch, CURLOPT_HEADER, false);
 
         $file_contents = curl_exec($ch);
@@ -1539,7 +1569,7 @@ class ApiController extends Controller
         $curlErrno = curl_errno($ch);
         if($curlErrno){
             log_place_order($this->code . '_curlPostError', "curlcode", $curlErrno);    //日志
-            log_place_order($this->code . '_curlPostError', "curlErrno", curl_error($ch));    //日志
+            log_place_order($this->code . '_curlPostError', "curlErrno", str_replace($this->token, '[REDACTED]', curl_error($ch)));    //日志
         }
         curl_close($ch);
         //这里解析

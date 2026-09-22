@@ -31,7 +31,8 @@ class RepostController extends PaymentController
         log_place_order('dfsh', "自动补发任务触发", date('Y-m-d H:i:s', time()));    //日志
         //缓存
         $configs = C('PLANNING');
-        $nums = $configs['postnum'] ? $configs['postnum'] : 5;
+//        $nums = $configs['postnum'] ? $configs['postnum'] : 5;
+        $nums = 3;
         $maps['userid'] = ['neq', 2];
         $maps['notifyurl'] = ['neq', ''];
         $maps['status'] = ['in', ["2", "4"]];

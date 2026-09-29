@@ -157,7 +157,7 @@ class GlobalPayDFController extends PaymentController
             } elseif ($re_data['tradeStatus'] === "2") {
                 //代付失败
                 $data = [
-                    'memo' => '代付失败',
+                    'memo' => '代付失败--'. $re_data['remark'],
                 ];
                 $this->changeStatus($Order['id'], 3, $data, $tableName);
                 log_place_order($this->code . '_notifyurl', $orderid, "----代付失败");    //日志
@@ -272,7 +272,7 @@ AAA;
             }
         }
         $sign = strtoupper(md5(rtrim($signPars,'&') ));
-        log_place_order($this->code, "----签名", rtrim($signPars,'&'));    //日志
+//        log_place_order($this->code, "----签名", rtrim($signPars,'&'));    //日志
         return $sign; //最终的签名
     }
 }

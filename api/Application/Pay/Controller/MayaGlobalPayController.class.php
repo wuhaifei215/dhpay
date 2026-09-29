@@ -37,7 +37,7 @@ class MayaGlobalPayController extends PayController
         //跳转页面，优先取数据库中的跳转页面
         $_site = ((is_https()) ? 'https' : 'http') . '://' . C("DOMAIN") . '/';
         $site = trim($return['unlockdomain']) ? $return['unlockdomain'] . '/' : $_site;
-        
+
         $native = array(
             'alliesNo' => $return['mch_id'],
             'tradeNo' => $return['orderid'],
@@ -51,10 +51,10 @@ class MayaGlobalPayController extends PayController
         $native['sign'] = $this->sign($native, $return['signkey']);
         log_place_order($this->code, $return['orderid'] . "----提交", json_encode($native, JSON_UNESCAPED_UNICODE));    //日志
         log_place_order($this->code, $return['orderid'] . "----提交地址", $return['gateway']);    //日志
-                
+
         // 记录初始执行时间
         $beginTime = microtime(TRUE);
-        
+
         $returnContent = $this->http_post_json($return['gateway'], $native);
         log_place_order($this->code, $return['orderid'] . "----返回", $returnContent);    //日志
         $ans = json_decode($returnContent, true);
@@ -78,22 +78,22 @@ class MayaGlobalPayController extends PayController
             ];
         }
         echo json_encode($return_arr);
-        
+
         // if($array['userid'] == 2){
-            try{
-                $redis = $this->redis_connect();
-                $userpost = $redis->get('userpost_' . $return['out_trade_id']);
-                $userpost = json_decode($userpost,true);
-                
-                logApiAddReceipt('下游商户提交', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, $return_arr, '0', '0', '1', '2');
-                
-                // 结束并输出执行时间
-                $endTime = microtime(TRUE);
-                $doTime = floor(($endTime-$beginTime)*1000);
-                logApiAddReceipt('订单提交上游' . $this->code, __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $native, $ans, $doTime, '0', '1', '2');
-            }catch (\Exception $e) {
-                // var_dump($e);
-            }
+        try{
+            $redis = $this->redis_connect();
+            $userpost = $redis->get('userpost_' . $return['out_trade_id']);
+            $userpost = json_decode($userpost,true);
+
+            logApiAddReceipt('下游商户提交', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, $return_arr, '0', '0', '1', '2');
+
+            // 结束并输出执行时间
+            $endTime = microtime(TRUE);
+            $doTime = floor(($endTime-$beginTime)*1000);
+            logApiAddReceipt('订单提交上游' . $this->code, __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $native, $ans, $doTime, '0', '1', '2');
+        }catch (\Exception $e) {
+            // var_dump($e);
+        }
         // }
         exit;
     }
@@ -129,9 +129,9 @@ class MayaGlobalPayController extends PayController
             }
             return;
         }
-        
+
         $sign = $this->sign($result,$orderList['key']);
-        
+
         if ($sign == $result["sign"]) {
             if($result['tradeStatus'] == '1'){
                 $re = $this->EditMoney($orderList['pay_orderid'], $this->code, 0);
@@ -188,7 +188,7 @@ class MayaGlobalPayController extends PayController
             }
         }
         $sign = strtoupper(md5(rtrim($signPars,'&') ));
-//        log_place_order($this->code, "----签名", rtrim($signPars,'&'));    //日志
+        log_place_order($this->code, "----签名", rtrim($signPars,'&'));    //日志
         return $sign; //最终的签名
     }
 }

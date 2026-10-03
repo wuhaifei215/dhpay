@@ -146,6 +146,7 @@ class AccountController extends UserController
                 "orderid" => $orderid,
                 "lx" => 20,
                 'contentstr' => '商户内转，向商户(' . $toUserid+10000 . ')' . $info2['username'] . '转出',
+                "currency" => $info['currency'],
             );
             $res3 = moneychangeadd($arrayField);
             //2,记录流水订单号
@@ -160,6 +161,7 @@ class AccountController extends UserController
                 "orderid" => $orderid,
                 "lx" => 20,
                 'contentstr' => '商户内转，由商户(' . $userid+10000 . ')' . $info['username'] . '转入',
+                "currency" => $info2['currency'],
             );
             $res4 = moneychangeadd($arrayField2);
             if (!$res1 || !$res2 || !$res3 || !$res4) {
@@ -312,6 +314,7 @@ class AccountController extends UserController
                 "orderid" => $orderid,
                 "lx" => 20,
                 'contentstr' => '商户内转，向商户(' . $touid . ')' . $info2['username'] . ' 转出',
+                "currency" => $info['currency'],
             );
             $res3 = moneychangeadd($arrayField);
             //2,记录流水订单号
@@ -326,6 +329,7 @@ class AccountController extends UserController
                 "orderid" => $orderid,
                 "lx" => 20,
                 'contentstr' => '商户内转，由商户(' . $fromUid . ') ' . $info['username'] . ' 转入',
+                "currency" => $info2['currency'],
             );
             $res4 = moneychangeadd($arrayField2);
             if (!$res1 || !$res2 || !$res3 || !$res4) {

@@ -31,12 +31,12 @@ class ExportController extends Controller
     public function index(){
         echo "[" . date('Y-m-d H:i:s'). "] 自动导出任务触发\n";
         $redis = $this->redis_connect();
-        
-        // $count = $redis->lLen('downList_now');
-//        if($count >= 3){        //允许5条导出同时进行
-//            echo "[" . date('Y-m-d H:i:s'). "] 有执行中的任务\n";
-//            return;
-//        }
+
+        $count = $redis->lLen('downList_now');
+        if($count >= 3){        //允许5条导出同时进行
+            echo "[" . date('Y-m-d H:i:s'). "] 有执行中的任务\n";
+            return;
+        }
         //取出第一个
         $downKey = $redis->lPop('downList');
         // $redis->rPush('downList', $downKey);
@@ -50,7 +50,7 @@ class ExportController extends Controller
                 if($ttl > 60){
                     $redis->set($downKey , json_encode($list, JSON_UNESCAPED_UNICODE) ,$ttl);
                 }
-                
+
                 $re = false;
                 //插入正在下载列表
                 $redis->rPush('downList_now', $downKey);
@@ -79,7 +79,7 @@ class ExportController extends Controller
                             $redis->set($downKey , json_encode($list, JSON_UNESCAPED_UNICODE) ,$ttl);
                         }
                     }
-                    
+
                 }
                 // 获取队列中的所有元素
                 $queueItems = $redis->lrange('downList_now', 0, -1);
@@ -97,7 +97,7 @@ class ExportController extends Controller
         }
         echo "[" . date('Y-m-d H:i:s'). "] 自动导出任务结束\n\n";
     }
-    
+
     public function redis_connect(){
         //创建一个redis对象
         $redis = new \Redis();
@@ -111,7 +111,7 @@ class ExportController extends Controller
         // $redis->expire('downloadList',3600);
         //获取value
         // $list = $redis->get('downloadList');
-        
+
         // 在列表头部插入元素
         // $redis->lPush('list', 'value1');
         // 从列表左侧弹出元素
@@ -130,8 +130,8 @@ class ExportController extends Controller
         // $redis->sort($key, ['by' => $key.*.*, 'get' => '#']));
         return $redis;
     }
-    
-    
+
+
     /**
      * 导出交易订单
      * */
@@ -171,7 +171,7 @@ class ExportController extends Controller
             $where['pay_successdate']   = ['between', [strtotime($sstime), strtotime($setime) ? strtotime($setime) : time()]];
             unset($where['successtime']);
         }
-        
+
         $file_path = "./Uploads/download/". date('Ymd') ."/" ;
         @mkdirs($file_path, 0777);
         @chmod($file_path, 0777);
@@ -185,7 +185,7 @@ class ExportController extends Controller
 
         $OrderModel = D('Order');
         $tables = $OrderModel->getTables($where);
-        
+
         $members = M('Member')->select();
         foreach ($members as $mv){
             $mid = 10000+$mv['id'];
@@ -194,15 +194,15 @@ class ExportController extends Controller
 
         foreach ($tables as $table) {
             $sqlCount = $OrderModel->table($table)
-                    ->alias('as pay_order')
-                    // ->join('LEFT JOIN pay_member ON pay_member.id+10000 = pay_memberid')
-                    // ->where($where)
-                    ->count();
-                    echo $OrderModel->table($table)->getLastSql();
+                ->alias('as pay_order')
+                // ->join('LEFT JOIN pay_member ON pay_member.id+10000 = pay_memberid')
+                // ->where($where)
+                ->count();
+            echo $OrderModel->table($table)->getLastSql();
             if($sqlCount < 1){
                 continue;
             }
-            
+
             $mark = "order" . str_replace("pay_order", "", $table);
             $sqlLimit = 100000;//每次只从数据库取100000条以防变量缓存太大
             // 每隔$limit行，刷新一下输出buffer，不要太大，也不要太小
@@ -221,7 +221,7 @@ class ExportController extends Controller
                     // ->join('LEFT JOIN pay_member ON pay_member.id+10000 = pay_memberid')
                     ->field($filed)->where($where)->order('id desc')
                     ->limit($i * $sqlLimit,$sqlLimit)->select();
-                    // var_dump($dataArr);die;
+                // var_dump($dataArr);die;
                 foreach ($dataArr as $item) {
                     switch ($item['pay_status']) {
                         case 0:
@@ -286,8 +286,8 @@ class ExportController extends Controller
             return 'noData';
         }
     }
-    
-    
+
+
     // /**
     //  * 导出交易订单
     //  * */
@@ -330,7 +330,7 @@ class ExportController extends Controller
     //         $table_where['pay_successdate'] = ['between', [strtotime($sstime), strtotime($setime) ? strtotime($setime) : time()]];
     //         unset($where['successtime']);
     //     }
-        
+
     //     $file_path = "./Uploads/download/". date('Ymd') ."/" ;
     //     @mkdirs($file_path, 0777);
     //     @chmod($file_path, 0777);
@@ -436,8 +436,8 @@ class ExportController extends Controller
     //         return 'noData';
     //     }
     // }
-    
-    
+
+
     //导出委托提款记录
     public function exportweituo($where,$uid='', $type='')
     {
@@ -472,7 +472,7 @@ class ExportController extends Controller
             $where['cldatetime']   = ['between', [$sstime, $setime ? $setime : date('Y-m-d')]];
             unset($where['successtime']);
         }
-        
+
         $file_path = "./Uploads/download/". date('Ymd') ."/" ;
         @mkdirs($file_path, 0777);
         @chmod($file_path, 0777);
@@ -487,11 +487,11 @@ class ExportController extends Controller
         foreach ($title as $tk => $tv){
             $title[$tk]=iconv('utf-8','gb2312//ignore',$tv);
         }
-                
+
         $filed = 'userid,df_name,channel_mch_id,orderid,out_trade_no,tkmoney,sxfmoney,money,bankname,bankzhiname,banknumber,bankfullname,sqdatetime,cldatetime,status,memo';
         $Wttklist = D('Wttklist');
         $tables = $Wttklist->getTables($where);
-        
+
         $datas =[];
         foreach ($tables as $table) {
             $sqlCount = $Wttklist->table($table)->field($filed)->where($where)->count();
@@ -512,9 +512,9 @@ class ExportController extends Controller
                 $fileNameArr[] = $mark . '_' .  $i . '.csv';
                 // 将数据通过fputcsv写到文件句柄
                 fputcsv($fp, $title);
-                
+
                 $data = $Wttklist->table($table)->field($filed)->where($where)->order('id desc')->limit($i * $sqlLimit,$sqlLimit)->select();
-                
+
                 foreach ($data as $item) {
                     switch ($item['status']) {
                         case 0:
@@ -539,8 +539,8 @@ class ExportController extends Controller
                             $status = "已驳回";
                             break;
                     }
-        
-                    
+
+
                     if($type==3){
                         $list = array(
                             'memberid'       => "\t" .$item['userid'] + 10000,
@@ -562,21 +562,21 @@ class ExportController extends Controller
                         $title = array_push($title,'通道');
                     }else{
                         $list = array(
-                        'memberid'       => "\t" .$item['userid'] + 10000,
-                        'orderid'        => "\t" .$item['orderid'],
-                        'out_trade_no'   => "\t" .$item['out_trade_no'],
-                        'tkmoney'        => $item['tkmoney'],
-                        'sxfmoney'       => $item['sxfmoney'],
-                        'money'          => $item['money'],
-                        'bankname'       => "\t" .iconv('utf-8','gb2312//ignore',$item['bankname']),
-                        'bankzhiname'    => "\t" .iconv('utf-8','gb2312//ignore',$item['bankzhiname']),
-                        'banknumber'     => "\t" .$item['banknumber'],
-                        'bankfullname'   => "\t" .iconv('utf-8','gb2312//ignore',$item['bankfullname']),
-                        'sqdatetime'     => "\t" .$item['sqdatetime'],
-                        'cldatetime'     => "\t" .$item['cldatetime'],
-                        'status'         => "\t" .iconv('utf-8','gb2312//ignore',$status),
-                        "memo"           => "\t" .iconv('utf-8','gb2312//ignore',$item["memo"]),
-                    );
+                            'memberid'       => "\t" .$item['userid'] + 10000,
+                            'orderid'        => "\t" .$item['orderid'],
+                            'out_trade_no'   => "\t" .$item['out_trade_no'],
+                            'tkmoney'        => $item['tkmoney'],
+                            'sxfmoney'       => $item['sxfmoney'],
+                            'money'          => $item['money'],
+                            'bankname'       => "\t" .iconv('utf-8','gb2312//ignore',$item['bankname']),
+                            'bankzhiname'    => "\t" .iconv('utf-8','gb2312//ignore',$item['bankzhiname']),
+                            'banknumber'     => "\t" .$item['banknumber'],
+                            'bankfullname'   => "\t" .iconv('utf-8','gb2312//ignore',$item['bankfullname']),
+                            'sqdatetime'     => "\t" .$item['sqdatetime'],
+                            'cldatetime'     => "\t" .$item['cldatetime'],
+                            'status'         => "\t" .iconv('utf-8','gb2312//ignore',$status),
+                            "memo"           => "\t" .iconv('utf-8','gb2312//ignore',$item["memo"]),
+                        );
                     }
                     $cnt++;
                     if ($limit == $cnt) {
@@ -589,7 +589,7 @@ class ExportController extends Controller
                 }
                 fclose($fp);  //每生成一个文件关闭
             }
-            
+
         }
         if(!empty($fileNameArr)){
             //进行多个文件压缩
@@ -633,7 +633,7 @@ class ExportController extends Controller
             $where['datetime'] = ['between', [$cstime, $cetime ? $cetime : date('Y-m-d')]];
             unset($where['createtime']);
         }
-        
+
         $file_path = "./Uploads/download/". date('Ymd') ."/" ;
         @mkdirs($file_path, 0777);
         @chmod($file_path, 0777);
@@ -645,7 +645,7 @@ class ExportController extends Controller
             $title[$tk]=iconv('utf-8','gb2312//ignore',$tv);
         }
         $filed = 'transid,orderid,userid,lx,ymoney,money,gmoney,datetime,contentstr';
-        
+
         $MoneychangeModel = D('Moneychange');
         $tables = $MoneychangeModel->getTables($where);
         $datas =[];
@@ -668,7 +668,7 @@ class ExportController extends Controller
                 $fileNameArr[] = $mark . '_' .  $i . '.csv';
                 // 将数据通过fputcsv写到文件句柄
                 fputcsv($fp, $title);
-                
+
                 $data = $MoneychangeModel->table($table)->field($filed)->where($where)->order('id desc')->limit($i * $sqlLimit,$sqlLimit)->select();
                 foreach ($data as $value) {
                     $list['transid'] = "\t" .$value["transid"];
@@ -774,7 +774,7 @@ class ExportController extends Controller
             return 'noData';
         }
     }
-    
+
     /**
      * 导出Utr
      * */
@@ -789,24 +789,24 @@ class ExportController extends Controller
             $where['datetime'] = ['between', [$cstime, $cetime ? $cetime : date('Y-m-d')]];
             unset($where['createtime']);
         }
-        
+
         $file_path = "./Uploads/download/". date('Ymd') ."/" ;
         @mkdirs($file_path, 0777);
         @chmod($file_path, 0777);
         $fileName = $file_path . $uid . '_utrOrder' .time();
         $fileNameArr = array();
-        
+
         $utrModel = M('Utr');
         $title = [
-                '商户编号',
-                '系统订单号',
-                '下游订单号',
-                'UTR',
-                '支付通道',
-                '订单状态',
-                '查询状态',
-                '创建时间',
-            ];
+            '商户编号',
+            '系统订单号',
+            '下游订单号',
+            'UTR',
+            '支付通道',
+            '订单状态',
+            '查询状态',
+            '创建时间',
+        ];
         foreach ($title as $tk => $tv){
             $title[$tk]=iconv('utf-8','gb2312//ignore',$tv);
         }
@@ -829,12 +829,12 @@ class ExportController extends Controller
             $fileNameArr[] = $mark . '_' .  $i . '.csv';
             // 将数据通过fputcsv写到文件句柄
             fputcsv($fp, $title);
-                
+
             $data = $utrModel->field($filed)->where($where)->order('id desc')->limit($i * $sqlLimit,$sqlLimit)->select();
-                
-    //        echo $utrModel->getLastSql();
+
+            //        echo $utrModel->getLastSql();
             foreach ($data as $item) {
-    
+
                 switch ($item['pay_status']) {
                     case 0:
                         $status = '未处理';
@@ -881,7 +881,7 @@ class ExportController extends Controller
                     'check_status' => "\t" .iconv('utf-8','gb2312//ignore',$check_status),
                     'datetime' => "\t" .$datetime,
                 ];
-                
+
                 $cnt++;
                 if ($limit == $cnt) {
                     //刷新一下输出buffer，防止由于数据过多造成问题

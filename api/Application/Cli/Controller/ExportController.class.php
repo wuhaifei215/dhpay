@@ -32,11 +32,11 @@ class ExportController extends Controller
         echo "[" . date('Y-m-d H:i:s'). "] 自动导出任务触发\n";
         $redis = $this->redis_connect();
 
-        // $count = $redis->lLen('downList_now');
-//        if($count >= 3){        //允许5条导出同时进行
-//            echo "[" . date('Y-m-d H:i:s'). "] 有执行中的任务\n";
-//            return;
-//        }
+        $count = $redis->lLen('downList_now');
+        if($count >= 3){        //允许5条导出同时进行
+            echo "[" . date('Y-m-d H:i:s'). "] 有执行中的任务\n";
+            return;
+        }
         //取出第一个
         $downKey = $redis->lPop('downList');
         // $redis->rPush('downList', $downKey);

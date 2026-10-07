@@ -98,20 +98,12 @@ class YunPayBrlDFController extends PaymentController
 
         $config = M('pay_for_another')->where(['code' => $this->code, 'id' => $Order['df_id']])->find();
         //验证IP白名单
-        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR']) {
-            $ip = $_SERVER['REMOTE_ADDR'];
-        } else {
-            $ip = getRealIp();
-        }
-        $check_re = checkNotifyurlIp($ip, $config['notifyip']);
-        if ($check_re !== true) {
-            log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $ip . '===' . $config['notifyip']);    //日志
-            $json_result = "IP异常:" . $ip . '===' . $config['notifyip'];
-            try {
+        if ($this->verifyIpWhitelist($config, $orderid) !== true) {
+            log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $this->getClientIp().'==='.$config['notifyip']);    //日志
+            $json_result = "IP异常:" . $this->getClientIp().'==='.$config['notifyip'];
+            try{
                 logApiAddNotify($orderid, 1, $re_data, $json_result);
-            } catch (\Exception $e) {
+            }catch (\Exception $e) {
                 // var_dump($e);
             }
             return;

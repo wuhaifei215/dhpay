@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" style="font-size: 62.5%;">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PixPay</title>
+
+    <style>
+
+        .payment-view .copy-btn {
+            width: 80%;
+            height: 5.5rem;
+            font-size: 1.8rem;
+            color: #fff;
+            background: #009c3b;
+            border-color: #009c3b;
+            border-radius: 1rem;
+        }
+
+        .container {
+            position: relative;
+        }
+        .payment-view {
+            max-width: 133.33vw;
+            /* padding: 4vw; */
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+        .trans-no {
+            text-align: right;
+            color: #999;
+            word-wrap: break-word;
+            word-break: normal;
+        }
+        .time-msg {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #999;
+            padding: 1.2rem 0;
+        }
+        .time_limit {
+            color: #ea4e3d;
+        }
+        .info-wrap {
+            font-size: 1.3rem;
+            border: 1px solid #dde7f0;
+            border-radius: 0.8rem;
+            padding: 1rem;
+            margin: 1.2rem 0;
+        }
+        .info-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 2.5rem;
+        }
+        .info-label {
+            color: #999;
+        }
+        .sid-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .qrcode-wrap {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            /*border: 1px solid #dde7f0;*/
+            border-radius: 0.78rem;
+            /*padding: 0 1.5rem;*/
+        }
+        .tips {
+            text-align: left;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #FFAA09;
+            margin-top: 0vw;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        .tips::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+        }
+        .tips-msg {
+            text-align: left;
+            color: #FFAA09;
+            margin-top: 0vw;
+        }
+        .qrcode-box {
+            margin: auto;
+            width: 25.4rem;
+            height: 25.4rem;
+        }
+        .qrcode {
+            width: 100%;
+            height: 100%;
+        }
+
+        .qrcode-box img {
+            width: 100%;
+            height: 100%;
+        }
+        .qrcode-box canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+
+        .van-button__content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+        }
+        .payment-view .copy-btn .van-button__text {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .powered {
+            font-size: 3.73vw;
+            color: #999;
+            margin-top: 8vw;
+        }
+        .pix-img{
+            width: 100%;
+            border-bottom: 1px solid #333;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
+        .pix-icon {
+            height: 6rem;
+            font-size: 21.33vw;
+            width: 17rem;
+        }
+        .val {
+            /* font-size: 7vw; */
+            font-size: 2.8rem;
+            font-weight: bold;
+            padding: 1rem;
+        }
+        .Status_val {
+            font-weight: bold;
+            color: #FFAA09;
+        }
+
+        .progress-wrap {
+            top: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            color: #999;
+            flex-wrap: wrap;
+            z-index: 99999999;
+            position: absolute;
+            align-items: center;
+            visibility: visible;
+            background: #f4f5f6;
+            justify-content: center;
+        }
+        .reverse-spinner {
+            height: 100px;
+            width: 100px;
+            position: relative;
+            border: 4px solid transparent;
+            border-top-color: #009688;
+            border-left-color: #1976d2;
+            border-radius: 50%;
+            -webkit-animation: spin 1.5s linear infinite;
+            animation: spin 1.5s linear infinite;
+        }
+        .reverse-spinner::before {
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            content: "";
+            position: absolute;
+            border: 4px solid transparent;
+            border-top-color: #03a9f4;
+            border-left-color: #009688;
+            border-radius: 50%;
+            -webkit-animation: spinBack 1s linear infinite;
+            animation: spinBack 1s linear infinite;
+        }
+
+        @keyframes spin {
+            -webkit-from {
+                -webkit-transform: rotate(0deg);
+                -ms-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            -webkit-to {
+                -webkit-transform: rotate(360deg);
+                -ms-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+        @-webkit-keyframes spin {
+            from {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            to {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+        @keyframes spin {
+            from {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            to {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+        @-webkit-keyframes spinBack {
+            from {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            to {
+                -webkit-transform: rotate(-720deg);
+                transform: rotate(-720deg);
+            }
+        }
+
+        @keyframes spinBack {
+            from {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            to {
+                -webkit-transform: rotate(-720deg);
+                transform: rotate(-720deg);
+            }
+        }
+
+        @keyframes spinBorder {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+                border-width: 15px;
+            }
+            50% {
+                -webkit-transform: rotate(180deg);
+                transform: rotate(180deg);
+                border-width: 3px;
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+                border-width: 15px;
+            }
+        }
+
+        .toast-wrap {
+            max-width: 41.4rem;
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            /*left: 0;*/
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+            background: rgba(0, 0, 0, 0.7);
+        }
+        .toast {
+            width: 60vw;
+            /*height: 10vw;*/
+            display: flex;
+            font-size: 1.8rem;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            color: #fff;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+        }
+    </style>
+
+    <script src="https://front.yunpay.me/PayPage/js/qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://front.yunpay.me/PayPage/css/index.css" />
+    <script type="text/javascript" src="https://front.yunpay.me/PayPage/js/jquery.min.js"></script>
+</head>
+<body>
+<div class="container" style="max-width: 41.4rem; margin: 0 auto;">
+    <div class="payment-view">
+        <div class="payment-main">
+            <div class="qrcode-wrap">
+                <div class="pix-img">
+                    <img src="https://front.yunpay.me/PayPage/img/svglogo.png" class="svg-icon pix-icon" />
+                </div>
+                <p class="tips">
+                    Abra seu aplicativo de pagamento e digitalize ou copie e cole o código QR abaixo para concluir sua compra;
+                </p>
+                <p class="tips">
+                    Este é um QR code de uso único. Se precisar pagar novamente, volte e reinicie o processo de depósito;
+                </p>
+                <p class="tips tips-msg">
+                    Depois que o pagamento for bem-sucedido, você precisará retornar ao lobby do jogo para aguardar os pontos!
+                </p>
+                <div id="urlAmount" class="val"></div>
+                <div id="qrcode" class="qrcode-box"></div>
+                <div id="time-msg" class="time-msg"><span>Tempo efetivo</span> <span id="time_limit" class="time_limit"></span></div>
+                <div
+                        type="button"
+                        onclick="CopyCid()"
+                        class="van-button van-button--primary van-button--normal copy-btn"
+                >
+                    <div class="van-button__content">
+                        <span class="van-button__text">
+                            <div style="margin: auto">Copiar código QR</div>
+                            <img src="https://front.yunpay.me/PayPage/img/copy.png" style="width: 17px; height: 18px" />
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div id="cid" class="trans-no" style="margin: 10px"></div>
+            <div class="info-wrap">
+                <div class="info-box">
+                    <div class="info-label">Status do pedido</div>
+                    <div id="Status" class="Status_val">Pendente</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Hora de Criação</div>
+                    <div id="creat_time" class="trans-no"></div>
+                </div>
+                <div class="info-box">
+<!--                    <div class="sid-box">-->
+<!--                        <div class="info-label">Número do Pedido</div>-->
+<!--                        <div style="display: flex; align-items: center; gap: 0.5rem;">-->
+<!--                            <div id="sid" class="trans-no"></div>-->
+<!--&lt;!&ndash;                            <img src="https://front.yunpay.me/PayPage/img/copy.png" onclick="CopySid()" style="width: 16px; height: 16px; cursor: pointer;" title="Copiar" />&ndash;&gt;-->
+<!--                        </div>-->
+<!--                    </div>-->
+                    <div class="info-label">Número do Pedido</div>
+                    <div id="sid" class="trans-no"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!--    <div class="progress-wrap">-->
+<!--        <div class="reverse-spinner"></div>-->
+<!--    </div>-->
+    <div class="toast-wrap">
+        <div class="toast">Copiado com suceso</div>
+    </div>
+</div>
+</body>
+</html>
+<script src="https://front.yunpay.me/PayPage/js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    // const loading = setInterval(() => {
+    //     $(".progress-wrap").css("visibility", "hidden")
+    // }, 1000)
+    // setInterval(() => {
+    //     clearInterval(loading)
+    // }, 1500)
+
+    function getQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i")
+        var r = window.location.search.substr(1).match(reg)
+        if (r != null) return unescape(r[2])
+        return null
+    }
+    let urlCid = getQueryString("cid")
+    let urlSid = getQueryString("sid")
+    let datetime = getQueryString("datetime")
+    let urlAmount = Number(getQueryString("amount")).toLocaleString("pt-BR")
+    let cidHtml = document.getElementById("cid")
+    cidHtml.innerHTML = urlCid
+    let sidHtml = document.getElementById("sid")
+    sidHtml.innerHTML = urlSid
+    let datetimeHtml = document.getElementById("creat_time")
+    if (datetime) {
+        let date = new Date(datetime.replace(' ', 'T'));
+        let day = date.getDate().toString().padStart(2, '0');
+        let month = (date.getMonth() + 1).toString().padStart(2, '0');
+        let year = date.getFullYear();
+        let hours = date.getHours().toString().padStart(2, '0');
+        let minutes = date.getMinutes().toString().padStart(2, '0');
+        let seconds = date.getSeconds().toString().padStart(2, '0');
+        datetimeHtml.innerHTML = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+    }
+    let urlAmountHtml = document.getElementById("urlAmount")
+    urlAmountHtml.innerHTML = 'R$' + urlAmount
+    let urlQrcode = getQueryString("qrcode")
+    let qrcode = new QRCode(document.getElementById("qrcode"), { correctLevel: 3 })
+    qrcode.makeCode(urlQrcode)
+
+    let countdownInterval;
+    let remainingSeconds = 30 * 60;
+    // let remainingSeconds = 5;
+
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function startCountdown() {
+        const timeLimitEl = document.getElementById('time_limit');
+        const timeMsgEl = document.getElementById('time-msg');
+        const statusEl = document.getElementById('Status');
+        const qrcodeEl = document.getElementById("qrcode");
+
+        countdownInterval = setInterval(() => {
+            if (remainingSeconds > 0) {
+                remainingSeconds--;
+                timeLimitEl.textContent = formatTime(remainingSeconds);
+            } else {
+                clearInterval(countdownInterval);
+                timeMsgEl.textContent = 'QR expirado. Inicie o pagamento novamente.';
+                timeMsgEl.style.color = '#ea4e3d';
+                statusEl.textContent = 'Falhar';
+                statusEl.style.color = '#ea4e3d';
+                qrcodeEl.innerHTML = '';
+                let expiredImg = document.createElement('img');
+                expiredImg.src = 'https://front.yunpay.me/PayPage/img/invalido.webp';
+                expiredImg.style.width = '100%';
+                expiredImg.style.height = '100%';
+                expiredImg.style.borderRadius = '20px';
+                qrcodeEl.appendChild(expiredImg);
+            }
+        }, 1000);
+    }
+
+    startCountdown();
+
+    function CopyCid() {
+        let input = document.createElement("input")
+        input.value = urlQrcode
+        document.body.appendChild(input)
+
+        input.select()
+
+        document.execCommand("Copy")
+
+        document.body.removeChild(input)
+        $(".toast-wrap").css("visibility", "visible")
+        var time = setInterval(() => {
+            $(".toast-wrap").css("visibility", "hidden")
+        }, 1500)
+
+        setInterval(() => {
+            clearInterval(time)
+        }, 2000)
+
+        var urlCid = getQueryString("cid");
+        do_Process('pageLoaded');
+        do_Process('pageLoaded');
+    }
+
+    function toast(msg) {
+        setTimeout(function () {
+            document
+                .getElementsByClassName("toast-wrap")[0]
+                .getElementsByClassName("toast-msg")[0].innerHTML = msg
+            var toastTag = document.getElementsByClassName("toast-wrap")[0]
+            toastTag.className = toastTag.className.replace("toastAnimate", "")
+            setTimeout(function () {
+                toastTag.className = toastTag.className + " toastAnimate"
+            }, 100)
+        }, 500)
+    }
+
+    $(window).on('load', function() {
+        do_Process('PageLoaded');
+    });
+
+    function do_Process(action) {
+//        var urlSid = getQueryString("sid");
+//        $.ajax({
+//            type: 'POST',
+//            url: 'https://front.yunpay.me/Pay_Process_index.html', // PHP script to process the data
+//            data: {'cid': urlSid, 'action': action, 'from':'PayPage'},
+//            success: function(response) {
+//
+//            },
+//            error: function() {
+//
+//            }
+//        });
+    }
+</script>

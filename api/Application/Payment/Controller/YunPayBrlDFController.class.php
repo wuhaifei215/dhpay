@@ -83,22 +83,21 @@ class YunPayBrlDFController extends PaymentController
         $orderid = $re_data['orderid'];
         //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
         log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", json_encode($_REQUEST, JSON_UNESCAPED_UNICODE));    //日志
+        if (!$orderid) return;
 
-        $tableName = '';
         $Wttklistmodel = D('Wttklist');
-        $date = date('Ymd', strtotime(substr($orderid, 1, 8)));  //获取订单日期
+        $date = date('Ymd',strtotime(substr($orderid, 1, 8)));  //获取订单日期
         $tableName = $Wttklistmodel->getRealTableName($date);
         $Order = $Wttklistmodel->table($tableName)->where(['orderid' => $orderid])->find();
 
-        // $Order = $this->selectOrder(['orderid' => $orderid]);
         if (!$Order) {
             log_place_order($this->code . '_notifyurl', $orderid . '----没有查询到Order！ ', $orderid);
             exit;
         }
 
-        $config = M('pay_for_another')->where(['code' => $this->code, 'id' => $Order['df_id']])->find();
+        $config = M('pay_for_another')->where(['code' => $this->code,'id'=>$Order['df_id']])->find();
         //验证IP白名单
-        if ($this->verifyNotifyIp($config, $orderid) !== true) {
+        if ($this->verifyNotifyIp($config['notifyip'], $orderid) !== true) {
             log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $this->getClientIp().'==='.$config['notifyip']);    //日志
             $json_result = "IP异常:" . $this->getClientIp().'==='.$config['notifyip'];
             try{

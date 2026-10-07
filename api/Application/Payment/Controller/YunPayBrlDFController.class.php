@@ -98,7 +98,7 @@ class YunPayBrlDFController extends PaymentController
 
         $config = M('pay_for_another')->where(['code' => $this->code, 'id' => $Order['df_id']])->find();
         //验证IP白名单
-        if ($this->verifyIpWhitelist($config, $orderid) !== true) {
+        if ($this->verifyNotifyIp($config, $orderid) !== true) {
             log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $this->getClientIp().'==='.$config['notifyip']);    //日志
             $json_result = "IP异常:" . $this->getClientIp().'==='.$config['notifyip'];
             try{

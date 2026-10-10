@@ -16,6 +16,10 @@ class H88PayBDTDFController extends PaymentController
     //代付提交
     public function PaymentExec($data, $config)
     {
+        if($data['bankname'] != 'BKASH' && $data['bankname'] != 'NAGAD'){
+            $return = ['status' => 0, 'msg' => '支付银行错误'];
+            return $return;
+        }
         $post_data = array(
             "merchant_id" => $config['mch_id'], //商户号
             "order_no" => $data['orderid'], //订单号

@@ -275,6 +275,7 @@
                             url:"<{:U('Download/setlist')}>",
                             type:'post',
                             data:{
+                                'export_token': '<{$exportCsrfToken}>',
                                 'type':4,
                                 'down_name': "下载代付订单",
                                 'down_url': down_url,

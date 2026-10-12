@@ -1,23 +1,36 @@
 <?php
 namespace User\Controller;
 
+require_once dirname(__DIR__, 4) . '/shared/ExportTask.php';
+use Dhpay2\Security\ExportTask;
+
 class UserController extends BaseController
 {
     public $fans;
     public function __construct()
     {
-        parent::__construct();
         //验证登录
         $user_auth = session("user_auth");
+        if (!ExportTask::validSession($user_auth, session('user_auth_sign'))) {
+            session('export_csrf_token', null);
+            $this->redirect('User/Login/index');
+            exit;
+        }
+        parent::__construct();
         ksort($user_auth); //排序
         $code = http_build_query($user_auth); //url编码并生成query字符串
         $sign = sha1($code);
         if($sign != session('user_auth_sign') || !$user_auth['uid']){
             $module = trim(__MODULE__, '.');
             header("Location: ".U($module.'/Login/index'));
+            exit;
         }
         //用户信息
         $this->fans = M('Member')->where(['id'=>$user_auth['uid']])->field('`id` as uid, `username`, `password`, `groupid`, `parentid`,`salt`,`balance`, `blockedbalance` `email`, `realname`, `authorized`, `apidomain`, `apikey`, `status`, `mobile`, `receiver`, `agent_cate`,`df_api`,`login_ip`,`open_charge`,`google_secret_key`,`session_random`,`regdatetime`,`google_auth`,`currency`')->find();
+        if (!$this->fans || (int)$this->fans['status'] !== 1) {
+            $this->error('账号不存在或已停用');
+            exit;
+        }
 		$this->fans['memberid'] = $user_auth['uid']+10000;
 
 		if(session('user_auth.expire_time')<= time()) {
@@ -48,7 +61,7 @@ class UserController extends BaseController
                 }
             }
         }
-        if(!session('user_auth.session_random') && $this->fans['session_random'] && session('user_auth.session_random') !=  $this->fans['session_random']) {
+        if($this->fans['session_random'] && session('user_auth.session_random') !=  $this->fans['session_random']) {
             session('user_auth', null);
             session('user_auth_sign', null);
             session('user_google_auth', null);
@@ -78,6 +91,7 @@ class UserController extends BaseController
         $this->assign('announces',$announces);
         $this->assign('groupId',$groupId);
         $this->assign('fans',$this->fans);
+        $this->assign('exportCsrfToken', ExportTask::csrfToken());
     }
 }
 ?>

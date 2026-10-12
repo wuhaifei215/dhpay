@@ -53,8 +53,14 @@
                                     <!--<td><{$vo.where|http_build_query}></td>-->
                                     <td><{$vo.time|date='Y-m-d H:i:s',###}></td>
                                   <td>
-                                    <if condition="$vo['status'] eq 1">
-                                        <a class="layui-btn layui-btn-warm layui-btn-small" href="<{$vo.url}>">下载</a>
+                                    <if condition="$vo['status'] eq -1">
+                                        <span style="color:#ed5565;"><{$vo.error|htmlspecialchars}></span>
+                                    <elseif condition="($vo['status'] eq 2 || $vo['status'] eq 1) && !empty($vo['url']) && $vo['url'] neq 'noData'"/>
+                                        <a class="layui-btn layui-btn-warm layui-btn-small" href="<{$vo.url|htmlspecialchars}>">下载</a>
+                                    <elseif condition="isset($vo['url']) && $vo['url'] eq 'noData'"/>
+                                        <span>没有符合条件的数据</span>
+                                    <elseif condition="isset($vo['processed_rows']) && $vo['processed_rows'] gt 0"/>
+                                        <span style="color:#23c6c8;">已处理 <{$vo.processed_rows|intval}> 行，继续导出中...</span>
                                     <else/>
                                         <span style="color:#23c6c8;">导出中，请等待...</span>
                                     </if>
@@ -106,6 +112,7 @@
                         url:"<{:U('Download/setlist')}>",
                         type:'post',
                         data:{
+                            'export_token': '<{$exportCsrfToken}>',
                             'type':2,
                             'down_name': "下载代收订单",
                             'down_url': down_url,

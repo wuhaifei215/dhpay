@@ -53,16 +53,18 @@
                 <td><if condition="$vo.where !='' "><{$vo.where|http_build_query|urldecode}><else/>无</if></td>
                 <td><{$vo.time|date='Y-m-d H:i:s',###}></td>
               <td>
-                <if condition="$vo['status'] neq 1">
-                    <span style="color:#23c6c8;">导出中，请等待...</span>
-                </if>
-                <if condition="$vo['status'] eq 1 && $vo.url eq 'noData'">
-                    <span style="color:#23c6c8;">导出失败，请重新导出</span>
-                </if>
-                <if condition="$vo['status'] eq 1 && $vo.url neq 'noData'">
-                    <a class="layui-btn layui-btn-warm layui-btn-small" href="<{$vo.url}>">下载</a>
-                </if>
-              </td>
+                <if condition="$vo['status'] eq -1">
+                                        <span style="color:#ed5565;"><{$vo.error|htmlspecialchars}></span>
+                                    <elseif condition="($vo['status'] eq 2 || $vo['status'] eq 1) && !empty($vo['url']) && $vo['url'] neq 'noData'"/>
+                                        <a class="layui-btn layui-btn-warm layui-btn-small" href="<{$vo.url|htmlspecialchars}>">下载</a>
+                                    <elseif condition="isset($vo['url']) && $vo['url'] eq 'noData'"/>
+                                        <span>没有符合条件的数据</span>
+                                    <elseif condition="isset($vo['processed_rows']) && $vo['processed_rows'] gt 0"/>
+                                        <span style="color:#23c6c8;">已处理 <{$vo.processed_rows|intval}> 行，继续导出中...</span>
+                                    <else/>
+                                        <span style="color:#23c6c8;">导出中，请等待...</span>
+                                    </if>
+                                  </td>
             </tr>
           </volist>
           </tbody>

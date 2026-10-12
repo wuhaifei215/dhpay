@@ -8,6 +8,9 @@
 
 namespace Admin\Controller;
 
+require_once dirname(__DIR__, 4) . '/shared/ExportTask.php';
+use Dhpay2\Security\ExportTask;
+
 use Think\Auth;
 use Think\Controller;
 
@@ -125,6 +128,7 @@ class BaseController extends Controller{
         $this->assign('siteurl',$this->_site);
         $this->assign('sitename',C('WEB_TITLE'));
         $this->assign('member',$user_info);
+        $this->assign('exportCsrfToken', ExportTask::csrfToken());
         $this->assign('installpwd',md5('adminadmin'.C('DATA_AUTH_KEY')));
         $this->assign('model',C('HOUTAINAME')?C('HOUTAINAME'):MODULE_NAME);
     }

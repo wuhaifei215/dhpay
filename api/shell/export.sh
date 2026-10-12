@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /hx/www/dhpay/open; php cli.php Export
-#>> /hx/www/dhpay/open/Data/cli_export.log
-
-#*/10 * * * * /hx/www/dhpay/api/shell/export.sh  在 Crontab 中每10分钟启动一个循环脚本：
+# 计划任务以 www 用户执行；程序内部持有共享锁。
+task_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)" || exit 1
+cd -- "$task_root/open" || exit 1
+exec php cli.php Export

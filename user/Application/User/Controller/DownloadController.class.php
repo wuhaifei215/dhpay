@@ -1,8 +1,11 @@
 <?php
 namespace User\Controller;
+
+require_once dirname(__DIR__, 4) . '/shared/ExportTask.php';
+use Dhpay2\Security\ExportTask;
 use Think\Page;
 
-class DownloadController extends BaseController
+class DownloadController extends UserController
 {
     public $expire_time = 3600 * 8; //1天的秒数
     public function __construct()
@@ -47,7 +50,7 @@ class DownloadController extends BaseController
     public function index()
     {
         $redis = $this->redis_connect();
-        $uid = 10000+session("user_auth.uid");
+        $uid = ExportTask::positiveId($this->fans['memberid']);
         $key = 'downList_user_' . $uid;
         //获取列表的所有元素
         $downList = $redis->lRange($key, 0, -1);
@@ -69,32 +72,46 @@ class DownloadController extends BaseController
         C('TOKEN_ON', false);
         $this->display();
     }
-    public function setlist(){
-        $uid = I("request.uid", '', 'trim,string,strip_tags,htmlspecialchars');
-        $down_url = I("request.down_url", '', 'trim,string,strip_tags,htmlspecialchars');
-        $where = I("request.where", '');
-        $where = array_filter($where);
-        $down_name = I("request.down_name", '', 'trim,string,strip_tags,htmlspecialchars');
-        $type = I("request.type", '', 'trim,string,strip_tags,htmlspecialchars');
-        $key = 'download_user_' . $uid . '_' . date('YmdHis');
-        $down_array = [
-            'uid' => $uid,
-            'type' => $type,
-            'name' => $down_name,
-            'down_url' => $down_url,
-            'where' => $where,
-            'status' => 0,
-            'time' => time(),
-        ];
-        
-        $redis = $this->redis_connect();
-        //设置key-value
-        $redis->set($key , json_encode($down_array, JSON_UNESCAPED_UNICODE));
-        // 设置键的过期时间
-        $redis->expire($key , $this->expire_time);
-        // 在列表尾部插入元素
-        $redis->rPush('downList_user_' . $uid, $key);
-        $redis->rPush('downList', $key);
+    public function setlist()
+    {
+        try {
+            if (!IS_POST) { throw new \InvalidArgumentException('导出任务仅支持POST提交'); }
+            ExportTask::checkCsrf(I('post.export_token', '', false));
+            $requestedUid = I('post.uid', null, false);
+            if ($requestedUid !== null) { ExportTask::positiveId($requestedUid); }
+            $ownerKind = 'user';
+            $uid = ExportTask::positiveId($this->fans['memberid']);
+            $type = ExportTask::type(I('post.type', '', false), $ownerKind);
+            $where = ExportTask::filters($type, I('post.where', array(), false));
+            $target = isset($where['memberid']) ? ExportTask::positiveId($where['memberid']) : $uid;
+            $currency = $this->fans['currency'];
+            if ($target !== $uid) {
+                $member = M('Member')->where(array('id' => $target - 10000, 'parentid' => $this->fans['uid'], 'status' => 1))->field('id,currency')->find();
+                if (!$member) { throw new \InvalidArgumentException('没有该商户的导出权限'); }
+                $currency = $member['currency'];
+            }
+            if (!is_string($currency) || !preg_match('/^[A-Z]{3}$/D', $currency)) {
+                throw new \RuntimeException('商户币种配置不正确');
+            }
+            $where['memberid'] = (string)$target;
+            $where['currency'] = $currency;
+            list($key, $job) = ExportTask::create($ownerKind, $uid, $type, $where, ExportTask::secret());
+            ExportTask::enqueue($this->redis_connect(), $key, $job);
+        } catch (\InvalidArgumentException $e) {
+            $this->error($e->getMessage());
+            return;
+        } catch (\RedisException $e) {
+            \Think\Log::record('Export Redis unavailable', 'ERR');
+            $this->error('导出服务暂不可用，请稍后再试');
+            return;
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage());
+            return;
+        } catch (\Exception $e) {
+            \Think\Log::record('Export enqueue failed: ' . get_class($e), 'ERR');
+            $this->error('导出服务暂不可用，请稍后再试');
+            return;
+        }
         $this->success('添加成功');
     }
 

@@ -1,0 +1,2 @@
+api/shell/export.sh text eol=lf
+api/shell/del_export.sh text eol=lf

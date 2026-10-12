@@ -219,6 +219,7 @@
                 url:"<{:U('Download/setlist')}>",
                 type:'post',
                 data:{
+                    'export_token': '<{$exportCsrfToken}>',
                     'type':6,
                     'down_name': "下载帐变记录",
                     'down_url': down_url,

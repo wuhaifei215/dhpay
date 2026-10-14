@@ -883,72 +883,148 @@ class ApiController extends Controller
         return;
     }
 
-    //执行群发操作
+    //执行群发操作：同一批并发，避免逐群等待和递归 HTTP 调用。
     public function qunfa()
     {
         $this->requireInternalBroadcast();
-        // HTTP 分页只使用已认证的 POST 数据，忽略查询参数和 Cookie。
+        // HTTP 群发只使用已认证的 POST 数据，忽略查询参数和 Cookie。
         if (PHP_SAPI !== 'cli') {
             $_REQUEST = $_POST;
         }
         $text = isset($_REQUEST['text']) ? trim((string)$_REQUEST['text']) : '';
+        if ($text === '') {
+            return true;
+        }
+        $photo = !empty($_REQUEST['photo']);
+        $fileId = isset($_REQUEST['file_id']) ? (string)$_REQUEST['file_id'] : '';
+        if ($photo && $fileId === '') {
+            log_place_order($this->code . '_qunfa', '群发失败', '缺少 file_id');
+            return false;
+        }
+        // 兼容原有 row 参数（原来每页 10 个商户）。
         $row = isset($_REQUEST['row']) ? max(0, (int)$_REQUEST['row']) : 0;
-        $batchSize = 10;
-
-        if ($text != '') {
-            $where = array();
-            $where['telegram_id'] = array('neq', '');
-
-            $member_list = M('Member')
-                ->field('telegram_id')
-                ->where($where)
-                ->order('id asc')
-                ->limit($row * $batchSize, $batchSize)
-                ->select();
-
-            if (!empty($member_list)) {
-                foreach ($member_list as $mv) {
-                    if (!empty($_REQUEST['photo'])) {
-                        $this->sendPhoto(
-                            $mv['telegram_id'],
-                            $_REQUEST['file_id'],
-                            $text
-                        );
-                    } else {
-                        $this->sendMessage($mv['telegram_id'], $text);
-                    }
-                }
-
-                $_REQUEST['row'] = $row + 1;
-
-                // 原来的下一批调用暂时保留
-                $url = 'https://' . C('DOMAIN') . '/Telegram_Api_qunfa.html';
-
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, $url);
-                curl_setopt($ch, CURLOPT_POST, 1);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $_REQUEST);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                    'X-Telegram-Internal-Secret: ' . $this->internalBroadcastSecret(),
-                ]);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-                curl_setopt($ch, CURLOPT_HEADER, false);
-
-                curl_exec($ch);
-
-                if (curl_errno($ch)) {
-                    log_place_order( $this->code . '_qunfa', '启动下一批失败', str_replace($this->token, '[REDACTED]', curl_error($ch)) );
-                }
-
-                curl_close($ch);
+        $members = M('Member')->field('telegram_id')->where(array(
+            'telegram_id' => array('neq', '')
+        ))->order('id asc')->select();
+        $members = array_slice((array)$members, $row * 10);
+        $pending = array();
+        foreach ($members as $member) {
+            $chatId = trim((string)$member['telegram_id']);
+            if ($chatId !== '') {
+                // 多个商户绑定同一群时只发送一次。
+                $pending[$chatId] = array('chat_id' => $chatId, 'attempt' => 0);
             }
         }
-
+        $pending = array_values($pending);
+        ignore_user_abort(true);
+        set_time_limit(0);
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+        // PHP-FPM 下先结束内部 HTTP 请求，再继续发送，避免 webhook 等待超时。
+        if (function_exists('fastcgi_finish_request')) {
+            echo 'OK';
+            fastcgi_finish_request();
+        }
+        $started = microtime(true);
+        $summary = array('total' => count($pending), 'success' => 0, 'failed' => 0, 'retries' => 0);
+        while (!empty($pending)) {
+            $batch = array_splice($pending, 0, 10);
+            $batchStarted = microtime(true);
+            $results = $this->sendBroadcastBatch($batch, $text, $photo, $fileId);
+            $retryAfter = 0;
+            foreach ($results as $item) {
+                $job = $item['job'];
+                $response = $item['response'];
+                if (is_array($response) && !empty($response['ok'])) {
+                    $summary['success']++;
+                    continue;
+                }
+                if (is_array($response) && isset($response['error_code']) && (int)$response['error_code'] === 429) {
+                    // 即使此群已用完重试次数，其他群也需要遵守限流等待。
+                    $retryAfter = max($retryAfter, isset($response['parameters']['retry_after']) ? max(1, (int)$response['parameters']['retry_after']) : 1);
+                    if ($job['attempt'] < 3) {
+                        $job['attempt']++;
+                        $summary['retries']++;
+                        $pending[] = $job;
+                        continue;
+                    }
+                }
+                if (is_array($response) && isset($response['error_code'], $response['description'])
+                    && (int)$response['error_code'] === 400 && $response['description'] === 'Bad Request: chat not found') {
+                    // 保留原 sendMessage 对已失效群 ID 的清理行为。
+                    M('Member')->where(array('telegram_id' => $job['chat_id']))->save(array('telegram_id' => ''));
+                }
+                // 网络超时可能已经送达，不自动重发，避免重复消息。
+                $summary['failed']++;
+                log_place_order($this->code . '_qunfa', '发送失败', json_encode(array(
+                    'chat_id' => $job['chat_id'],
+                    'response' => $response,
+                    'curl_errno' => $item['curl_errno'],
+                    'curl_error' => isset($item['curl_error']) ? $item['curl_error'] : ''
+                ), JSON_UNESCAPED_UNICODE));
+            }
+            if (!empty($pending)) {
+                // 每批最多 10 次请求；429 后暂停整个群发。
+                $wait = max(1 - (microtime(true) - $batchStarted), $retryAfter > 0 ? $retryAfter + 1 : 0);
+                if ($wait > 0) {
+                    usleep((int)ceil($wait * 1000000));
+                }
+            }
+        }
+        $summary['seconds'] = round(microtime(true) - $started, 2);
+        log_place_order($this->code . '_qunfa', '群发完成', json_encode($summary, JSON_UNESCAPED_UNICODE));
         return true;
+    }
+
+    protected function sendBroadcastBatch($batch, $text, $photo, $fileId)
+    {
+        $multi = curl_multi_init();
+        $handles = array();
+        foreach ($batch as $job) {
+            $data = array('chat_id' => $job['chat_id']);
+            if ($photo) {
+                $data['photo'] = $fileId;
+                $data['caption'] = $text;
+            } else {
+                $data['text'] = $text;
+            }
+            $ch = curl_init('https://api.telegram.org/bot' . $this->token . '/' . ($photo ? 'sendPhoto' : 'sendMessage'));
+            curl_setopt_array($ch, array(
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => http_build_query($data),
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT => 15,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2
+            ));
+            curl_multi_add_handle($multi, $ch);
+            $handles[] = array('handle' => $ch, 'job' => $job);
+        }
+        do {
+            $status = curl_multi_exec($multi, $running);
+            if ($status === CURLM_CALL_MULTI_PERFORM) {
+                continue;
+            }
+            if ($running && $status === CURLM_OK && curl_multi_select($multi, 1.0) === -1) {
+                usleep(10000);
+            }
+        } while ($running && ($status === CURLM_OK || $status === CURLM_CALL_MULTI_PERFORM));
+        $results = array();
+        foreach ($handles as $item) {
+            $ch = $item['handle'];
+            $results[] = array(
+                'job' => $item['job'],
+                'response' => json_decode(curl_multi_getcontent($ch), true),
+                'curl_errno' => curl_errno($ch),
+                'curl_error' => str_replace($this->token, '[REDACTED]', curl_error($ch))
+            );
+            curl_multi_remove_handle($multi, $ch);
+            curl_close($ch);
+        }
+        curl_multi_close($multi);
+        return $results;
     }
 
     //代付回执查询

@@ -310,19 +310,19 @@ $product_name = "Vip基础服务";
             <ul style="border-bottom: 1px dashed #000; ">
                 <label for="InrUPI">
                     <li class="pay_li" data_power_id="3000000018" data_product_id="3000000018">
-                        <input value="7732" name="channel" id="InrUPI" type="radio">
+                        <input value="7738" name="channel" id="InrUPI" type="radio">
                         <span>印度UPI</span>
                     </li>
                 </label>
                 <label for="InrWap">
                     <li class="pay_li" data_power_id="3000000019" data_product_id="3000000019">
-                        <input value="7733" name="channel" id="InrWap" type="radio">
+                        <input value="7738" name="channel" id="InrWap" type="radio">
                         <span>印度原生</span>
                     </li>
                 </label>
                 <label for="IdrWake">
                     <li class="pay_li" data_power_id="3000000020" data_product_id="3000000020">
-                        <input value="7734" name="channel" id="IdrWake" type="radio">
+                        <input value="7740" name="channel" id="IdrWake" type="radio">
                         <span>印度唤醒</span>
                     </li>
                 </label>

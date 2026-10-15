@@ -101,7 +101,6 @@ class OrderController extends UserController
 
         $OrderModel = D('Order');
         $onlineQueryOptions = array(
-            'max_days' => 7,
             'max_execution_time' => 30000,
         );
 

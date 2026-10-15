@@ -479,7 +479,6 @@ class WithdrawalController extends BaseController
         $field = '*';
         $Wttklist = D('Wttklist');
         $onlineQueryOptions = array(
-            'max_days' => 7,
             'max_execution_time' => 30000,
         );
         $adminUid = session("admin_auth.uid");

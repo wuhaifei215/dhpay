@@ -163,7 +163,6 @@ class OrderController extends BaseController
         }
         $OrderModel = D('Order');
         $onlineQueryOptions = array(
-            'max_days' => 7,
             'max_execution_time' => 30000,
         );
         $adminUid = session("admin_auth.uid");
@@ -1686,7 +1685,6 @@ class OrderController extends BaseController
 
         $OrderModel = D('Order');
         $onlineQueryOptions = array(
-            'max_days' => 7,
             'max_execution_time' => 30000,
         );
 

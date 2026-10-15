@@ -107,7 +107,6 @@ class WithdrawalController extends UserController
         $field = 'id,orderid,out_trade_no,userid,tkmoney,sxfmoney,money,bankfullname,banknumber,bankname,sqdatetime,cldatetime,status,memo,bankcode';
         $Wttklist = D('Wttklist');
         $onlineQueryOptions = array(
-            'max_days' => 7,
             'max_execution_time' => 30000,
         );
         if ($orderid) {

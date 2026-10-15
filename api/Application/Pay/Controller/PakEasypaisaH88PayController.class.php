@@ -42,7 +42,7 @@ class PakEasypaisaH88PayController extends PayController
         $native = array(
             'merchant_id' => $return['mch_id'],
             'order_no' => $return['orderid'],
-            'pay_type' => 110,
+            'pay_type' => 162,
             'amount' => sprintf('%.2f', $return['amount']), 
             'notify_url' => $return["notifyurl"],
             'return_type' => "json",        //返回类型，默认为表单提交，传值json,接口返回pay_url,传info,系统将返回支付信息，商户需自行处理(如需使用info请联系平台管理员)  

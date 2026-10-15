@@ -56,6 +56,9 @@ if (in_array($_POST['bankcode'], [7710, 7711, 7712])) {
 } elseif (in_array($_POST['bankcode'], [7735, 7736, 7737])) {
     $pay_currency = 'BDT';
     $tjurl = $apidomain . "/Payment_CreateDF_payoutBD.html";   //印度
+} elseif (in_array($_POST['bankcode'], [7738, 7739, 7740])) {
+    $pay_currency = 'INR';
+    $tjurl = $apidomain . "/Pay_Create_payoutIND.html";   //印度
 }
 
 $_POST['currency'] = $pay_currency;

@@ -19,25 +19,15 @@ class InrWakeDMPayDFController extends PaymentController
         if (!isset($data['type']) || !in_array($data['type'], ['Banktransfer', 'IMPS', 'NEFT', 'RTGS', 'UPI'], true)) {
             return ['status' => 0, 'msg' => '不支持该支付类型'];
         }
-        $ext = isset($data['extends']) ? $data['extends'] : [];
-        if (!is_array($ext)) {
-            $decoded = json_decode($ext, true);
-            $ext = is_array($decoded) ? $decoded : json_decode(base64_decode($ext, true), true);
-        }
-        $phone = isset($data['phone']) ? $data['phone'] : (isset($ext['phone']) ? $ext['phone'] : '');
-        $phone = is_scalar($phone) ? trim((string)$phone) : '';
-        if (preg_match('/^[0-9]{10}$/D', $phone)) {
-            $phone = '+91' . $phone;
-        } elseif (preg_match('/^91[0-9]{10}$/D', $phone)) {
-            $phone = '+' . $phone;
-        }
-        if (!preg_match('/^\+91[0-9]{10}$/D', $phone)) {
-            return ['status' => 0, 'msg' => '联系电话须为10位印度手机号或+91国际格式，例如+919203958784'];
+        // Generate +91 followed by a ten-digit mobile number.
+        $phone = '+91' . random_int(6, 9);
+        for ($i = 0; $i < 9; $i++) {
+            $phone .= random_int(0, 9);
         }
         $upi = $data['type'] === 'UPI';
-        if (empty($data['banknumber']) || empty($data['bankfullname']) || !is_scalar($phone) || trim((string)$phone) === ''
+        if (empty($data['banknumber']) || empty($data['bankfullname'])
             || (!$upi && empty($data['bankzhiname'])) || !isset($data['money']) || !is_numeric($data['money']) || $data['money'] <= 0) {
-            return ['status' => 0, 'msg' => '缺少有效金额、收款账户、姓名、IFSC或extends.contactPhone'];
+            return ['status' => 0, 'msg' => '缺少有效金额、收款账户、姓名或IFSC'];
         }
         $request = [
             'merchantOrderNo' => $data['orderid'],

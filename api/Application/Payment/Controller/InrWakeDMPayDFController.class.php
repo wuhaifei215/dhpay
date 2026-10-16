@@ -162,16 +162,35 @@ class InrWakeDMPayDFController extends PaymentController
 
     public function queryBalance()
     {
-        if (!IS_AJAX) return;
-        $config = M('pay_for_another')->where(['code' => $this->code])->find();
+        if (!IS_AJAX) {
+            return;
+        }
+        $id = I('post.id', 1, 'intval');
+        $config = M('pay_for_another')->where(['id' => $id, 'code' => $this->code])->find();
         if (!$config) {
-            $this->ajaxReturn(['status' => 0, 'msg' => '通道未配置']);
+            $this->ajaxReturn(['status' => 0, 'msg' => '代付配置不存在']);
             return;
         }
         $result = $this->queryBalance2($config);
-        $this->ajaxReturn(['status' => $result['resultCode'] === '0' ? 1 : 0,
-            'msg' => $result['resultCode'] === '0' ? '成功' : '余额查询失败',
-            'data' => $result['resultCode'] === '0' ? '可用金额：' . htmlspecialchars((string)$result['balance'], ENT_QUOTES, 'UTF-8') : '']);
+        if ($result['resultCode'] !== '0') {
+            $this->ajaxReturn(['status' => 0, 'msg' => isset($result['message']) ? $result['message'] : '余额查询失败']);
+            return;
+        }
+        $availableBalance = htmlspecialchars((string)$result['balance'], ENT_QUOTES, 'UTF-8');
+        $html = <<<HTML
+<style type="text/css">
+table.hovertable {width:260px;font-family:verdana,arial,sans-serif;font-size:11px;color:#333333;border-width:1px;border-color:#999999;border-collapse:collapse;}
+table.hovertable th {background-color:#c3dde0;border-width:1px;padding:8px;border-style:solid;border-color:#a9c6c9;}
+table.hovertable tr {background-color:#f5f5f5;}
+table.hovertable td {border-width:1px;padding:8px;border-style:solid;border-color:#a9c6c9;}
+</style>
+<table class="hovertable">
+<tr><th>说明</th><th>值</th></tr>
+<tr><td>币种</td><td><b>INR</b></td></tr>
+<tr><td>可用余额</td><td><b>{$availableBalance}</b></td></tr>
+</table>
+HTML;
+        $this->ajaxReturn(['status' => 1, 'msg' => '成功', 'data' => $html]);
     }
 
     protected function request($url, array $request, array $config, $orderid)

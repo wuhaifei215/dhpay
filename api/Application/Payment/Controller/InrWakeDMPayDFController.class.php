@@ -186,7 +186,6 @@ table.hovertable td {border-width:1px;padding:8px;border-style:solid;border-colo
 </style>
 <table class="hovertable">
 <tr><th>说明</th><th>值</th></tr>
-<tr><td>币种</td><td><b>INR</b></td></tr>
 <tr><td>可用余额</td><td><b>{$availableBalance}</b></td></tr>
 </table>
 HTML;

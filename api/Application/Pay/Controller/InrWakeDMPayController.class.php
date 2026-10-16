@@ -56,18 +56,14 @@ class InrWakeDMPayController extends PayController
         log_place_order($this->code, $return['orderid'] . "----返回", $returnContent);    //日志
         $ans = json_decode($returnContent, true);
         if(is_array($ans) && isset($ans['code']) && (string)$ans['code'] === '200' && !empty($ans['success']) && !empty($ans['result']['codeUrl'])){
-            if($array['userid'] == 2){
-                echo '<script type="text/javascript">window.location.href=' . json_encode($ans['result']['codeUrl'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . '</script>';
-            }else{
-                $return_arr = [
-                    'status' => 'success',
-                    'H5_url' => $ans['result']['codeUrl'],
-                    'pay_orderid' => $orderid,
-                    'out_trade_id' => $return['orderid'],
-                    'amount' => $return['amount'],
-                    'datetime' => date('Y-m-d')
-                ];
-            }
+            $return_arr = [
+                'status' => 'success',
+                'H5_url' => $ans['result']['codeUrl'],
+                'pay_orderid' => $orderid,
+                'out_trade_id' => $return['orderid'],
+                'amount' => $return['amount'],
+                'datetime' => date('Y-m-d')
+            ];
         }else{
             if(!isset($ans['message']) || $ans['message'] == ''){
                 $msg = 'channel error';
@@ -79,8 +75,6 @@ class InrWakeDMPayController extends PayController
                 'msg' => $msg,
             ];
         }
-        echo json_encode($return_arr);
-
         try{
             $redis = $this->redis_connect();
             $userpost = $redis->get('userpost_' . $return['out_trade_id']);
@@ -96,6 +90,12 @@ class InrWakeDMPayController extends PayController
             logApiAddReceipt('订单提交上游' . $this->code, __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $native, $ans, $doTime, '0', '1', '2');
         }catch (\Exception $e) {
             // var_dump($e);
+        }
+        // Record both submission logs before responding or redirecting.
+        if ($return_arr['status'] === 'success' && $array['userid'] == 2) {
+            echo '<script type="text/javascript">window.location.href=' . json_encode($return_arr['H5_url'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . '</script>';
+        } else {
+            echo json_encode($return_arr);
         }
         exit;
     }

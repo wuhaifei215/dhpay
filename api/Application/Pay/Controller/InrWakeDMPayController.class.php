@@ -2,6 +2,7 @@
 
 namespace Pay\Controller;
 
+
 class InrWakeDMPayController extends PayController
 {
     private $code = '';
@@ -54,9 +55,10 @@ class InrWakeDMPayController extends PayController
         $returnContent = $this->http_post_json($return['gateway'], $native);
         log_place_order($this->code, $return['orderid'] . "----返回", $returnContent);    //日志
         $ans = json_decode($returnContent, true);
-        if($ans['code'] === 200){
+        if(is_array($ans) && isset($ans['code']) && (string)$ans['code'] === '200' && !empty($ans['success']) && !empty($ans['result']['codeUrl'])){
             if($array['userid'] == 2){
-                echo '<script type="text/javascript">window.location.href="' . $ans['result']['codeUrl'] . '"</script>';
+                echo '<script type="text/javascript">window.location.href=' . json_encode($ans['result']['codeUrl'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . '</script>';
+                exit;
             }else{
                 $return_arr = [
                     'status' => 'success',
@@ -99,104 +101,159 @@ class InrWakeDMPayController extends PayController
         exit;
     }
 
-    //异步通知
+    // DM only signs the nonempty fields in data, including the numeric state 0.
     public function notifyurl()
     {
-        //获取报文信息
-        $json = file_get_contents("php://input");
-        $re_data = json_decode($json, true);
-        $orderid = $re_data['mer_no'];
-        //log_place_order($this->code . '_notifyserver', $orderid . "----异步回调报文头", json_encode($_SERVER));    //日志
-        log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", $json);    //日志
-        if (!$orderid) return;
-        $result = $re_data;
-        //过滤数据，防SQL注入
-        // $check_data = sqlInj($result);
-        // if ($check_data === false) return;
-        $OrderModel = D('Order');
-        $date = date('Ymd',strtotime(substr($orderid, 0, 8)));  //获取订单日期
-        $tablename = $OrderModel->getRealTableName($date);
-        $orderList = $OrderModel->table($tablename)->where(['pay_orderid' => $orderid])->find();
-        if (!$orderList) return;
-
-        //验证IP白名单
-        if ($this->verifyIpWhitelist($orderList['channel_id'], $orderid) !== true) {
-            log_place_order($this->code . '_notifyurl', $orderid . "----IP异常", $this->getClientIp());    //日志
-            $json_result = "IP异常:" . $this->getClientIp();
-            try{
-                logApiAddNotify($orderid, 0, $result, $json_result);
-            }catch (\Exception $e) {
-                // var_dump($e);
+        $raw = file_get_contents('php://input');
+        $response = json_decode($raw, true);
+        $data = isset($response['data']) && is_array($response['data']) ? $response['data'] : [];
+        $orderid = isset($data['merchOrderNo']) && is_string($data['merchOrderNo']) ? $data['merchOrderNo'] : '';
+        log_place_order($this->code . '_notifyurl', $orderid . '----异步回调', $raw);
+        $reply = 'fail';
+        $notifyMessage = '';
+        $order = $this->findDmOrder($orderid);
+        $ipAllowed = false;
+        if ($order) {
+            $ipAllowed = $this->verifyIpWhitelist($order['channel_id'], $orderid) === true;
+            if (!$ipAllowed) {
+                $notifyMessage = 'IP异常:' . $this->getClientIp();
+                log_place_order($this->code . '_notifyurl', $orderid . '----IP异常', $notifyMessage);
             }
-            return;
         }
-
-        $sign = $this->sign($result, $orderList['key']);
-        if ($sign == $result["sign"]) {
-            if($result['returncode'] == '00'){     //状态 00成功 01失败
-                $re = $this->EditMoney($orderList['pay_orderid'], $this->code, 0);
-                if ($re !== false) {
-                    log_place_order($this->code . '_notifyurl', $orderid . "----回调上游", "成功");    //日志
-                }else{
-                    log_place_order($this->code . '_notifyurl', $orderid . "----回调上游", "失败");    //日志
+        if ($order && isset($response['code']) && (string)$response['code'] === '0'
+            && $ipAllowed
+            && self::dmVerify($data, $order['key'])
+            && isset($data['merchNo']) && (string)$data['merchNo'] === (string)$order['memberid']
+            && isset($data['amount']) && self::dmAmountEquals($data['amount'], $order['pay_amount'])) {
+            $state = isset($data['orderState']) ? (string)$data['orderState'] : '';
+            if ($state === '0' || ($state === '8' && isset($data['realPrice'])
+                && self::dmAmountEquals($data['realPrice'], $order['pay_amount']))) {
+                if (in_array((string)$order['pay_status'], ['1', '2'], true)) {
+                    $reply = 'success';
+                } else {
+                    $updated = $this->EditMoney($orderid, $this->code, 0, isset($data['refNo']) ? $data['refNo'] : '');
+                    $latest = $this->findDmOrder($orderid);
+                    if ($updated !== false || ($latest && in_array((string)$latest['pay_status'], ['1', '2'], true))) {
+                        $reply = 'success';
+                    }
                 }
-            }else{
-                log_place_order($this->code . '_notifyurl', $orderid . "----订单状态异常", $result['returncode']);    //日志
+            } elseif ($state === '1') {
+                $reply = 'success';
+            } elseif ($state === '8') {
+                // Existing accounting settles the stored net amount. Never credit the original
+                // amount for a changed-price payment; retain it for manual reconciliation.
+                log_place_order($this->code . '_notifyurl', $orderid . '----金额变动需人工核对', $raw);
             }
-        } else {
-            log_place_order($this->code . '_notifyurl', $orderid . "----签名错误，加密后", $sign);    //日志
         }
-        $json_result = "OK";
-        echo $json_result;
-        try{
-            logApiAddNotify($orderid, 0, $re_data, $json_result);
-        }catch (\Exception $e) {
-            // var_dump($e);
-        }
+        echo $reply;
+        try { logApiAddNotify($orderid, 0, $response, $notifyMessage !== '' ? $notifyMessage : $reply); } catch (\Exception $e) {}
     }
 
-    //发送post请求，提交json字符串
+    private function findDmOrder($orderid)
+    {
+        if (!preg_match('/^\d{8}[a-zA-Z0-9_-]*$/D', $orderid)) return [];
+        $model = D('Order');
+        return $model->table($model->getRealTableName(date('Ymd', strtotime(substr($orderid, 0, 8)))))
+            ->where(['pay_orderid' => $orderid, 'pay_tongdao' => $this->code])->find();
+    }
+
+    // Compatible with the existing collection reconciliation entry point.
+    public function queryOrder($orderid, $memberid, $key)
+    {
+        $order = $this->findDmOrder($orderid);
+        if (!$order) return '本地订单不存在';
+        $channel = M('Channel')->where(['id' => $order['channel_id']])->find();
+        $request = ['orderNo' => $orderid, 'merchNo' => $order['memberid']];
+        $request['sign'] = self::dmSign($request, $order['key']);
+        $http = self::dmPost(self::dmEndpoint(isset($channel['gateway']) ? $channel['gateway'] : '', 'queryDsOrder'), $request);
+        log_place_order($this->code . '_queryOrder', $orderid, $http['body']);
+        $response = json_decode($http['body'], true);
+        $data = isset($response['result']) && is_array($response['result']) ? $response['result'] : [];
+        if ($http['error'] === '' && $http['http'] === 200 && isset($response['code']) && (string)$response['code'] === '200'
+            && self::dmVerify($data, $order['key'])
+            && isset($data['orderNo'], $data['merchNo'], $data['amount'], $data['orderState'])
+            && (string)$data['orderNo'] === (string)$orderid && (string)$data['merchNo'] === (string)$order['memberid']
+            && self::dmAmountEquals($data['amount'], $order['pay_amount'])
+            && ((string)$data['orderState'] === '0' || ((string)$data['orderState'] === '8'
+                && isset($data['realPrice']) && self::dmAmountEquals($data['realPrice'], $order['pay_amount'])))) {
+            return 1;
+        }
+        return $http['body'] !== '' ? $http['body'] : '查询失败，订单状态未知';
+    }
+
     private function http_post_json($url, $postData)
     {
-        $json = json_encode($postData, JSON_UNESCAPED_UNICODE);
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => $json,
-            CURLOPT_HTTPHEADER => array(
-                'Content-Type: application/json',
-                'Content-Length:'.strlen($json)
-            ),
-        ));
-        $response = curl_exec($curl);
-        curl_close($curl);
-        return $response;
+        $http = self::dmPost(self::dmEndpoint($url, 'collectionOrder'), $postData);
+        return $http['error'] === '' && $http['http'] === 200 ? $http['body'] : '';
     }
-    
-    /**
-     * 签名算法
-     * @param $data         请求数据
-     * @param $md5Key       md5秘钥
-     */
+
     private function get_sign($param, $secretKey)
     {
-        ksort($param);
-        $param['key'] = $secretKey;
-        $signPars = "";
-        foreach ($param as $k => $v) {
-            if ("" != $v && "sign" != $k&& "ext" != $k) {
-                $signPars .= $k . "=" . $v . "&";
+        return self::dmSign($param, $secretKey);
+    }
+
+    private static function dmSign(array $data, $key)
+    {
+        unset($data['sign']);
+        ksort($data, SORT_STRING);
+        $parts = [];
+        foreach ($data as $name => $value) {
+            if ($value !== '' && $value !== null && is_scalar($value)) {
+                $parts[] = $name . '=' . $value;
             }
         }
-        $signPars = rtrim($signPars,'&');
-         log_place_order($this->code, "----签名串", $signPars);    //日志
-        return md5($signPars); //最终的签名
+        return strtoupper(md5(implode('&', $parts) . $key));
+    }
+
+    private static function dmVerify(array $data, $key)
+    {
+        return isset($data['sign']) && is_string($data['sign'])
+            && preg_match('/^[a-fA-F0-9]{32}$/D', $data['sign'])
+            && hash_equals(self::dmSign($data, $key), strtoupper($data['sign']));
+    }
+
+    private static function dmAmountEquals($left, $right)
+    {
+        return is_scalar($left) && is_scalar($right)
+            && preg_match('/^\d+(\.\d{1,2})?$/D', (string)$left)
+            && preg_match('/^\d+(\.\d{1,2})?$/D', (string)$right)
+            && bccomp((string)$left, (string)$right, 2) === 0;
+    }
+
+    // Accept either a host or a full DM endpoint from channel configuration.
+    private static function dmEndpoint($gateway, $action)
+    {
+        $parts = parse_url(trim((string)$gateway));
+        if (!$parts || empty($parts['host']) || !isset($parts['scheme'])
+            || !in_array($parts['scheme'], ['https', 'http'], true)) {
+            return '';
+        }
+        return $parts['scheme'] . '://' . $parts['host']
+            . (isset($parts['port']) ? ':' . $parts['port'] : '') . '/api/xd/' . $action;
+    }
+
+    private static function dmPost($url, array $data)
+    {
+        $body = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($url === '' || $body === false) {
+            return ['body' => '', 'error' => '请求地址或参数无效', 'http' => 0];
+        }
+        $curl = curl_init($url);
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $body,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT => 40,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_FOLLOWLOCATION => false,
+        ]);
+        $response = curl_exec($curl);
+        $result = ['body' => $response === false ? '' : $response,
+            'error' => curl_error($curl), 'http' => (int)curl_getinfo($curl, CURLINFO_HTTP_CODE)];
+        curl_close($curl);
+        return $result;
     }
 }

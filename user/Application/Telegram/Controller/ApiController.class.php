@@ -1410,68 +1410,45 @@ class ApiController extends Controller
 
     //用户当日统计
     private function statistics($uid){
-        $data = [];
         $todayBegin = date('Y-m-d') . ' 00:00:00';
-        $todyEnd = date('Y-m-d') . ' 23:59:59';
-        $where=[];
-        $where = [
+        $todayEnd = date('Y-m-d') . ' 23:59:59';
+        $data = array_fill_keys(array(
+            'all_o_sum', 'all_o_num', 'o_sum', 'o_num', 'o_success_rate',
+            'all_w_amount', 'all_w_i', 'w_sum_do', 'wi_do', 'w_sum_done', 'wi_done',
+        ), 0);
+
+        // 每个分表只返回汇总行，避免将当天订单明细全部加载到 PHP 内存。
+        $orderFields = 'COUNT(*) AS all_o_num, COALESCE(SUM(pay_amount), 0) AS all_o_sum, '
+            . 'COALESCE(SUM(CASE WHEN pay_status IN (1, 2) THEN pay_amount ELSE 0 END), 0) AS o_sum, '
+            . 'COALESCE(SUM(CASE WHEN pay_status IN (1, 2) THEN 1 ELSE 0 END), 0) AS o_num';
+        $orderRows = D('Order')->getOrderByDateRange($orderFields, array(
             'pay_memberid' => $uid,
-            'pay_applydate' => ['between', [strtotime($todayBegin), strtotime($todyEnd)]],
-        ];
-        //今日平台总入金
-        $field = 'id, pay_amount, pay_status';
-        $OrderModel = D('Order');
-        $order_statistics = $OrderModel->getOrderByDateRange($field, $where);
-        // $order_statistics = M('Order')->field('id, pay_amount, pay_status')->where($where)->select();
-        $oi = $o_sum = $all_o_sum = $all_o_i = 0;
-        foreach ($order_statistics as $ok => $ov) {
-            $all_o_sum += $ov['pay_amount'];
-            $all_o_i++;
-            if($ov['pay_status']==1 || $ov['pay_status']==2){
-                $o_sum += $ov['pay_amount'];
-                $oi++;
+            'pay_applydate' => array('between', array(strtotime($todayBegin), strtotime($todayEnd))),
+        ));
+        foreach ($orderRows as $row) {
+            foreach (array('all_o_sum', 'all_o_num', 'o_sum', 'o_num') as $key) {
+                $data[$key] += $row[$key];
             }
         }
-        $data['all_o_sum'] = $all_o_sum;
-        $data['all_o_num'] = $all_o_i;
-        $data['o_sum'] = $o_sum;
-        $data['o_num'] = $oi;
-        $data['o_success_rate'] = sprintf("%.4f", $oi / $all_o_i) * 100;
-        // if($data['o_success_rate'] > 10 && $data['o_success_rate'] < 90){
-        //     $data['o_success_rate']+=5;
-        // }
+        $data['o_success_rate'] = $data['all_o_num'] > 0
+            ? sprintf("%.4f", $data['o_num'] / $data['all_o_num']) * 100 : 0;
 
-        $wi_do = $w_sum_do = $wi_done = $w_sum_done = $all_w_amount = $all_w_i = 0;
-        $dfwhere = [
-            'sqdatetime' => ['between', [$todayBegin, $todyEnd]],
+        $withdrawFields = 'COUNT(*) AS all_w_i, COALESCE(SUM(tkmoney), 0) AS all_w_amount, '
+            . "COALESCE(SUM(CASE WHEN status = '1' THEN tkmoney ELSE 0 END), 0) AS w_sum_do, "
+            . "COALESCE(SUM(CASE WHEN status = '1' THEN 1 ELSE 0 END), 0) AS wi_do, "
+            . "COALESCE(SUM(CASE WHEN status IN ('2', '3') THEN tkmoney ELSE 0 END), 0) AS w_sum_done, "
+            . "COALESCE(SUM(CASE WHEN status IN ('2', '3') THEN 1 ELSE 0 END), 0) AS wi_done";
+        $withdrawRows = D('Wttklist')->getOrderByDateRange($withdrawFields, array(
+            'sqdatetime' => array('between', array($todayBegin, $todayEnd)),
             'userid' => $uid - 10000,
-        ];
-        $field = 'id, tkmoney, status';
-        $Wttklist = D('Wttklist');
-
-        $withdraw_statistics = $Wttklist->getOrderByDateRange($field, $dfwhere);
-        foreach ($withdraw_statistics as $wk => $wv) {
-            $all_w_amount += $wv['tkmoney'];
-            $all_w_i++;
-            if($wv['status'] == 1){
-                $w_sum_do += $wv['tkmoney'];
-                $wi_do++;
-            }
-            if($wv['status'] == 2 || $wv['status'] == 3){
-                $w_sum_done += $wv['tkmoney'];
-                $wi_done++;
+        ));
+        foreach ($withdrawRows as $row) {
+            foreach (array('all_w_amount', 'all_w_i', 'w_sum_do', 'wi_do', 'w_sum_done', 'wi_done') as $key) {
+                $data[$key] += $row[$key];
             }
         }
-        $data['all_w_amount'] = $all_w_amount;
-        $data['all_w_i'] = $all_w_i;
-        $data['w_sum_do'] = $w_sum_do;
-        $data['wi_do'] = $wi_do;
-        $data['w_sum_done'] = $w_sum_done;
-        $data['wi_done'] = $wi_done;
-
         return $data;
     }
-
 
     /**
      * 用户代收订单每小时成功率统计

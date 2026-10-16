@@ -126,9 +126,6 @@ class InrWakeDMPayController extends PayController
         } elseif (!isset($data['merchNo']) || (string)$data['merchNo'] !== (string)$order['memberid']) {
             $notifyMessage = '商户号不匹配：回调=' . json_encode(isset($data['merchNo']) ? $data['merchNo'] : null)
                 . '，订单=' . $order['memberid'];
-        } elseif (!isset($data['amount']) || !self::dmAmountEquals($data['amount'], $order['pay_amount'])) {
-            $notifyMessage = '订单金额不匹配或格式错误：回调=' . json_encode(isset($data['amount']) ? $data['amount'] : null)
-                . '，订单=' . $order['pay_amount'];
         } else {
             $state = isset($data['orderState']) ? (string)$data['orderState'] : '';
             if ($state === '0' || ($state === '8' && isset($data['realPrice'])

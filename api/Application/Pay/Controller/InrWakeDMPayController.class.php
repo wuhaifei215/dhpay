@@ -112,19 +112,25 @@ class InrWakeDMPayController extends PayController
         $reply = 'fail';
         $notifyMessage = '';
         $order = $this->findDmOrder($orderid);
-        $ipAllowed = false;
-        if ($order) {
-            $ipAllowed = $this->verifyIpWhitelist($order['channel_id'], $orderid) === true;
-            if (!$ipAllowed) {
-                $notifyMessage = 'IP异常:' . $this->getClientIp();
-                log_place_order($this->code . '_notifyurl', $orderid . '----IP异常', $notifyMessage);
-            }
-        }
-        if ($order && isset($response['code']) && (string)$response['code'] === '0'
-            && $ipAllowed
-            && self::dmVerify($data, $order['key'])
-            && isset($data['merchNo']) && (string)$data['merchNo'] === (string)$order['memberid']
-            && isset($data['amount']) && self::dmAmountEquals($data['amount'], $order['pay_amount'])) {
+        if (!is_array($response) || !isset($response['data']) || !is_array($response['data'])) {
+            $notifyMessage = '回调报文格式错误：必须为JSON且包含data对象';
+        } elseif ($orderid === '' || !preg_match('/^\d{8}[a-zA-Z0-9_-]*$/D', $orderid)) {
+            $notifyMessage = '商户订单号缺失或格式错误';
+        } elseif (!$order) {
+            $notifyMessage = '本地订单不存在或通道不匹配：' . $orderid . '，通道：' . $this->code;
+        } elseif ($this->verifyIpWhitelist($order['channel_id'], $orderid) !== true) {
+            $notifyMessage = 'IP异常:' . $this->getClientIp();
+        } elseif (!isset($response['code']) || (string)$response['code'] !== '0') {
+            $notifyMessage = '回调code异常：' . json_encode(isset($response['code']) ? $response['code'] : null);
+        } elseif (!self::dmVerify($data, $order['key'])) {
+            $notifyMessage = '签名校验失败：请核对上游签名与订单保存的密钥';
+        } elseif (!isset($data['merchNo']) || (string)$data['merchNo'] !== (string)$order['memberid']) {
+            $notifyMessage = '商户号不匹配：回调=' . json_encode(isset($data['merchNo']) ? $data['merchNo'] : null)
+                . '，订单=' . $order['memberid'];
+        } elseif (!isset($data['amount']) || !self::dmAmountEquals($data['amount'], $order['pay_amount'])) {
+            $notifyMessage = '订单金额不匹配或格式错误：回调=' . json_encode(isset($data['amount']) ? $data['amount'] : null)
+                . '，订单=' . $order['pay_amount'];
+        } else {
             $state = isset($data['orderState']) ? (string)$data['orderState'] : '';
             if ($state === '0' || ($state === '8' && isset($data['realPrice'])
                 && self::dmAmountEquals($data['realPrice'], $order['pay_amount']))) {
@@ -135,15 +141,21 @@ class InrWakeDMPayController extends PayController
                     $latest = $this->findDmOrder($orderid);
                     if ($updated !== false || ($latest && in_array((string)$latest['pay_status'], ['1', '2'], true))) {
                         $reply = 'success';
+                    } else {
+                        $notifyMessage = '入账未完成：EditMoney返回false且订单未成功，可能正在处理中或账务更新失败，请核对EditMoney日志';
                     }
                 }
             } elseif ($state === '1') {
                 $reply = 'success';
             } elseif ($state === '8') {
-                // Existing accounting settles the stored net amount. Never credit the original
-                // amount for a changed-price payment; retain it for manual reconciliation.
-                log_place_order($this->code . '_notifyurl', $orderid . '----金额变动需人工核对', $raw);
+                $notifyMessage = '金额变动需人工核对：realPrice=' . json_encode(isset($data['realPrice']) ? $data['realPrice'] : null)
+                    . '，订单=' . $order['pay_amount'];
+            } else {
+                $notifyMessage = '订单状态不支持：' . json_encode(isset($data['orderState']) ? $data['orderState'] : null);
             }
+        }
+        if ($notifyMessage !== '') {
+            log_place_order($this->code . '_notifyurl', $orderid . '----回调失败原因', $notifyMessage);
         }
         echo $reply;
         try { logApiAddNotify($orderid, 0, $response, $notifyMessage !== '' ? $notifyMessage : $reply); } catch (\Exception $e) {}

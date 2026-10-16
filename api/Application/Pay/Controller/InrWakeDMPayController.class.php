@@ -58,7 +58,6 @@ class InrWakeDMPayController extends PayController
         if(is_array($ans) && isset($ans['code']) && (string)$ans['code'] === '200' && !empty($ans['success']) && !empty($ans['result']['codeUrl'])){
             if($array['userid'] == 2){
                 echo '<script type="text/javascript">window.location.href=' . json_encode($ans['result']['codeUrl'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . '</script>';
-                exit;
             }else{
                 $return_arr = [
                     'status' => 'success',

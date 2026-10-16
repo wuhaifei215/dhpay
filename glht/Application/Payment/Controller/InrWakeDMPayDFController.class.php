@@ -35,7 +35,6 @@ class InrWakeDMPayDFController extends PaymentController
             'merchantNo' => $config['mch_id'],
             'orderAmount' => sprintf('%.2f', $data['money']),
             'bankAccount' => $data['banknumber'],
-            'disbursementType' => $upi ? 'upi' : 'bank',
             'payeeName' => $data['bankfullname'],
             'contactPhone' => $phone,
             'notifyUrl' => 'https://' . C('NOTIFY_DOMAIN') . '/Payment_' . $this->code . '_notifyurl.html',
@@ -87,17 +86,22 @@ class InrWakeDMPayDFController extends PaymentController
             $table = $model->getRealTableName(date('Ymd', strtotime(substr($orderid, 1, 8))));
             $order = $model->table($table)->where(['orderid' => $orderid])->find();
             $config = $order ? M('pay_for_another')->where(['code' => $this->code, 'id' => $order['df_id']])->find() : [];
-            $ipAllowed = false;
-            if ($config) {
-                $ipAllowed = $this->verifyNotifyIp($config['notifyip'], $orderid) === true;
-                if (!$ipAllowed) {
-                    $notifyMessage = 'IP异常:' . $this->getClientIp();
-                    log_place_order($this->code . '_notifyurl', $orderid . '----IP异常', $notifyMessage);
-                }
-            }
-            if ($config && isset($response['code']) && (string)$response['code'] === '0'
-                && $ipAllowed
-                && $this->validOrderData($data, $order, $config, 'merchOrderNo')) {
+            if (!$order) {
+                $notifyMessage = '本地代付订单不存在：' . $orderid;
+            } elseif (!$config) {
+                $notifyMessage = '代付配置不存在或通道不匹配：df_id=' . $order['df_id'] . '，通道=' . $this->code;
+            } elseif ($this->verifyNotifyIp($config['notifyip'], $orderid) !== true) {
+                $notifyMessage = 'IP异常:' . $this->getClientIp();
+            } elseif (!isset($response['code']) || (string)$response['code'] !== '0') {
+                $notifyMessage = '回调code异常：' . json_encode(isset($response['code']) ? $response['code'] : null);
+            } elseif (!$this->verifySign($data, $config['signkey'])) {
+                $notifyMessage = '签名校验失败：请核对该代付通道的签名密钥';
+            } elseif (!isset($data['merchNo']) || (string)$data['merchNo'] !== (string)$config['mch_id']) {
+                $notifyMessage = '商户号不匹配：回调=' . json_encode(isset($data['merchNo']) ? $data['merchNo'] : null)
+                    . '，配置=' . $config['mch_id'];
+            } elseif (!isset($data['orderState'])) {
+                $notifyMessage = '回调缺少orderState';
+            } else {
                 $mapped = $this->mapState($data);
                 if ($mapped['status'] === 1) {
                     $reply = 'success';
@@ -109,9 +113,17 @@ class InrWakeDMPayDFController extends PaymentController
                         $order = $model->table($table)->where(['orderid' => $orderid])->find();
                     }
                     if ($order && (string)$order['status'] === $expected) $reply = 'success';
-                    else log_place_order($this->code . '_notifyurl', $orderid . '----终态冲突或更新失败需核对', $raw);
+                    else $notifyMessage = '终态冲突或更新失败：期望本地状态=' . $expected
+                        . '，实际状态=' . ($order ? $order['status'] : '订单不存在');
+                } else {
+                    $notifyMessage = $mapped['msg'];
                 }
             }
+        } else {
+            $notifyMessage = '商户订单号缺失或格式错误：' . $orderid;
+        }
+        if ($notifyMessage !== '') {
+            log_place_order($this->code . '_notifyurl', $orderid . '----回调失败原因', $notifyMessage);
         }
         echo $reply;
         try { logApiAddNotify($orderid, 1, $response, $notifyMessage !== '' ? $notifyMessage : $reply); } catch (\Exception $e) {}

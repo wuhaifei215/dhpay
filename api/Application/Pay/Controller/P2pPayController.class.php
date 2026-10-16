@@ -86,12 +86,12 @@ class P2pPayController extends PayController
                 $userpost = $redis->get('userpost_' . $return['out_trade_id']);
                 $userpost = json_decode($userpost,true);
                 
-                logApiAddReceipt('下游商户提交YunPay', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, $return_arr, '0', '0', '1', '2');
+                logApiAddReceipt('下游商户提交', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, $return_arr, '0', '0', '1', '2');
                 
                 // 结束并输出执行时间
                 $endTime = microtime(TRUE);
                 $doTime = floor(($endTime-$beginTime)*1000);
-                logApiAddReceipt('YunPay订单提交上游P2pPay', __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $params, $ans, $doTime, '0', '1', '2');
+                logApiAddReceipt('订单提交上游P2pPay', __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $params, $ans, $doTime, '0', '1', '2');
             }catch (\Exception $e) {
                 // var_dump($e);
             }
@@ -102,7 +102,6 @@ class P2pPayController extends PayController
     //异步通知
     public function notifyurl()
     {
-        log_place_order($this->code . '_notifyurl', $orderid . "----异步回调", file_get_contents('php://input'));    //日志
         //获取报文信息
         $array = json_decode(file_get_contents('php://input'), true);
         $arrayData = json_decode($array['data'], true);

@@ -52,7 +52,7 @@ class CeShiController extends PayController
         $return['gateway'] = $this->_site . '/Pay_CeShi_Success.html';
         try{
 
-            logApiAddReceipt('下游商户提交YunPay', $array['userid'], __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $return, $return_arr);
+            logApiAddReceipt('下游商户提交', $array['userid'], __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $return, $return_arr);
         }catch (\Exception $e) {
             var_dump($e);
         }

@@ -90,12 +90,12 @@ class WinPayMayaController extends PayController
                 $userpost = $redis->get('userpost_' . $return['out_trade_id']);
                 $userpost = json_decode($userpost,true);
                 
-                logApiAddReceipt('下游商户提交YunPay', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, $return_arr, '0', '0', '1', '2');
+                logApiAddReceipt('下游商户提交', __METHOD__, $return['orderid'], $return['out_trade_id'], '/', $userpost, $return_arr, '0', '0', '1', '2');
                 
                 // 结束并输出执行时间
                 $endTime = microtime(TRUE);
                 $doTime = floor(($endTime-$beginTime)*1000);
-                logApiAddReceipt('YunPay订单提交上游WinPay', __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $native, $ans, $doTime, '0', '1', '2');
+                logApiAddReceipt('订单提交上游WinPay', __METHOD__, $return['orderid'], $return['out_trade_id'], $return['gateway'], $native, $ans, $doTime, '0', '1', '2');
             }catch (\Exception $e) {
                 // var_dump($e);
             }

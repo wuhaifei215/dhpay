@@ -213,6 +213,7 @@ HTML;
                 $parts[] = $name . '=' . $value;
             }
         }
+        log_place_order($this->code, "----签名", implode('&', $parts) . $key);    //日志
         return strtoupper(md5(implode('&', $parts) . $key));
     }
 

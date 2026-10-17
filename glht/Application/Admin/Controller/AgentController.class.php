@@ -654,7 +654,7 @@ class AgentController extends BaseController
                 $this->ajaxReturn(['status' => 0, 'msg' => '用户不存在']);
             }
             if (($info['balance'] - $bgmoney) < 0 && $cztype == 4) {
-                $this->ajaxReturn(['status' => 0, 'msg' => "账上余额不足" . $bgmoney . "元，不能完成减金操作"]);
+                $this->ajaxReturn(['status' => 0, 'msg' => "账上余额不足" . $bgmoney . "，不能完成减金操作"]);
             }
             if ($cztype == 3) {
                 $data["balance"] = array('exp', "balance+" . $bgmoney);
@@ -714,11 +714,11 @@ class AgentController extends BaseController
                 $this->ajaxReturn(['status' => 0, 'msg' => "金额需要大于0"]);
             }
             if (($info['blockedbalance'] - $bgmoney) < 0 && $cztype == 8) {
-                $this->ajaxReturn(['status' => 0, 'msg' => "账上冻结余额不足" . $bgmoney . "元，不能完成减金操作"]);
+                $this->ajaxReturn(['status' => 0, 'msg' => "账上冻结余额不足" . $bgmoney . "，不能完成减金操作"]);
             }
             //冻结
             if ($cztype == 7 && ($info['balance'] - $bgmoney) < 0) {
-                $this->ajaxReturn(['status' => 0, 'msg' => "账上余额不足" . $bgmoney . "元，不能完成冻结操作"]);
+                $this->ajaxReturn(['status' => 0, 'msg' => "账上余额不足" . $bgmoney . "，不能完成冻结操作"]);
             }
             if ($cztype == 7) {
                 $data["balance"]        = array('exp', "balance-" . $bgmoney);

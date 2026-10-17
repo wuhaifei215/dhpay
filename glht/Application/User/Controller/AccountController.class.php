@@ -119,7 +119,7 @@ class AccountController extends UserController
             if (($info['balance'] - $bgmoney) < 0) {
                 M()->rollback();
                 UserLogService::write(3, '商户内转', '原因：商户余额不足');
-                $this->ajaxReturn(['status' => 0, 'msg' => "账上余额不足" . $bgmoney . "元，不能完成减金操作"]);
+                $this->ajaxReturn(['status' => 0, 'msg' => "账上余额不足" . $bgmoney . "，不能完成减金操作"]);
             }
             $where['id'] = $userid;
             $data["balance"] = array('exp', "balance-" . $bgmoney);
@@ -285,7 +285,7 @@ class AccountController extends UserController
             if (($info['balance'] - $bgmoney) < 0) {
                 M()->rollback();
                 UserLogService::write(3, '商户内转', '原因：商户余额不足');
-                $this->ajaxReturn(['status' => 0, 'msg' => "账上余额不足" . $bgmoney . "元，不能完成减金操作"]);
+                $this->ajaxReturn(['status' => 0, 'msg' => "账上余额不足" . $bgmoney . "，不能完成减金操作"]);
             }
             $where['id'] = $fromUserid;
             $data["balance"] = array('exp', "balance-" . $bgmoney);

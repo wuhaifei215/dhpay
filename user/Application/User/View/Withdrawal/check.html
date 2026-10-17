@@ -71,9 +71,9 @@
                         </p>
                 </form>
                 <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">
-                    今日代付总金额：<span class="label label-info"><{$stat.totay_total}>元</span> 今日代付待审核总金额：<span class="label label-warning"><{$stat.totay_wait}>元</span>今日代付待审核笔数：<span class="label label-warning"><{$stat.totay_wait_count}>笔</span>
-                    今日代付待平台审核总金额：<span class="label label-info"><{$stat.totay_platform_wait}>元</span> 今日代付待平台审核总笔数：<span class="label label-warning"><{$stat.totay_fail_count}>笔</span>
-                    今日代付成功总金额：<span class="label label-info"><{$stat.totay_success_sum}>元</span> 今日代付成功总笔数：<span class="label label-info"><{$stat.totay_success_count}>笔</span>
+                    今日代付总金额：<span class="label label-info"><{$stat.totay_total}></span> 今日代付待审核总金额：<span class="label label-warning"><{$stat.totay_wait}></span>今日代付待审核笔数：<span class="label label-warning"><{$stat.totay_wait_count}>笔</span>
+                    今日代付待平台审核总金额：<span class="label label-info"><{$stat.totay_platform_wait}></span> 今日代付待平台审核总笔数：<span class="label label-warning"><{$stat.totay_fail_count}>笔</span>
+                    今日代付成功总金额：<span class="label label-info"><{$stat.totay_success_sum}></span> 今日代付成功总笔数：<span class="label label-info"><{$stat.totay_success_count}>笔</span>
                     今日代付失败总笔数：<span class="label label-danger"><{$stat.totay_fail_count}>笔</span>
                 </blockquote>
                 <!--交易列表-->
@@ -99,7 +99,7 @@
                         <tr>
                             <td><input type="checkbox"  title="" value="<{$vo.id}>" class='checkIds' lay-skin="primary"></td>
                             <td><{$vo.out_trade_no}></td>
-                            <td><{$vo.money}> 元</td>
+                            <td><{$vo.money}></td>
                             <td><{$vo.bankname}></td>
                             <td><{$vo.subbranch}></td>
                             <td><{$vo.accountname}></td>

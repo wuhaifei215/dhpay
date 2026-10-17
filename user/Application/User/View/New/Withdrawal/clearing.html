@@ -13,8 +13,8 @@
                     </div>
                     <div class="table-responsive m-t-10">
                 <blockquote class="layui-elem-quote">
-                    <span class="text-danger">可提现：<{$info['balance']}> 元</span>
-                    <span style="margin:0 30px;" class="text-muted">冻结：<{$info['blockedbalance']}> 元</span>
+                    <span class="text-danger">可提现：<{$info['balance']}></span>
+                    <span style="margin:0 30px;" class="text-muted">冻结：<{$info['blockedbalance']}></span>
                     <span class="text-warning">结算：T+<{$tkconfig[t1zt]}></span>
                 </blockquote>
 
@@ -39,7 +39,7 @@
                                    placeholder="0.00" class="layui-input" value=""
                                    onkeyup="if(this.value.length==1){this.value=this.value.replace(/[^1-9]/g,'')}else{this.value=this.value.replace(/\D/g,'')}" onafterpaste="if(this.value.length==1){this.value=this.value.replace(/[^1-9]/g,'')}else{this.value=this.value.replace(/\D/g,'')}" style="width:190px">
                         </div>
-                        <div class="layui-form-mid layui-word-aux">注：<if condition="$tkconfig[tkzxmoney] gt 0">提现金额最小<{$tkconfig.tkzxmoney}>元，</if><if condition="$tkconfig[tkzdmoney] gt 0">提现金额最大<{$tkconfig.tkzdmoney}>元，</if><eq name="tkconfig.tk_charge_type" value="0">含提现手续费,直接在金额中扣除<else/>手续费从余额里扣除</eq>.</div>
+                        <div class="layui-form-mid layui-word-aux">注：<if condition="$tkconfig[tkzxmoney] gt 0">提现金额最小<{$tkconfig.tkzxmoney}>，</if><if condition="$tkconfig[tkzdmoney] gt 0">提现金额最大<{$tkconfig.tkzdmoney}>，</if><eq name="tkconfig.tk_charge_type" value="0">含提现手续费,直接在金额中扣除<else/>手续费从余额里扣除</eq>.</div>
                     </div>
                     <div class="layui-form-item">
                         <div class="layui-inline">
@@ -124,7 +124,7 @@
         //监听提交
         form.on('submit(save)', function(data){
             var a_num =0;
-            layer.confirm('确定提现'+$("#money").val()+"元？", {
+            layer.confirm('确定提现'+$("#money").val()+"？", {
                 btn: ['确定','取消'] //按钮
             }, function(){
                 a_num+=1;

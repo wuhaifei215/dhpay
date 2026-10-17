@@ -76,17 +76,17 @@
         </form>
         <if condition="$_GET['status'] eq '2'">
           <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;">
-              今日成功交易总额：<span class="label label-info"><{$stat.todaysum}>元</span>  
+              今日成功交易总额：<span class="label label-info"><{$stat.todaysum}></span>
               今日成功交易笔数：<span class="label label-info"><{$stat.todaysuccesscount}></span>
-              今日实际到账：<span class="label label-info"><{$stat.taodayactualamount}>元</span> 
+              今日实际到账：<span class="label label-info"><{$stat.taodayactualamount}></span>
               今日失败笔数：<span class="label label-danger"><{$stat.todayfailcount}></span>
           </blockquote>
         </if>
         <if condition="$_GET['createtime'] OR $_GET['successtime']">
           <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;">
-              成功交易金额：<span class="label label-info"><{$sum.pay_amount}>元</span>
-              成功订单数：<span class="label label-info"><{$sum.success_count}></span> 
-              实际到账：<span class="label label-info"><{$sum.taodayactualamount}>元</span> 
+              成功交易金额：<span class="label label-info"><{$sum.pay_amount}></span>
+              成功订单数：<span class="label label-info"><{$sum.success_count}></span>
+              实际到账：<span class="label label-info"><{$sum.taodayactualamount}></span>
               失败订单数：<span class="label label-danger"><{$sum.fail_count}></span>
           </blockquote>
         </if>

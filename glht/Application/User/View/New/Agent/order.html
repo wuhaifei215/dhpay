@@ -51,12 +51,12 @@
           </div>
         </form>
         <if condition="!$_GET['createtime'] AND !$_GET['successtime']">
-          <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;">今日交易总额11：<span class="label label-info"><{$stat.todaysum}>元</span>  今日交易笔数：<span class="label label-danger"><{$stat.todaysuccesscount}></span>
-            交易总金额：<span class="label label-info"><{$stat.totalsum}>元</span> 总订单数：<span class="label label-danger"><{$stat.totalsuccesscount}></span>
+          <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;">今日交易总额11：<span class="label label-info"><{$stat.todaysum}></span>  今日交易笔数：<span class="label label-danger"><{$stat.todaysuccesscount}></span>
+            交易总金额：<span class="label label-info"><{$stat.totalsum}></span> 总订单数：<span class="label label-danger"><{$stat.totalsuccesscount}></span>
           </blockquote>
         </if>
         <if condition="$_GET['createtime'] OR $_GET['successtime']">
-          <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;">成功交易金额：<span class="label label-info"><{$sum.pay_amount}>元</span>  成功订单数：<span class="label label-info"><{$sum.success_count}></span>
+          <blockquote class="layui-elem-quote" style="font-size:14px;padding:8px;">成功交易金额：<span class="label label-info"><{$sum.pay_amount}></span>  成功订单数：<span class="label label-info"><{$sum.success_count}></span>
           </blockquote>
         </if>
         <!--交易列表-->

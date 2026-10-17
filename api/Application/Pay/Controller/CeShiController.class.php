@@ -19,7 +19,7 @@ class CeShiController extends PayController
     {
         // $pay_amount = I('request.pay_amount');
         // if ($pay_amount < 100 || $pay_amount > 500000) {
-        //     die("金额不匹配，仅支持100~50000元充值");
+        //     die("金额不匹配，仅支持100~50000充值");
         // }
         $orderid = I("request.pay_orderid", '');
         $body = I('request.pay_productname', '');

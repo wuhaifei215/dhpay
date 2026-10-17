@@ -191,8 +191,8 @@ class OrderTableController extends BaseController
 
 
 // print_r($where);die();
-            //       <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">成功交易总金额：<span class="label stat_success"><{$stamount}>元</span> 平台利润：<span class="label stat_success"><{$strate}>元</span>
-            //   代理收入：<span class="label stat_success"><{$memberprofit}>元</span> 商户收入总金额：<span class="label stat_success"><{$strealmoney}>元</span> 成功订单数：<span class="label stat_success"><{$success_count}></span> 失败订单数：<span class="label stat_fail"><{$fail_count}></span>
+            //       <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">成功交易总金额：<span class="label stat_success"><{$stamount}></span> 平台利润：<span class="label stat_success"><{$strate}></span>
+            //   代理收入：<span class="label stat_success"><{$memberprofit}></span> 商户收入总金额：<span class="label stat_success"><{$strealmoney}></span> 成功订单数：<span class="label stat_success"><{$success_count}></span> 失败订单数：<span class="label stat_fail"><{$fail_count}></span>
             //   投诉保证金已返回金额：<span class="label stat_success"><{$complaints_deposit_unfreezed}></span> 投诉保证金冻结金额：<span class="label stat_fail"><{$complaints_deposit_freezed}></span>
             // </blockquote>
 

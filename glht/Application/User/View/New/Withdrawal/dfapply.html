@@ -19,20 +19,20 @@
     					  </ul>
     				</div>
                     <blockquote class="layui-elem-quote">
-                        <span class="text-danger">可提现：<{$info['balance']}> 元</span>
-                        <span style="margin:0 30px;" class="text-muted">冻结：<{$info['blockedbalance']}> 元</span>
+                        <span class="text-danger">可提现：<{$info['balance']}></span>
+                        <span style="margin:0 30px;" class="text-muted">冻结：<{$info['blockedbalance']}></span>
                         <span class="text-warning">结算：T+<{$tkconfig[t1zt]}></span>
                         <span style="margin:0 30px;" class="text-muted">
-                            手续费：<if condition="$tkconfig[tktype] eq 1"><{$tkconfig[sxffixed]}>元/笔<else/><{$tkconfig[sxfrate]}>%</if></span>
+                            手续费：<if condition="$tkconfig[tktype] eq 1"><{$tkconfig[sxffixed]}>/笔<else/><{$tkconfig[sxfrate]}>%</if></span>
                         </span>
                         <span class="text-danger">
                             <if condition="$tkconfig[tkzxmoney] gt 0">
-                            单笔最低：<{$tkconfig[tkzxmoney]}>元
+                            单笔最低：<{$tkconfig[tkzxmoney]}>
                             </if>
                         </span>
                         <span class="text-warning" style="margin:0 30px;">
                             <if condition="$tkconfig[tkzdmoney] gt 0">
-                            单笔最高：<{$tkconfig[tkzdmoney]}>元
+                            单笔最高：<{$tkconfig[tkzdmoney]}>
                             </if>
                         </span>
                     </blockquote>

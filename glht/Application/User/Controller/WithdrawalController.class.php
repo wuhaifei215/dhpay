@@ -631,7 +631,7 @@ class WithdrawalController extends UserController
                         break;
                     }
                     if (bcadd($tkmoneysum, $dayzdmoney, 4) >= $tkConfig['dayzdmoney']) {
-                        $errorTxt = "提现额度不足！您今日剩余提现额度：" . ($tkConfig['dayzdmoney'] - $dayzdmoney) . "元";
+                        $errorTxt = "提现额度不足！您今日剩余提现额度：" . ($tkConfig['dayzdmoney'] - $dayzdmoney) . "";
                         break;
                     }
                     if (!isset($cardsum[$v['banknumber']])) {
@@ -650,7 +650,7 @@ class WithdrawalController extends UserController
                             break;
                         }
                         if (($todayCardSum + $cardsum[$v['banknumber']]) > $tkConfig['daycardzdmoney']) {
-                            $errorTxt = "尾号" . substr($v["banknumber"], -4) . "的银行卡提现额度不足！该银行卡今日剩余提现额度：" . ($tkConfig['daycardzdmoney'] - $todayCardSum) . "元";
+                            $errorTxt = "尾号" . substr($v["banknumber"], -4) . "的银行卡提现额度不足！该银行卡今日剩余提现额度：" . ($tkConfig['daycardzdmoney'] - $todayCardSum) . "";
                             break;
                         }
                     }
@@ -1110,7 +1110,7 @@ class WithdrawalController extends UserController
                         break;
                     }
                     if (bcadd($tkmoneysum, $dayzdmoney, 4) >= $tkConfig['dayzdmoney']) {
-                        $errorTxt = "提现额度不足！您今日剩余提现额度：" . ($tkConfig['dayzdmoney'] - $dayzdmoney) . "元";
+                        $errorTxt = "提现额度不足！您今日剩余提现额度：" . ($tkConfig['dayzdmoney'] - $dayzdmoney) . "";
                         break;
                     }
                     //单人单卡最高提现额度检查
@@ -1125,7 +1125,7 @@ class WithdrawalController extends UserController
                             break;
                         }
                         if (($todayCardSum + $cardsum[$v['bank']]) > $tkConfig['daycardzdmoney']) {
-                            $errorTxt = "尾号" . substr($bankCard['cardnumber'], -4) . "的银行卡提现额度不足！该银行卡今日剩余提现额度：" . ($tkConfig['daycardzdmoney'] - $todayCardSum) . "元";
+                            $errorTxt = "尾号" . substr($bankCard['cardnumber'], -4) . "的银行卡提现额度不足！该银行卡今日剩余提现额度：" . ($tkConfig['daycardzdmoney'] - $todayCardSum) . "";
                             break;
                         }
                     }
@@ -1498,7 +1498,7 @@ class WithdrawalController extends UserController
 //                        break;
 //                    }
 //                    if (bcadd($tkmoneysum, $dayzdmoney, 4) >= $tkConfig['dayzdmoney']) {
-//                        $errorTxt = "提现额度不足！您今日剩余提现额度：" . ($tkConfig['dayzdmoney'] - $dayzdmoney) . "元";
+//                        $errorTxt = "提现额度不足！您今日剩余提现额度：" . ($tkConfig['dayzdmoney'] - $dayzdmoney) . "";
 //                        break;
 //                    }
 //                    //单人单卡最高提现额度检查
@@ -1512,7 +1512,7 @@ class WithdrawalController extends UserController
 //                            break;
 //                        }
 //                        if (($todayCardSum + $cardsum[$v['bank']]) > $tkConfig['daycardzdmoney']) {
-//                            $errorTxt = "尾号" . substr($v['cardnumber'], -4) . "的支付宝提现额度不足！该支付宝今日剩余提现额度：" . ($tkConfig['daycardzdmoney'] - $todayCardSum) . "元";
+//                            $errorTxt = "尾号" . substr($v['cardnumber'], -4) . "的支付宝提现额度不足！该支付宝今日剩余提现额度：" . ($tkConfig['daycardzdmoney'] - $todayCardSum) . "";
 //                            break;
 //                        }
 //                    }

@@ -127,7 +127,7 @@ $native['pay_productname'] ='VIP基础服务';
                     echo '<input type="hidden" name="' . $key . '" value="' . $val . '">';
                 }
                 ?>
-                <button type="submit" class="btn btn-success btn-lg">扫码支付(金额：<?php echo $pay_amount; ?>元)</button>
+                <button type="submit" class="btn btn-success btn-lg">扫码支付(金额：<?php echo $pay_amount; ?>)</button>
             </form>
         </div>
     </div>

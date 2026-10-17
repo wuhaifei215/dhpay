@@ -92,9 +92,9 @@
                     <a href="javascript:;" id="submitAllOrder" class="layui-btn layui-btn-sm">一键设置完成</a>
                     <a href="javascript:;" id="rejectAllOrder" class="layui-btn layui-btn-sm layui-btn-danger">一键驳回</a>
                 </p>
-                <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">今日结算总金额：<span class="label stat_success"><{$stat.totay_total}>元</span> 今日待结算：<span class="label stat_info"><{$stat.totay_wait}>元</span> 今日完成笔数：<span class="label stat_success"><{$stat.totay_success_count}></span> 今日驳回笔数：<span class="label stat_fail"><{$stat.totay_fail_count}></span></blockquote>
-                <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">本月结算总金额：<span class="label stat_success"><{$stat.month_total}>元</span> 本月待结算：<span class="label stat_info"><{$stat.month_wait}>元</span> 本月完成笔数：<span class="label stat_success"><{$stat.month_success_count}></span> 本月驳回笔数：<span class="label stat_fail"><{$stat.month_fail_count}></span></blockquote>
-                <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">结算总金额：<span class="label stat_success"><{$stat.total}>元</span> 待结算：<span class="label stat_info"><{$stat.total_wait}>元</span> 完成笔数：<span class="label stat_success"><{$stat.total_success_count}></span> 驳回笔数：<span class="label stat_fail"><{$stat.total_fail_count}></span></blockquote>
+                <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">今日结算总金额：<span class="label stat_success"><{$stat.totay_total}></span> 今日待结算：<span class="label stat_info"><{$stat.totay_wait}></span> 今日完成笔数：<span class="label stat_success"><{$stat.totay_success_count}></span> 今日驳回笔数：<span class="label stat_fail"><{$stat.totay_fail_count}></span></blockquote>
+                <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">本月结算总金额：<span class="label stat_success"><{$stat.month_total}></span> 本月待结算：<span class="label stat_info"><{$stat.month_wait}></span> 本月完成笔数：<span class="label stat_success"><{$stat.month_success_count}></span> 本月驳回笔数：<span class="label stat_fail"><{$stat.month_fail_count}></span></blockquote>
+                <blockquote class="layui-elem-quote" style="font-size:14px;padding;8px;">结算总金额：<span class="label stat_success"><{$stat.total}></span> 待结算：<span class="label stat_info"><{$stat.total_wait}></span> 完成笔数：<span class="label stat_success"><{$stat.total_success_count}></span> 驳回笔数：<span class="label stat_fail"><{$stat.total_fail_count}></span></blockquote>
                 <!--交易列表-->
                 <table class="layui-table" lay-skin="line" lay-size="sm"  lay-data="{width:'100%',limit:<{$rows}>,id:'userData'}">
                     <thead>
@@ -121,9 +121,9 @@
                             <td><{$vo.id}></td>
                             <td>T+<{$vo.t}></td>
                             <td><{$vo["userid"]+10000}></td>
-                            <td><{$vo["tkmoney"]}> 元</td>
-                            <td><{$vo["sxfmoney"]}> 元</td>
-                            <td><{$vo["money"]}> 元</td>
+                            <td><{$vo["tkmoney"]}></td>
+                            <td><{$vo["sxfmoney"]}></td>
+                            <td><{$vo["money"]}></td>
                             <td><{$vo.bankfullname}><br><{$vo.banknumber}><br><{$vo.bankname}><br><{$vo.bankzhiname}></td>
                             <td><{$vo.sheng}><br><{$vo.shi}></td>
                             <td><{$vo.sqdatetime}><br><{$vo.cldatetime}></td>

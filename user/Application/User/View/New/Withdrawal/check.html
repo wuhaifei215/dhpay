@@ -76,22 +76,22 @@
                         </p>
                         <div class="row statistics" style="margin-top:20px">
                             <div class="col-lg-3 col-md-6 font-14 font-weight-bold m-b-20">
-                                今日代付总金额：<span class="success"><{$stat.totay_total}>元</span>
+                                今日代付总金额：<span class="success"><{$stat.totay_total}></span>
                             </div>
                             <div class="col-lg-3 col-md-6 m-b-20">
-                                今日代付待审核总金额：<span class="info"><{$stat.totay_wait}>元</span>
+                                今日代付待审核总金额：<span class="info"><{$stat.totay_wait}></span>
                             </div>
                             <div class="col-lg-3 col-md-6 font-weight-bold m-b-20">
                                 今日代付待审核笔数：<span class="info"><{$stat.totay_wait_count}>笔</span>
                             </div>
                             <div class="col-lg-3 col-md-6 font-weight-bold m-b-20">
-                                今日代付待平台审核总金额：<span class="info"><{$stat.totay_platform_wait}>元</span>
+                                今日代付待平台审核总金额：<span class="info"><{$stat.totay_platform_wait}></span>
                             </div>
                             <div class="col-lg-3 col-md-6 font-14 font-weight-bold m-b-20">
                                 今日代付待平台审核总笔数：<span class="info"><{$stat.totay_fail_count}>笔</span>
                             </div>
                             <div class="col-lg-3 col-md-6 m-b-20">
-                                今日代付成功总金额：<span class="success"><{$stat.totay_success_sum}>元</span>
+                                今日代付成功总金额：<span class="success"><{$stat.totay_success_sum}></span>
                             </div>
                             <div class="col-lg-3 col-md-6 font-weight-bold m-b-20">
                                 今日代付成功总笔数：<span class="success"><{$stat.totay_success_count}>笔</span>
@@ -121,7 +121,7 @@
                         <tr>
                             <td><input type="checkbox"  title="" value="<{$vo.id}>" class='checkIds' lay-skin="primary"></td>
                             <td><{$vo.out_trade_no}></td>
-                            <td><{$vo.money}> 元</td>
+                            <td><{$vo.money}></td>
                             <td><{$vo.accountname}><br><{$vo.cardnumber}><br><{$vo.bankname}><br><{$vo.subbranch}></td>
                             <!--<td><{$vo.province}><br><{$vo.city}></td>-->
                             <td><switch name="vo[check_status]">

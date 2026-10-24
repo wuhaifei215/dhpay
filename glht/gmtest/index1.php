@@ -92,9 +92,9 @@ if(in_array($pay_bankcode,[7713, 7719, 7720, 7721, 7722])){
 
 if(in_array($pay_bankcode,[7730, 7731])){
     $native['pay_extends'] = base64_encode(json_encode([
-            'real_name' => 'John Doe',
-            'bank_number' => '081234567890',
-            'bank_name' => '9164',
+        'real_name' => 'John Doe',
+        'bank_number' => '081234567890',
+        'bank_name' => '9164',
     ]));
 }
 ?>

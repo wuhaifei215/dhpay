@@ -32,19 +32,19 @@ class QQPayIdrDFController extends PaymentController
             'type_id' => $channel['typeId'],
             'order_num' => (string)$data['orderid'],
             'currency' => 'IDR',
-            'order_fee' => $this->toCents($data['money']),
+            'order_fee' => intval($data['money'] * 100),
             'account_name' => trim((string)$data['bankfullname']),
             'account_no' => trim((string)$data['banknumber']),
             'bank_number' => $channel['bankNumber'],
-            'notify_url' => $this->buildNotifyUrl(),
+            'notify_url' => 'https://' . C('NOTIFY_DOMAIN') . "/Payment_" . $this->code . "_notifyurl.html",
             'order_at' => date('Y-m-d H:i:s'),
         ];
         if (!empty($data['out_trade_no'])) {
             $request['attach'] = substr((string)$data['out_trade_no'], 0, 100);
         }
         $request['sign'] = $this->sign($request, $config['signkey']);
-        $gateway = $this->resolveEndpoint(isset($config['exec_gateway']) ? $config['exec_gateway'] : '', self::CREATE_PATH);
         log_place_order($this->code, $data['orderid'] . '----提交', json_encode($request, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        $gateway = $this->resolveEndpoint(isset($config['exec_gateway']) ? $config['exec_gateway'] : '', self::CREATE_PATH);
         log_place_order($this->code, $data['orderid'] . '----提交地址', $gateway);
 
         $beginTime = microtime(true);
@@ -292,13 +292,6 @@ class QQPayIdrDFController extends PaymentController
         }
         $configuredPath = parse_url($gateway, PHP_URL_PATH);
         return $configuredPath === '' || $configuredPath === '/' ? rtrim($gateway, '/') . $path : $gateway;
-    }
-
-    private function buildNotifyUrl()
-    {
-        $domain = trim((string)C('NOTIFY_DOMAIN'));
-        $baseUrl = preg_match('#^https?://#i', $domain) ? $domain : 'https://' . $domain;
-        return rtrim($baseUrl, '/') . '/Payment_' . $this->code . '_notifyurl.html';
     }
 
     private function writeNotifyLog($orderid, array $data, $message)

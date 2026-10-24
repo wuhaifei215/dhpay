@@ -84,7 +84,7 @@ class CreateController extends PayController
             $this->showmessage('pay_extends cannot be empty');
         }
         $extend_fields_array = json_decode(base64_decode($extends), true);
-        $fields = ['real_name', 'phone'];    //扩展字段
+        $fields = ['real_name', 'bank_number','bank_name'];    //扩展字段
         foreach($fields as $k => $v) {
             if(!isset($extend_fields_array[$v]) || $extend_fields_array[$v]=='') {
                 $this->showmessage('The secondary parameter of the extends field 【' . $v . '】 cannot be empty');
